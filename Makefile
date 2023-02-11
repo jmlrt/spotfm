@@ -34,7 +34,7 @@ clean:
 
 .PHONY: publish
 publish: install build
-	git pull origin master
+	git pull origin main
 	git tag -m "v$(VERSION)" v$(VERSION)
 	git push --tags
 	$(PYTHON) -m twine upload dist/*
