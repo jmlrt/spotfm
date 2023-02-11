@@ -1,17 +1,7 @@
 import argparse
 import logging
-import os
-import tomllib
 
-from spotfm import lastfm
-
-CONFIG_FILE = f"{os.getenv('HOME')}/.spotfm.toml"
-
-
-def parse_config(file):
-    with open(file, mode="rb") as f:
-        config = tomllib.load(f)
-    return config
+from spotfm import lastfm, spotify, utils
 
 
 def recent_scrobbles(user, limit, scrobbles_minimum, period):
@@ -20,11 +10,11 @@ def recent_scrobbles(user, limit, scrobbles_minimum, period):
         print(scrobble)
 
 
-def lastfm_cli(args):
-    # You have to have your own unique two values for API_KEY and API_SECRET
-    # Obtain yours from https://www.last.fm/api/account/create for Last.fm
-    config = parse_config(CONFIG_FILE)
+def count_tracks(client):
+    spotify.count_tracks_in_playlists(client.client)
 
+
+def lastfm_cli(args, config):
     client = lastfm.Client(
         config["lastfm"]["api_key"],
         config["lastfm"]["api_secret"],
@@ -36,6 +26,17 @@ def lastfm_cli(args):
     match args.command:
         case "recent-scrobbles":
             recent_scrobbles(user, args.limit, args.scrobbles_minimum, args.period)
+
+
+def spotify_cli(args, config):
+    client = spotify.Client(
+        config["spotify"]["client_id"],
+        config["spotify"]["client_secret"],
+    )
+
+    match args.command:
+        case "count-tracks":
+            count_tracks(client)
 
 
 def main():
@@ -50,11 +51,17 @@ def main():
     lastfm_parser.add_argument("-l", "--limit", default=50, type=int)
     lastfm_parser.add_argument("-s", "--scrobbles-minimum", default=4, type=int)
     lastfm_parser.add_argument("-p", "--period", default=90, type=int)
+    spotify_parser = subparsers.add_parser("spotify")
+    spotify_parser.add_argument("command", choices=["count-tracks"])
     args = parser.parse_args()
+
+    config = utils.parse_config()
 
     match args.group:
         case "lastfm":
-            lastfm_cli(args)
+            lastfm_cli(args, config)
+        case "spotify":
+            spotify_cli(args, config)
 
 
 if __name__ == "__main__":
