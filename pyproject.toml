@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "spotfm"
+version = "0.0.1"
+description = "Simple Python lib to interact with Spotify and Last.FM APIs"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {file = "LICENSE"}
+authors = [{name = "Julien Mailleret", email = "julien@mailleret.fr"}]
+dependencies = [
+    "pylast",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pre-commit"
+]
+
+[project.urls]
+homepage = "https://github.com/jmlrt/spotfm"
+
+[project.scripts]
+spfm = "spotfm.cli:main"
+
+[tool.isort]
+profile = "black"
