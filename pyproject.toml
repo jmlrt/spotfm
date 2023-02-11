@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "spotfm"
-version = "0.0.1"
+version = "0.0.2"
 description = "Simple Python lib to interact with Spotify and Last.FM APIs"
 readme = "README.md"
 requires-python = ">=3.11"
