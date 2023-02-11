@@ -1,8 +1,17 @@
 import argparse
 import logging
 import os
+import tomllib
 
 from spotfm import lastfm
+
+CONFIG_FILE = f"{os.getenv('HOME')}/.spotfm.toml"
+
+
+def parse_config(file):
+    with open(file, mode="rb") as f:
+        config = tomllib.load(f)
+    return config
 
 
 def recent_scrobbles(user, limit, scrobbles_minimum, period):
@@ -14,12 +23,14 @@ def recent_scrobbles(user, limit, scrobbles_minimum, period):
 def lastfm_cli(args):
     # You have to have your own unique two values for API_KEY and API_SECRET
     # Obtain yours from https://www.last.fm/api/account/create for Last.fm
-    api_key = os.getenv("LASTFM_API_KEY")
-    api_secret = os.getenv("LASTFM_API_SECRET")
-    username = os.getenv("LASTFM_USERNAME")
-    password_hash = os.getenv("LASTFM_PASSWORD_HASH")
+    config = parse_config(CONFIG_FILE)
 
-    client = lastfm.Client(api_key, api_secret, username, password_hash)
+    client = lastfm.Client(
+        config["lastfm"]["api_key"],
+        config["lastfm"]["api_secret"],
+        config["lastfm"]["username"],
+        config["lastfm"]["password_hash"],
+    )
     user = lastfm.User(client.client)
 
     match args.command:
