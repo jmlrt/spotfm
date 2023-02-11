@@ -1,5 +1,7 @@
 VENV := venv
 PYTHON := $(VENV)/bin/python
+VERSION := $(shell $(PYTHON) hacks/get_version.py)
+
 
 $(PYTHON):
 	virtualenv $(VENV) --python python3.11
@@ -9,7 +11,7 @@ pip: $(PYTHON)
 	$(PYTHON) -m pip install --upgrade pip build
 
 .PHONY: pre-commit
-pre-commit:
+pre-commit: install
 	pre-commit run --all-files
 
 .PHONY: build
@@ -29,3 +31,10 @@ clean:
 	rm -fr dist $(VENV) *.egg-info
 	find . -type f -name '*.pyc' -delete
 	find . -type d -name __pycache__ -delete
+
+.PHONY: publish
+publish: install build
+	git pull origin master
+	git tag -m "v$(VERSION)" v$(VERSION)
+	git push --tags
+	$(PYTHON) -m twine upload dist/*

@@ -16,7 +16,8 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "pre-commit"
+    "pre-commit",
+    "twine",
 ]
 
 [project.urls]
@@ -27,3 +28,6 @@ spfm = "spotfm.cli:main"
 
 [tool.isort]
 profile = "black"
+
+[tool.setuptools]
+packages = ["spotfm"]
