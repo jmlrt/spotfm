@@ -16,6 +16,7 @@ pre-commit: install
 
 .PHONY: build
 build: $(PYTHON)
+	rm -fr dist/*
 	$(PYTHON) -m build .
 
 .PHONY: install
