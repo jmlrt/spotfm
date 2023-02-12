@@ -1,8 +1,6 @@
-import time
 from collections import Counter
 
 import spotipy
-from spotipy.exceptions import SpotifyException
 from spotipy.oauth2 import SpotifyOAuth
 
 from spotfm import utils
@@ -10,11 +8,12 @@ from spotfm import utils
 REDIRECT_URI = "http://127.0.0.1:9090"
 SCOPE = "user-library-read playlist-read-private playlist-read-collaborative"
 
+# TODO
+# update sqlite db from the spotify api
+
 
 class Client:
-    def __init__(
-        self, client_id, client_secret, redirect_uri=REDIRECT_URI, scope=SCOPE
-    ):
+    def __init__(self, client_id, client_secret, redirect_uri=REDIRECT_URI, scope=SCOPE):
         self.client = spotipy.Spotify(
             auth_manager=SpotifyOAuth(
                 client_id=client_id,
@@ -26,25 +25,19 @@ class Client:
 
 
 class Playlist:
-    def __init__(self, client, playlist_id):
-        self.client = client
+    def __init__(self, playlist_id):
         self.id = playlist_id
-        self.raw_playlist = client.playlist(playlist_id)
-        self.name = self.raw_playlist["name"]
-        self.owner = self.raw_playlist["owner"]["display_name"]
+        self.name, self.owner = utils.select_db(
+            utils.DATABASE, f"SELECT name, owner FROM playlists WHERE id == '{self.id}'"
+        ).fetchone()
+        results = utils.select_db(
+            utils.DATABASE, f"SELECT track_id FROM playlists_tracks WHERE playlist_id == '{self.id}'"
+        ).fetchall()
+        self.tracks_id = [col[0] for col in results]
+
         self._tracks = None
-        self._tracks_ids = None
         self._tracks_names = None
         self._sorted_tracks = None
-        utils.cache_object(self, f"playlists/{playlist_id}.pickle")
-
-    @classmethod
-    def get_playlist(cls, client, playlist_id, refresh=False):
-        cache_file = f"spotify/playlists/{playlist_id}.pickle"
-        playlist = utils.retrieve_object_from_cache(cache_file)
-        if playlist is not None and refresh is False:
-            return playlist
-        return Playlist(client, playlist_id)
 
     @classmethod
     def get_user_playlists(cls, client, excluded_playlists=[]):
@@ -53,10 +46,7 @@ class Playlist:
 
         def filter_playlists(playlists):
             for playlist in playlists["items"]:
-                if (
-                    playlist["owner"]["id"] == user
-                    and playlist["id"] not in excluded_playlists
-                ):
+                if playlist["owner"]["id"] == user and playlist["id"] not in excluded_playlists:
                     yield playlist["id"]
 
         playlists = client.current_user_playlists()
@@ -74,46 +64,15 @@ class Playlist:
         if self._tracks is not None:
             return self._tracks
         self._tracks = []
-        tracks = self.raw_playlist["tracks"]
-        for track in tracks["items"]:
-            time.sleep(0.1)
-            try:
-                if track["track"]["type"] == "track":
-                    self._tracks.append(
-                        Track.get_track(self.client, track["track"]["id"])
-                    )
-            except TypeError:
-                print(f"Error: Failed to add {track}")
-
-            while tracks["next"]:
-                try:
-                    tracks = self.client.next(tracks)
-                    for track in tracks["items"]:
-                        if track["track"]["type"] == "track":
-                            self._tracks.append(
-                                Track.get_track(self.client, track["track"]["id"])
-                            )
-                except (TypeError, SpotifyException):
-                    print(f"Error: Failed to add {track}")
-
+        for track_id in self.tracks_id:
+            self._tracks.append(Track(track_id))
         return self._tracks
-
-    @property
-    def tracks_ids(self):
-        if self._tracks_ids is not None:
-            return self._tracks_ids
-        self._tracks_ids = []
-
-        for track in self.tracks:
-            self._tracks_ids.append(track.id)
-        return self._tracks_ids
 
     @property
     def tracks_names(self):
         if self._tracks_names is not None:
             return self._tracks_names
         self._tracks_names = []
-
         for track in self.tracks:
             self._tracks_names.append(track.__str__())
         return self._tracks_names
@@ -132,14 +91,16 @@ class Playlist:
                 genres.append(genre)
         return Counter(genres)
 
-    def remove_track(self, track_id):
-        self.client.playlist_remove_all_occurrences_of_items(self.id, [track_id])
+    # TODO
+    # def remove_track(self, track_id):
+    #     self.client.playlist_remove_all_occurrences_of_items(self.id, [track_id])
 
-    def add_track(self, track_id):
-        try:
-            self.client.playlist_add_items(self.id, [track_id])
-        except TypeError:
-            print(f"Error: Failed to add {Track(self.client, track_id)}")
+    # TODO
+    # def add_track(self, track_id):
+    #     try:
+    #         self.client.playlist_add_items(self.id, [track_id])
+    #     except TypeError:
+    #         print(f"Error: Failed to add {Track(self.client, track_id)}")
 
     def __repr__(self):
         return f"Playlist({self.owner} - {self.name})"
@@ -149,32 +110,29 @@ class Playlist:
 
 
 class Track:
-    def __init__(self, client, track_id):
-        self.client = client
+    def __init__(self, track_id):
         self.id = track_id
-        self.raw_track = client.track(track_id)
+        self.name = utils.select_db(utils.DATABASE, f"SELECT name FROM tracks WHERE id == '{self.id}'").fetchone()[0]
+        self.album_id = utils.select_db(
+            utils.DATABASE, f"SELECT album_id FROM albums_tracks WHERE track_id == '{self.id}'"
+        ).fetchone()[0]
+        self.album, self.release_date = utils.select_db(
+            utils.DATABASE, f"SELECT name, release_date FROM albums WHERE id == '{self.album_id}'"
+        ).fetchone()
+        results = utils.select_db(
+            utils.DATABASE, f"SELECT artist_id FROM tracks_artists WHERE track_id == '{self.id}'"
+        ).fetchall()
+        self.artists_id = [col[0] for col in results]
         self._artists = None
         self._genres = None
-        self.name = self.raw_track["name"]
-        self.album = self.raw_track["album"]["name"]
-        self.release_date = self.raw_track["album"]["release_date"]
-        utils.cache_object(self, f"tracks/{track_id}.pickle")
-
-    @classmethod
-    def get_track(cls, client, track_id, refresh=False):
-        cache_file = f"spotify/tracks/{track_id}.pickle"
-        track = utils.retrieve_object_from_cache(cache_file)
-        if track is not None and refresh is False:
-            return track
-        return Track(client, track_id)
 
     @property
     def artists(self):
         if self._artists is not None:
             return self._artists
         self._artists = []
-        for raw_artist in self.raw_track["artists"]:
-            self._artists.append(Artist.get_artist(self.client, raw_artist["id"]))
+        for artist_id in self.artists_id:
+            self._artists.append(Artist(artist_id))
         return self._artists
 
     @property
@@ -210,13 +168,13 @@ class Track:
 
 
 class Artist:
-    def __init__(self, client, artist_id):
-        self.client = client
+    def __init__(self, artist_id):
         self.id = artist_id
-        self.raw_artist = client.artist(artist_id)
-        self.name = self.raw_artist["name"]
-        self.genres = self.raw_artist["genres"]
-        utils.cache_object(self, f"artists/{artist_id}.pickle")
+        self.name = utils.select_db(utils.DATABASE, f"SELECT name FROM artists WHERE id == '{self.id}'").fetchone()[0]
+        results = utils.select_db(
+            utils.DATABASE, f"SELECT genre FROM artists_genres WHERE artist_id == '{self.id}'"
+        ).fetchall()
+        self.genres = [col[0] for col in results]
 
     def __repr__(self):
         return f"Artist({self.name})"
@@ -224,27 +182,9 @@ class Artist:
     def __str__(self):
         return self.name
 
-    @classmethod
-    def get_artist(cls, client, artist_id, refresh=False):
-        cache_file = f"spotify/artists/{artist_id}.pickle"
-        artist = utils.retrieve_object_from_cache(cache_file)
-        if artist is not None and refresh is False:
-            return artist
-        return Artist(client, artist_id)
 
-
-def count_tracks_in_playlists(client):
-    # TODO add EXCLUDED_PLAYLISTS
-    playlists_ids = Playlist.get_user_playlists(client)
-    total_tracks = []
-
-    csvfile = utils.WORK_DIR / f"{utils.get_date()}_count.csv"
-    with open(csvfile, "w") as f:
-        f.write("playlist;tracks\n")
-        for playlist_id in playlists_ids:
-            playlist = Playlist.get_playlist(client, playlist_id, refresh=True)
-            f.write(f"{playlist_id}_{playlist.name};{len(playlist.tracks)}\n")
-            for track in playlist.tracks:
-                total_tracks.append(track)
-        f.write(f"TOTAL;{len(set(total_tracks))}\n")
-    print(f"{len(set(total_tracks))}")
+def count_tracks_in_playlists():
+    return utils.select_db(
+        utils.DATABASE,
+        "select name, count(*) from playlists, playlists_tracks where id = playlists_tracks.playlist_id group by name;",
+    ).fetchall()

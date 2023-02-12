@@ -1,5 +1,6 @@
 import logging
-import pickle
+import sqlite3
+import time
 import tomllib
 from datetime import datetime
 from pathlib import Path
@@ -8,10 +9,15 @@ HOME_DIR = Path.home()
 CONFIG_FILE = HOME_DIR / ".spotfm.toml"
 WORK_DIR = HOME_DIR / ".spotfm"
 CACHE_DIR = WORK_DIR / "cache"
+DATABASE = WORK_DIR / "spotify.db"
 
 
 def get_date():
     return datetime.today().strftime("%Y%m%d")
+
+
+def sanitize_string(string):
+    return string.replace("'", "")
 
 
 def parse_config(file=CONFIG_FILE):
@@ -20,19 +26,25 @@ def parse_config(file=CONFIG_FILE):
     return config
 
 
-def cache_object(object, filename):
-    cache_file = CACHE_DIR / filename
-    Path(cache_file).parent.mkdir(parents=True, exist_ok=True)
-    with open(cache_file, "wb") as f:
-        pickle.dump(object, f)
-    logging.info(f"{object} has been cached to {cache_file}")
+def query_db(database, queries, script=False):
+    con = sqlite3.connect(database)
+    con.set_trace_callback(logging.info)
+    cur = con.cursor()
+    for query in queries:
+        if script:
+            # breakpoint()
+            cur.executescript(query)
+        else:
+            cur.execute(query)
+    con.commit()
+    con.close()
+    # spare CPU load
+    time.sleep(0.01)
 
 
-def retrieve_object_from_cache(filename):
-    cache_file = CACHE_DIR / filename
-    if cache_file.exists():
-        with open(cache_file, "rb") as f:
-            object = pickle.load(f)
-            logging.info(f"{object} has been retrieved from {cache_file}")
-            return object
-    return None
+def select_db(database, query):
+    con = sqlite3.connect(database)
+    con.set_trace_callback(logging.info)
+    cur = con.cursor()
+    res = cur.execute(query)
+    return res
