@@ -5,31 +5,30 @@ VERSION := $(shell $(PYTHON) hacks/get_version.py)
 
 $(PYTHON):
 	virtualenv $(VENV) --python python3.11
-
-.PHONY: pip
-pip: $(PYTHON)
 	$(PYTHON) -m pip install --upgrade pip build
 
-.PHONY: pre-commit
-pre-commit: install
-	pre-commit run --all-files
+$(VENV)/bin/pre-commit: $(PYTHON)
+	$(PYTHON) -m pip install --editable .[dev]
 
-.PHONY: build
-build: $(PYTHON)
-	rm -fr dist/*
-	$(PYTHON) -m build .
+requirements.txt: install
+	$(PYTHON) -m pip freeze > requirements.txt
 
 .PHONY: install
 install: $(PYTHON)
 	$(PYTHON) -m pip install --editable .[dev]
 
-.PHONY: freeze
-freeze: $(PYTHON)
-	$(PYTHON) -m pip freeze > requirements.txt
+.PHONY: pre-commit
+pre-commit: $(VENV)/bin/pre-commit
+	pre-commit run --all-files
+
+.PHONY: build
+build: $(PYTHON)
+	rm -fr build/* dist/*
+	$(PYTHON) -m build .
 
 .PHONY: clean
 clean:
-	rm -fr dist $(VENV) *.egg-info
+	rm -fr build dist $(VENV) *.egg-info
 	find . -type f -name '*.pyc' -delete
 	find . -type d -name __pycache__ -delete
 

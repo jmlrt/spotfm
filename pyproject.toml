@@ -26,6 +26,9 @@ homepage = "https://github.com/jmlrt/spotfm"
 [project.scripts]
 spfm = "spotfm.cli:main"
 
+[tool.black]
+line-length = 120
+
 [tool.isort]
 profile = "black"
 

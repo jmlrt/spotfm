@@ -1,5 +1,7 @@
+.cache
 .envrc
 *.egg-info
+build/
 dist/
 venv/
 **/__pycache__

@@ -46,9 +46,7 @@ class Track:
 
     def get_scrobbles_url(self, period=None):
         try:
-            url = self.url.replace(
-                LASTFM_BASE_URL, f"{LASTFM_BASE_URL}/user/{self.user.name}/library"
-            )
+            url = self.url.replace(LASTFM_BASE_URL, f"{LASTFM_BASE_URL}/user/{self.user.name}/library")
             if period is not None:
                 url = url + f"?date_preset={period}"
         except AttributeError:
