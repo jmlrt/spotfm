@@ -12,10 +12,12 @@ license = {file = "LICENSE"}
 authors = [{name = "Julien Mailleret", email = "julien@mailleret.fr"}]
 dependencies = [
     "pylast",
+    "spotipy",
 ]
 
 [project.optional-dependencies]
 dev = [
+    "ipython",
     "pre-commit",
     "twine",
 ]

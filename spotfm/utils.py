@@ -1,0 +1,50 @@
+import logging
+import sqlite3
+import time
+import tomllib
+from datetime import datetime
+from pathlib import Path
+
+HOME_DIR = Path.home()
+CONFIG_FILE = HOME_DIR / ".spotfm.toml"
+WORK_DIR = HOME_DIR / ".spotfm"
+CACHE_DIR = WORK_DIR / "cache"
+DATABASE = WORK_DIR / "spotify.db"
+
+
+def get_date():
+    return datetime.today().strftime("%Y%m%d")
+
+
+def sanitize_string(string):
+    return string.replace("'", "")
+
+
+def parse_config(file=CONFIG_FILE):
+    with open(file, mode="rb") as f:
+        config = tomllib.load(f)
+    return config
+
+
+def query_db(database, queries, script=False):
+    con = sqlite3.connect(database)
+    con.set_trace_callback(logging.info)
+    cur = con.cursor()
+    for query in queries:
+        if script:
+            # breakpoint()
+            cur.executescript(query)
+        else:
+            cur.execute(query)
+    con.commit()
+    con.close()
+    # spare CPU load
+    time.sleep(0.01)
+
+
+def select_db(database, query):
+    con = sqlite3.connect(database)
+    con.set_trace_callback(logging.info)
+    cur = con.cursor()
+    res = cur.execute(query)
+    return res
