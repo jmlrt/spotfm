@@ -13,9 +13,9 @@ def prepare_artists_queries(data):
     id = data["id"]
     name = utils.sanitize_string(data["name"])
     genres = data["genres"]
-    import_date = date.today()
+    updated_at = date.today()
 
-    artist_query = f"INSERT OR IGNORE INTO artists VALUES ('{id}', '{name}', '{import_date}')"
+    artist_query = f"INSERT OR IGNORE INTO artists VALUES ('{id}', '{name}', '{updated_at}')"
     queries.append(artist_query)
 
     if len(genres) > 0:
@@ -32,9 +32,9 @@ def prepare_tracks_queries(data):
     id = data["id"]
     name = utils.sanitize_string(data["name"])
     artists = data["artists"]
-    import_date = date.today()
+    updated_at = date.today()
 
-    track_query = f"INSERT OR IGNORE INTO tracks VALUES ('{id}', '{name}', '{import_date}')"
+    track_query = f"INSERT OR IGNORE INTO tracks VALUES ('{id}', '{name}', '{updated_at}')"
     queries.append(track_query)
 
     if len(artists) > 0:
@@ -54,10 +54,10 @@ def prepare_albums_queries(data):
     album_name = utils.sanitize_string(data["album"]["name"])
     album_release_date = data["album"]["release_date"]
     album_artists = data["album"]["artists"]
-    import_date = date.today()
+    updated_at = date.today()
 
     album_query = (
-        f"INSERT OR IGNORE INTO albums VALUES ('{album_id}', '{album_name}', '{album_release_date}', '{import_date}')"
+        f"INSERT OR IGNORE INTO albums VALUES ('{album_id}', '{album_name}', '{album_release_date}', '{updated_at}')"
     )
     queries.append(album_query)
 
@@ -80,8 +80,8 @@ def prepare_playlists_queries(data):
     name = utils.sanitize_string(data["name"])
     owner = utils.sanitize_string(data["owner"]["id"])
     tracks = data["tracks"]["items"]
-    import_date = date.today()
-    playlist_query = f"INSERT OR IGNORE INTO playlists VALUES ('{id}', '{name}', '{owner}', '{import_date}')"
+    updated_at = date.today()
+    playlist_query = f"INSERT OR IGNORE INTO playlists VALUES ('{id}', '{name}', '{owner}', '{updated_at}')"
     queries.append(playlist_query)
 
     if len(tracks) > 0:
