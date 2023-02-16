@@ -4,12 +4,14 @@ import time
 import tomllib
 from datetime import datetime
 from pathlib import Path
+from urllib.parse import urlparse
 
 HOME_DIR = Path.home()
 CONFIG_FILE = HOME_DIR / ".spotfm.toml"
 WORK_DIR = HOME_DIR / ".spotfm"
 CACHE_DIR = WORK_DIR / "cache"
 DATABASE = WORK_DIR / "spotify.db"
+DATABASE_LOG_LEVEL = logging.debug
 
 
 def get_date():
@@ -20,6 +22,10 @@ def sanitize_string(string):
     return string.replace("'", "")
 
 
+def parse_url(url):
+    return urlparse(url).path.split("/")[-1]
+
+
 def parse_config(file=CONFIG_FILE):
     with open(file, mode="rb") as f:
         config = tomllib.load(f)
@@ -28,11 +34,10 @@ def parse_config(file=CONFIG_FILE):
 
 def query_db(database, queries, script=False):
     con = sqlite3.connect(database)
-    con.set_trace_callback(logging.info)
+    con.set_trace_callback(DATABASE_LOG_LEVEL)
     cur = con.cursor()
     for query in queries:
         if script:
-            # breakpoint()
             cur.executescript(query)
         else:
             cur.execute(query)
@@ -42,9 +47,9 @@ def query_db(database, queries, script=False):
     time.sleep(0.01)
 
 
-def select_db(database, query):
+def select_db(database, query, params=""):
     con = sqlite3.connect(database)
-    con.set_trace_callback(logging.info)
+    con.set_trace_callback(DATABASE_LOG_LEVEL)
     cur = con.cursor()
-    res = cur.execute(query)
+    res = cur.execute(query, params)
     return res

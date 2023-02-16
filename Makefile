@@ -7,9 +7,6 @@ $(PYTHON):
 	virtualenv $(VENV) --python python3.11
 	$(PYTHON) -m pip install --upgrade pip build
 
-$(VENV)/bin/pre-commit: $(PYTHON)
-	$(PYTHON) -m pip install --editable .[dev]
-
 requirements.txt: install
 	$(PYTHON) -m pip freeze > requirements.txt
 
@@ -18,7 +15,7 @@ install: $(PYTHON)
 	$(PYTHON) -m pip install --editable .[dev]
 
 .PHONY: pre-commit
-pre-commit: $(VENV)/bin/pre-commit
+pre-commit:
 	pre-commit run --all-files
 
 .PHONY: build
