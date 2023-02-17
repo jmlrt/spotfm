@@ -3,12 +3,13 @@ from collections import Counter
 from datetime import date
 
 import spotipy
-from spotipy.oauth2 import SpotifyOAuth
+from spotipy.oauth2 import CacheFileHandler, SpotifyOAuth
 
 from spotfm import utils
 
 REDIRECT_URI = "http://127.0.0.1:9090"
 SCOPE = "user-library-read playlist-read-private playlist-read-collaborative"
+TOKEN_CACHE_FILE = utils.WORK_DIRWORK_DIR / "spotify-token-cache"
 
 # TODO:
 # - use query params instead of f-strings
@@ -17,12 +18,14 @@ SCOPE = "user-library-read playlist-read-private playlist-read-collaborative"
 
 class Client:
     def __init__(self, client_id, client_secret, redirect_uri=REDIRECT_URI, scope=SCOPE):
+        handler = CacheFileHandler(cache_path=TOKEN_CACHE_FILE)
         self.client = spotipy.Spotify(
             auth_manager=SpotifyOAuth(
                 client_id=client_id,
                 client_secret=client_secret,
                 redirect_uri=redirect_uri,
                 scope=scope,
+                cache_handler=handler,
             )
         )
 

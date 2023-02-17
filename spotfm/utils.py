@@ -7,9 +7,9 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 HOME_DIR = Path.home()
-CONFIG_FILE = HOME_DIR / ".spotfm.toml"
 WORK_DIR = HOME_DIR / ".spotfm"
 CACHE_DIR = WORK_DIR / "cache"
+CONFIG_FILE = WORK_DIR / "spotfm.toml"
 DATABASE = WORK_DIR / "spotify.db"
 DATABASE_LOG_LEVEL = logging.debug
 
