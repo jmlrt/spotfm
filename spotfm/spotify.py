@@ -121,9 +121,9 @@ class Playlist:
         return True
 
     def update_from_api(self, client):
-        logging.info("Fetching playlist %s from api", self.id)
         playlist = client.playlist(self.id, fields="name,owner.id", market="FR")
         self.name = utils.sanitize_string(playlist["name"])
+        logging.info("Fetching playlist %s - %s from api", self.id, self.name)
         self.owner = utils.sanitize_string(playlist["owner"]["id"])
         results = client.playlist_items(
             self.id, fields="items(added_at,track.id),next", market="FR", additional_types=["track"]
@@ -132,7 +132,7 @@ class Playlist:
         while results["next"]:
             results = client.next(results)
             tracks.extend(results["items"])
-        self.tracks = [(track["track"]["id"], track["added_at"]) for track in tracks]
+        self.tracks = [(track["track"]["id"], track["added_at"]) for track in tracks if track["track"] is not None]
         self.updated = str(date.today())
 
     def sync_to_db(self, client):
