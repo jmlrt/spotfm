@@ -60,6 +60,7 @@ def main():
     parser = argparse.ArgumentParser(
         prog="spotfm",
     )
+    parser.add_argument("-i", "--info", action="store_true")
     parser.add_argument("-v", "--verbose", action="store_true")
     subparsers = parser.add_subparsers(required=True, dest="group")
     lastfm_parser = subparsers.add_parser("lastfm")
@@ -71,6 +72,9 @@ def main():
     spotify_parser.add_argument("command", choices=["count-tracks", "count-tracks-by-playlists", "update-playlists"])
     spotify_parser.add_argument("-p", "--playlists")
     args = parser.parse_args()
+
+    if args.info:
+        logging.getLogger().setLevel(logging.INFO)
 
     if args.verbose:
         logging.getLogger().setLevel(logging.DEBUG)
