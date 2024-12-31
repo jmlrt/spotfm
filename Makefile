@@ -4,7 +4,7 @@ VERSION := $(shell $(PYTHON) hacks/get_version.py)
 
 
 $(PYTHON):
-	virtualenv $(VENV) --python python3.11
+	virtualenv $(VENV) --python python3.12
 	$(PYTHON) -m pip install --upgrade pip build
 
 requirements.txt: install
