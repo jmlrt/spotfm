@@ -20,6 +20,7 @@ class Client:
     def __init__(self, client_id, client_secret, redirect_uri=REDIRECT_URI, scope=SCOPE):
         handler = CacheFileHandler(cache_path=TOKEN_CACHE_FILE)
         self.client = spotipy.Spotify(
+            retries=0,
             auth_manager=SpotifyOAuth(
                 client_id=client_id,
                 client_secret=client_secret,
