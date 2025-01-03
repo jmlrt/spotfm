@@ -1,7 +1,9 @@
 import argparse
 import logging
 
-from spotfm import lastfm, spotify, utils
+from spotfm import lastfm, utils
+from spotfm.spotify import client as spotify_client
+from spotfm.spotify import misc as spotify_misc
 
 
 def recent_scrobbles(user, limit, scrobbles_minimum, period):
@@ -11,12 +13,12 @@ def recent_scrobbles(user, limit, scrobbles_minimum, period):
 
 
 def count_tracks(playlists_pattern=None):
-    results = spotify.count_tracks(playlists_pattern)
+    results = spotify_misc.count_tracks(playlists_pattern)
     print(results)
 
 
 def count_tracks_by_playlists():
-    results = spotify.count_tracks_by_playlists()
+    results = spotify_misc.count_tracks_by_playlists()
     for playlist, count in results:
         print(f"{playlist}: {count}")
 
@@ -40,7 +42,7 @@ def lastfm_cli(args, config):
 
 
 def spotify_cli(args, config):
-    client = spotify.Client(
+    client = spotify_client.Client(
         config["spotify"]["client_id"],
         config["spotify"]["client_secret"],
     )
@@ -53,9 +55,9 @@ def spotify_cli(args, config):
         case "update-playlists":
             update_playlists(client, config["spotify"]["excluded_playlists"])
         case "add-tracks-from-file":
-            spotify.add_tracks_from_file(client, args.file)
+            spotify_misc.add_tracks_from_file(client, args.file)
         case "add-tracks-from-file-batch":
-            spotify.add_tracks_from_file_batch(client, args.file)
+            spotify_misc.add_tracks_from_file_batch(client, args.file)
 
 
 def main():
