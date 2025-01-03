@@ -67,13 +67,13 @@ def main():
     parser.add_argument("-i", "--info", action="store_true")
     parser.add_argument("-v", "--verbose", action="store_true")
     subparsers = parser.add_subparsers(required=True, dest="group")
-    
+
     lastfm_parser = subparsers.add_parser("lastfm")
     lastfm_parser.add_argument("command", choices=["recent-scrobbles"])
     lastfm_parser.add_argument("-l", "--limit", default=50, type=int)
     lastfm_parser.add_argument("-s", "--scrobbles-minimum", default=4, type=int)
     lastfm_parser.add_argument("-p", "--period", default=90, type=int)
-    
+
     spotify_parser = subparsers.add_parser("spotify")
     spotify_parser.add_argument(
         "command",

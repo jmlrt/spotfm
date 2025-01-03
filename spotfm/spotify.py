@@ -11,7 +11,7 @@ from spotfm import utils
 REDIRECT_URI = "http://127.0.0.1:9090"
 SCOPE = "user-library-read playlist-read-private playlist-read-collaborative"
 TOKEN_CACHE_FILE = utils.WORK_DIR / "spotify-token-cache"
-MARKET="FR"
+MARKET = "FR"
 
 # TODO:
 # - use query params instead of f-strings
@@ -401,7 +401,7 @@ def add_tracks_from_file(client, file_path):
             logging.info(f"Track {track.id} added to db")
         else:
             logging.info(f"Error: Track {track.id} not found")
-        
+
         # Prevent rate limiting (429 errors)
         sleep(0.1)
 
@@ -424,8 +424,8 @@ def add_tracks_from_file_batch(client, file_path, batch_size=50):
                 track.sync_to_db(client.client)
                 logging.info(f"Track {track.id} added to db")
             except TypeError:
-                logging.info(f"Error: Track not found")
-        
+                logging.info("Error: Track not found")
+
         # Prevent rate limiting (429 errors)
         sleep(1)
 

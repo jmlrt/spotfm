@@ -57,7 +57,7 @@ def select_db(database, query, params=""):
 
 # Parse a file with track ids and return a list of track ids
 def manage_tracks_ids_file(file_path):
-    with open(file_path, mode="r") as file:
+    with open(file_path) as file:
         tracks_ids = file.readlines()
         # remove new line character from each track id
         tracks_ids = [track_id.strip() for track_id in tracks_ids]
