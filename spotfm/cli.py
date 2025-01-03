@@ -58,6 +58,10 @@ def spotify_cli(args, config):
             spotify_misc.add_tracks_from_file(client, args.file)
         case "add-tracks-from-file-batch":
             spotify_misc.add_tracks_from_file_batch(client, args.file)
+        case "discover-from-playlists":
+            spotify_misc.discover_from_playlists(
+                client, config["spotify"]["discover_playlist"], config["spotify"]["sources_playlists"]
+            )
 
 
 def main():
@@ -85,6 +89,7 @@ def main():
             "update-playlists",
             "add-tracks-from-file",
             "add-tracks-from-file-batch",
+            "discover-from-playlists",
         ],
     )
     spotify_parser.add_argument("-p", "--playlists")

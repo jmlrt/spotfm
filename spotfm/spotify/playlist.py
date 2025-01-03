@@ -110,9 +110,12 @@ class Playlist:
     # def remove_track(self, track_id):
     #     self.client.playlist_remove_all_occurrences_of_items(self.id, [track_id])
 
-    # TODO
-    # def add_track(self, track_id):
-    #     try:
-    #         self.client.playlist_add_items(self.id, [track_id])
-    #     except TypeError:
-    #         print(f"Error: Failed to add {Track(self.client, track_id)}")
+    def add_track(self, track_id):
+        try:
+            self.client.playlist_add_items(self.id, [track_id])
+        except TypeError:
+            print(f"Error: Failed to add {Track(self.client, track_id)}")
+
+    def add_tracks(self, track_ids):
+        for track_id in track_ids:
+            self.add_track(track_id)
