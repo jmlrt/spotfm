@@ -27,7 +27,7 @@ class Client:
                 redirect_uri=redirect_uri,
                 scope=scope,
                 cache_handler=handler,
-            )
+            ),
         )
 
     def get_playlists_id(self, excluded_playlists=[]):
@@ -49,8 +49,8 @@ class Client:
 
         return playlists_ids
 
-    def update_playlists(self):
-        playlists_id = self.get_playlists_id()
+    def update_playlists(self, excluded_playlists=[]):
+        playlists_id = self.get_playlists_id(excluded_playlists)
         utils.query_db(utils.DATABASE, ["DELETE FROM playlists", "DELETE FROM playlists_tracks"])
         for playlist_id in playlists_id:
             Playlist(playlist_id, self.client)

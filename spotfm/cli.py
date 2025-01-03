@@ -21,8 +21,8 @@ def count_tracks_by_playlists():
         print(f"{playlist}: {count}")
 
 
-def update_playlists(client):
-    client.update_playlists()
+def update_playlists(client, excluded_playlists):
+    client.update_playlists(excluded_playlists)
 
 
 def lastfm_cli(args, config):
@@ -51,7 +51,7 @@ def spotify_cli(args, config):
         case "count-tracks":
             count_tracks(args.playlists)
         case "update-playlists":
-            update_playlists(client)
+            update_playlists(client, config["spotify"]["excluded_playlists"])
 
 
 def main():

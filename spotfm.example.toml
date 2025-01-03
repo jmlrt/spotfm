@@ -7,3 +7,8 @@ password_hash = ""
 [spotify]
 client_id = ""
 client_secret = ""
+
+excluded_playlists = [
+    # <id_of_playlist_to exclude>,
+    # ...
+]
