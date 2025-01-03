@@ -1,6 +1,7 @@
 import logging
 from collections import Counter
 from datetime import date
+from time import sleep
 
 import spotipy
 from spotipy.oauth2 import CacheFileHandler, SpotifyOAuth
@@ -10,6 +11,7 @@ from spotfm import utils
 REDIRECT_URI = "http://127.0.0.1:9090"
 SCOPE = "user-library-read playlist-read-private playlist-read-collaborative"
 TOKEN_CACHE_FILE = utils.WORK_DIR / "spotify-token-cache"
+MARKET="FR"
 
 # TODO:
 # - use query params instead of f-strings
@@ -122,12 +124,12 @@ class Playlist:
         return True
 
     def update_from_api(self, client):
-        playlist = client.playlist(self.id, fields="name,owner.id", market="FR")
+        playlist = client.playlist(self.id, fields="name,owner.id", market=MARKET)
         self.name = utils.sanitize_string(playlist["name"])
         logging.info("Fetching playlist %s - %s from api", self.id, self.name)
         self.owner = utils.sanitize_string(playlist["owner"]["id"])
         results = client.playlist_items(
-            self.id, fields="items(added_at,track.id),next", market="FR", additional_types=["track"]
+            self.id, fields="items(added_at,track.id),next", market=MARKET, additional_types=["track"]
         )
         tracks = results["items"]
         while results["next"]:
@@ -206,7 +208,7 @@ class Album:
 
     def update_from_api(self, client):
         logging.info("Fetching album %s from api", self.id)
-        album = client.album(self.id, market="FR")
+        album = client.album(self.id, market=MARKET)
         self.name = utils.sanitize_string(album["name"])
         self.release_date = album["release_date"]
         self.artists_id = [artist["id"] for artist in album["artists"]]
@@ -226,7 +228,7 @@ class Album:
 
 
 class Track:
-    def __init__(self, track_id, client=None, refresh=False):
+    def __init__(self, track_id, client=None, refresh=False, update=True):
         logging.info("Initializing Track %s", track_id)
         self.id = utils.parse_url(track_id)
         self.name = None
@@ -238,7 +240,7 @@ class Track:
         self.artists = None
         self._genres = None
 
-        if (refresh and client is not None) or (not self.update_from_db() and client is not None):
+        if update and ((refresh and client is not None) or (not self.update_from_db() and client is not None)):
             self.update_from_api(client)
             self.sync_to_db(client)
 
@@ -293,7 +295,17 @@ class Track:
 
     def update_from_api(self, client):
         logging.info("Fetching track %s from api", self.id)
-        track = client.track(self.id, market="FR")
+        track = client.track(self.id, market=MARKET)
+        self.name = utils.sanitize_string(track["name"])
+        self.album_id = track["album"]["id"]
+        album = Album(self.album_id)
+        self.album = album.name
+        self.release_date = album.release_date
+        self.artists_id = [artist["id"] for artist in track["artists"]]
+        self.artists = [Artist(id, client) for id in self.artists_id]
+        self.updated = str(date.today())
+
+    def update_from_track(self, track, client):
         self.name = utils.sanitize_string(track["name"])
         self.album_id = track["album"]["id"]
         album = Album(self.album_id)
@@ -375,6 +387,47 @@ class Artist:
             queries.append(f"INSERT OR IGNORE INTO artists_genres VALUES {values}".rstrip(","))
         logging.debug(queries)
         utils.query_db(utils.DATABASE, queries)
+
+
+def add_tracks_from_file(client, file_path):
+    tracks_ids = utils.manage_tracks_ids_file(file_path)
+
+    for track_id in tracks_ids:
+        logging.info(f"Initializing track {track_id}")
+        track = Track(track_id, client.client)
+
+        if track.name is not None and track.artists is not None and track.album is not None:
+            track.sync_to_db(client)
+            logging.info(f"Track {track.id} added to db")
+        else:
+            logging.info(f"Error: Track {track.id} not found")
+        
+        # Prevent rate limiting (429 errors)
+        sleep(0.1)
+
+
+def add_tracks_from_file_batch(client, file_path, batch_size=50):
+    tracks_ids = utils.manage_tracks_ids_file(file_path)
+
+    # split tracks_ids in batches
+    tracks_ids_batches = [tracks_ids[i : i + batch_size] for i in range(0, len(tracks_ids), batch_size)]
+
+    for i, batch in enumerate(tracks_ids_batches):
+        logging.info(f"Batch: {i}/{len(tracks_ids_batches)}")
+        tracks = client.client.tracks(batch, market=MARKET)
+
+        for raw_track in tracks["tracks"]:
+            try:
+                logging.info(f"Initializing track {raw_track['id']}")
+                track = Track(raw_track["id"], update=False)
+                track.update_from_track(raw_track, client.client)
+                track.sync_to_db(client.client)
+                logging.info(f"Track {track.id} added to db")
+            except TypeError:
+                logging.info(f"Error: Track not found")
+        
+        # Prevent rate limiting (429 errors)
+        sleep(1)
 
 
 def count_tracks_by_playlists():

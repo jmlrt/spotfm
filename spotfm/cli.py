@@ -52,6 +52,10 @@ def spotify_cli(args, config):
             count_tracks(args.playlists)
         case "update-playlists":
             update_playlists(client, config["spotify"]["excluded_playlists"])
+        case "add-tracks-from-file":
+            spotify.add_tracks_from_file(client, args.file)
+        case "add-tracks-from-file-batch":
+            spotify.add_tracks_from_file_batch(client, args.file)
 
 
 def main():
@@ -63,14 +67,27 @@ def main():
     parser.add_argument("-i", "--info", action="store_true")
     parser.add_argument("-v", "--verbose", action="store_true")
     subparsers = parser.add_subparsers(required=True, dest="group")
+    
     lastfm_parser = subparsers.add_parser("lastfm")
     lastfm_parser.add_argument("command", choices=["recent-scrobbles"])
     lastfm_parser.add_argument("-l", "--limit", default=50, type=int)
     lastfm_parser.add_argument("-s", "--scrobbles-minimum", default=4, type=int)
     lastfm_parser.add_argument("-p", "--period", default=90, type=int)
+    
     spotify_parser = subparsers.add_parser("spotify")
-    spotify_parser.add_argument("command", choices=["count-tracks", "count-tracks-by-playlists", "update-playlists"])
+    spotify_parser.add_argument(
+        "command",
+        choices=[
+            "count-tracks",
+            "count-tracks-by-playlists",
+            "update-playlists",
+            "add-tracks-from-file",
+            "add-tracks-from-file-batch",
+        ],
+    )
     spotify_parser.add_argument("-p", "--playlists")
+    spotify_parser.add_argument("-f", "--file")
+
     args = parser.parse_args()
 
     if args.info:
