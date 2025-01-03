@@ -59,8 +59,13 @@ def spotify_cli(args, config):
         case "add-tracks-from-file-batch":
             spotify_misc.add_tracks_from_file_batch(client, args.file)
         case "discover-from-playlists":
+            client_read_write = spotify_client.Client(
+                config["spotify"]["client_id"],
+                config["spotify"]["client_secret"],
+                scope="playlist-modify-private",
+            )
             spotify_misc.discover_from_playlists(
-                client, config["spotify"]["discover_playlist"], config["spotify"]["sources_playlists"]
+                client_read_write, config["spotify"]["discover_playlist"], config["spotify"]["sources_playlists"]
             )
 
 
