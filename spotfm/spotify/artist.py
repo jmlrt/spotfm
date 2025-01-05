@@ -22,16 +22,17 @@ class Artist:
         return self.name
 
     @classmethod
-    def get_artist(cls, id, client=None, refresh=False):
+    def get_artist(cls, id, client=None, refresh=False, sync_to_db=True):
         artist = retrieve_object_from_cache(cls.kind, id)
-        if artist is not None and refresh is False:
+        if artist is not None and (client is None or not refresh):
             return artist
 
         artist = Artist(id, client)
-        if client is not None and (not artist.update_from_db() or refresh is not None):
+        if client is not None and (not artist.update_from_db() or refresh):
             artist.update_from_api(client)
             cache_object(artist)
-            artist.sync_to_db()
+            if sync_to_db:
+                artist.sync_to_db()
         return artist
 
     def update_from_db(self):

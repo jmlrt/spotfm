@@ -3,7 +3,7 @@ from collections import Counter
 from datetime import date
 
 from spotfm import utils
-from spotfm.spotify.constants import MARKET
+from spotfm.spotify.constants import BATCH_SIZE, MARKET
 from spotfm.spotify.track import Track
 from spotfm.utils import cache_object, retrieve_object_from_cache
 
@@ -16,9 +16,8 @@ class Playlist:
         logging.info("Initializing Playlist %s", self.id)
         self.name = None
         self.owner = None
-        self.tracks = None  # [(id, added_at)]
+        self.raw_tracks = None  # [tuple(id, added_at)]
         self.updated = None
-        # TODO: self._tracks
         # TODO: self._tracks_names
         # TODO: self._sorted_tracks
 
@@ -29,16 +28,17 @@ class Playlist:
         return f"{self.owner} - {self.name}"
 
     @classmethod
-    def get_playlist(cls, id, client=None, refresh=False):
+    def get_playlist(cls, id, client=None, refresh=False, sync_to_db=True):
         playlist = retrieve_object_from_cache(cls.kind, id)
-        if playlist is not None and refresh is False:
+        if playlist is not None and (client is None or not refresh):
             return playlist
 
         playlist = Playlist(id, client)
-        if client is not None and (not playlist.update_from_db() or refresh is not None):
+        if client is not None and (not playlist.update_from_db() or refresh):
             playlist.update_from_api(client)
             cache_object(playlist)
-            playlist.sync_to_db(client)
+            if sync_to_db:
+                playlist.sync_to_db(client)
         return playlist
 
     # TODO
@@ -48,7 +48,7 @@ class Playlist:
     #         return self._tracks
     #     self._tracks = []
     #     for track_id in self.tracks_id:
-    #         self._tracks.append(Track.get_track(track_id))
+    #         self._tracks.append(Track.get_track(track_id), client)
     #     return self._tracks
 
     # TODO
@@ -68,6 +68,10 @@ class Playlist:
     #         return self._sorted_tracks
     #     self._sorted_tracks = sorted(self.tracks)
     #     return self._sorted_tracks
+
+    def get_tracks(self, client):
+        raw_tracks_id = [raw_track[0] for raw_track in self.raw_tracks]
+        return Track.get_tracks(raw_tracks_id, client)
 
     def update_from_db(self):
         try:
@@ -96,18 +100,21 @@ class Playlist:
         while results["next"]:
             results = client.next(results)
             tracks.extend(results["items"])
-        self.tracks = [(track["track"]["id"], track["added_at"]) for track in tracks if track["track"] is not None]
+        self.raw_tracks = [(track["track"]["id"], track["added_at"]) for track in tracks if track["track"] is not None]
+        self.tracks = self.get_tracks(client)
         self.updated = str(date.today())
 
     def sync_to_db(self, client):
-        logging.info("Syncing playlist %s to database", self.id)
+        logging.info("Syncing playlist %s - %s to database", self.id, self.name)
         queries = []
         queries.append(
             f"INSERT OR IGNORE INTO playlists VALUES ('{self.id}', '{self.name}', '{self.owner}', '{self.updated}')"
         )
         for track in self.tracks:
-            Track.get_track(track[0], client)
-            queries.append(f"INSERT OR IGNORE INTO playlists_tracks VALUES ('{self.id}', '{track[0]}', '{track[1]}')")
+            track.sync_to_db(client)
+            queries.append(
+                f"INSERT OR IGNORE INTO playlists_tracks VALUES ('{self.id}', '{track.id}', '{track.updated}')"
+            )
         logging.debug(queries)
         utils.query_db(utils.DATABASE, queries)
 
@@ -122,12 +129,13 @@ class Playlist:
     # def remove_track(self, track_id):
     #     self.client.playlist_remove_all_occurrences_of_items(self.id, [track_id])
 
-    def add_track(self, track_id):
-        try:
-            self.client.playlist_add_items(self.id, [track_id])
-        except TypeError:
-            print(f"Error: Failed to add {Track.get_track(self.client, track_id)}")
+    def add_tracks(self, tracks, client, batch_size=BATCH_SIZE):
+        tracks_id = [track.id for track in tracks]
+        tracks_id_batches = [tracks_id[i : i + batch_size] for i in range(0, len(tracks_id), batch_size)]
 
-    def add_tracks(self, track_ids):
-        for track_id in track_ids:
-            self.add_track(track_id)
+        for i, batch in enumerate(tracks_id_batches):
+            logging.info(f"Batch: {i}/{len(tracks_id_batches)}")
+            try:
+                client.playlist_add_items(self.id, batch)
+            except TypeError:
+                print(f"Error: Failed to add {batch} to playlist {self.id}")

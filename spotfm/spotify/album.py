@@ -27,19 +27,20 @@ class Album:
         return self.name
 
     @classmethod
-    def get_album(cls, id, client=None, refresh=False):
+    def get_album(cls, id, client=None, refresh=False, sync_to_db=True):
         album = retrieve_object_from_cache(cls.kind, id)
-        if album is not None and refresh is False:
+        if album is not None and (client is None or not refresh):
             return album
 
         album = Album(id, client)
-        if client is not None and (not album.update_from_db() or refresh is not None):
+        if client is not None and (not album.update_from_db(client) or refresh):
             album.update_from_api(client)
             cache_object(album)
-            album.sync_to_db()
+            if sync_to_db:
+                album.sync_to_db()
         return album
 
-    def update_from_db(self):
+    def update_from_db(self, client=None):
         try:
             self.name, self.release_date, self.updated = utils.select_db(
                 utils.DATABASE, f"SELECT name, release_date, updated_at FROM albums WHERE id == '{self.id}'"
@@ -51,7 +52,7 @@ class Album:
             utils.DATABASE, f"SELECT artist_id FROM albums_artists WHERE album_id == '{self.id}'"
         ).fetchall()
         self.artists_id = [col[0] for col in results]
-        self.artists = [Artist.get_artist(id) for id in self.artists_id]
+        self.artists = [Artist.get_artist(id, client) for id in self.artists_id]
         logging.info("Album ID %s retrieved from database", self.id)
         return True
 
