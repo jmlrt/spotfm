@@ -47,4 +47,6 @@ class Client:
         playlists_id = self.get_playlists_id(excluded_playlists)
         utils.query_db(utils.DATABASE, ["DELETE FROM playlists", "DELETE FROM playlists_tracks"])
         for playlist_id in playlists_id:
-            Playlist(playlist_id, self.client)
+            playlist = Playlist.get_playlist(playlist_id, self.client)
+            playlist.update_from_api(self.client)
+            playlist.sync_to_db(self.client)

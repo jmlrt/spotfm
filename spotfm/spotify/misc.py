@@ -12,7 +12,7 @@ def add_tracks_from_file(client, file_path):
 
     for track_id in tracks_ids:
         logging.info(f"Initializing track {track_id}")
-        track = Track(track_id, client.client)
+        track = Track.get_track(track_id, client.client)
 
         if track.name is not None and track.artists is not None and track.album is not None:
             track.sync_to_db(client)
@@ -37,7 +37,7 @@ def add_tracks_from_file_batch(client, file_path, batch_size=50):
         for raw_track in tracks["tracks"]:
             try:
                 logging.info(f"Initializing track {raw_track['id']}")
-                track = Track(raw_track["id"], update=False)
+                track = Track.get_track(raw_track["id"], update=False)
                 track.update_from_track(raw_track, client.client)
                 track.sync_to_db(client.client)
                 logging.info(f"Track {track.id} added to db")
@@ -49,15 +49,15 @@ def add_tracks_from_file_batch(client, file_path, batch_size=50):
 
 
 def discover_from_playlists(client, discover_playlist_id, sources_playlists_ids, batch_size=50):
-    discover_playlist = Playlist(discover_playlist_id, client.client)
+    discover_playlist = Playlist.get_playlist(discover_playlist_id, client.client)
     new_tracks = []
 
     for playlist_id in sources_playlists_ids:
-        playlist = Playlist(playlist_id, client.client)
+        playlist = Playlist.get_playlist(playlist_id, client.client)
         logging.info(f"Looking for new tracks into {playlist.id} - {playlist.name}")
 
         for raw_track in playlist.tracks:
-            track = Track(raw_track["track"]["id"], update=False)
+            track = Track.get_track(raw_track["track"]["id"], update=False)
             if not track.update_from_db():
                 logging.info(f"New track found: {track.id} - {track.name}")
                 new_tracks.append(track)
@@ -73,7 +73,7 @@ def discover_from_playlists(client, discover_playlist_id, sources_playlists_ids,
         for raw_track in tracks["tracks"]:
             try:
                 logging.info(f"Initializing track {raw_track['id']}")
-                track = Track(raw_track["id"], update=False)
+                track = Track.get_track(raw_track["id"], update=False)
                 track.update_from_track(raw_track, client.client)
                 track.sync_to_db(client.client)
                 logging.info(f"Track {track.id} added to db")

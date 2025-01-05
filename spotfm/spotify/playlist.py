@@ -5,9 +5,12 @@ from datetime import date
 from spotfm import utils
 from spotfm.spotify.constants import MARKET
 from spotfm.spotify.track import Track
+from spotfm.utils import cache_object, retrieve_object_from_cache
 
 
 class Playlist:
+    kind = "playlist"
+
     def __init__(self, playlist_id, client=None, refresh=True):
         self.id = utils.parse_url(playlist_id)
         logging.info("Initializing Playlist %s", self.id)
@@ -19,15 +22,24 @@ class Playlist:
         # TODO: self._tracks_names
         # TODO: self._sorted_tracks
 
-        if (refresh and client is not None) or (not self.update_from_db() and client is not None):
-            self.update_from_api(client)
-            self.sync_to_db(client)
-
     def __repr__(self):
         return f"Playlist({self.owner} - {self.name})"
 
     def __str__(self):
         return f"{self.owner} - {self.name}"
+
+    @classmethod
+    def get_playlist(cls, id, client=None, refresh=False):
+        playlist = retrieve_object_from_cache(cls.kind, id)
+        if playlist is not None and refresh is False:
+            return playlist
+
+        playlist = Playlist(id, client)
+        if client is not None and (not playlist.update_from_db() or refresh is not None):
+            playlist.update_from_api(client)
+            cache_object(playlist)
+            playlist.sync_to_db(client)
+        return playlist
 
     # TODO
     # @property
@@ -36,7 +48,7 @@ class Playlist:
     #         return self._tracks
     #     self._tracks = []
     #     for track_id in self.tracks_id:
-    #         self._tracks.append(Track(track_id))
+    #         self._tracks.append(Track.get_track(track_id))
     #     return self._tracks
 
     # TODO
@@ -94,7 +106,7 @@ class Playlist:
             f"INSERT OR IGNORE INTO playlists VALUES ('{self.id}', '{self.name}', '{self.owner}', '{self.updated}')"
         )
         for track in self.tracks:
-            Track(track[0], client)
+            Track.get_track(track[0], client)
             queries.append(f"INSERT OR IGNORE INTO playlists_tracks VALUES ('{self.id}', '{track[0]}', '{track[1]}')")
         logging.debug(queries)
         utils.query_db(utils.DATABASE, queries)
@@ -114,7 +126,7 @@ class Playlist:
         try:
             self.client.playlist_add_items(self.id, [track_id])
         except TypeError:
-            print(f"Error: Failed to add {Track(self.client, track_id)}")
+            print(f"Error: Failed to add {Track.get_track(self.client, track_id)}")
 
     def add_tracks(self, track_ids):
         for track_id in track_ids:

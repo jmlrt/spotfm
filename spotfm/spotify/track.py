@@ -5,12 +5,15 @@ from spotfm import utils
 from spotfm.spotify.album import Album
 from spotfm.spotify.artist import Artist
 from spotfm.spotify.constants import MARKET
+from spotfm.utils import cache_object, retrieve_object_from_cache
 
 
 class Track:
-    def __init__(self, track_id, client=None, refresh=False, update=True):
-        logging.info("Initializing Track %s", track_id)
-        self.id = utils.parse_url(track_id)
+    kind = "track"
+
+    def __init__(self, id, client=None, refresh=False, update=True):
+        logging.info("Initializing Track %s", id)
+        self.id = utils.parse_url(id)
         self.name = None
         self.album_id = None
         self.album = None
@@ -19,10 +22,6 @@ class Track:
         self.updated = None
         self.artists = None
         self._genres = None
-
-        if update and ((refresh and client is not None) or (not self.update_from_db() and client is not None)):
-            self.update_from_api(client)
-            self.sync_to_db(client)
 
     def __repr__(self):
         artists_names = [artist.name for artist in self.artists]
@@ -34,6 +33,19 @@ class Track:
 
     def __lt__(self, other):
         return self.__repr__() < other.__repr__()
+
+    @classmethod
+    def get_track(cls, id, client=None, refresh=False):
+        track = retrieve_object_from_cache(cls.kind, id)
+        if track is not None and refresh is False:
+            return track
+
+        track = Track(id, client)
+        if client is not None and (not track.update_from_db() or refresh is not None):
+            track.update_from_api(client)
+            cache_object(track)
+            track.sync_to_db(client)
+        return track
 
     @property
     def genres(self):
@@ -61,7 +73,7 @@ class Track:
         except TypeError:
             logging.info("Album ID %s not found in database", self.id)
             return False
-        album = Album(self.album_id)
+        album = Album.get_album(self.album_id)
         # TODO: add Album object instead
         self.album = album.name
         self.release_date = album.release_date
@@ -69,7 +81,7 @@ class Track:
             utils.DATABASE, f"SELECT artist_id FROM tracks_artists WHERE track_id == '{self.id}'"
         ).fetchall()
         self.artists_id = [col[0] for col in results]
-        self.artists = [Artist(id) for id in self.artists_id]
+        self.artists = [Artist.get_artist(id) for id in self.artists_id]
         logging.info("Track ID %s retrieved from database", self.id)
         return True
 
@@ -78,26 +90,26 @@ class Track:
         track = client.track(self.id, market=MARKET)
         self.name = utils.sanitize_string(track["name"])
         self.album_id = track["album"]["id"]
-        album = Album(self.album_id)
+        album = Album.get_album(self.album_id)
         self.album = album.name
         self.release_date = album.release_date
         self.artists_id = [artist["id"] for artist in track["artists"]]
-        self.artists = [Artist(id, client) for id in self.artists_id]
+        self.artists = [Artist.get_artist(id, client) for id in self.artists_id]
         self.updated = str(date.today())
 
     def update_from_track(self, track, client):
         self.name = utils.sanitize_string(track["name"])
         self.album_id = track["album"]["id"]
-        album = Album(self.album_id)
+        album = Album.get_album(self.album_id)
         self.album = album.name
         self.release_date = album.release_date
         self.artists_id = [artist["id"] for artist in track["artists"]]
-        self.artists = [Artist(id, client) for id in self.artists_id]
+        self.artists = [Artist.get_artist(id, client) for id in self.artists_id]
         self.updated = str(date.today())
 
     def sync_to_db(self, client):
         logging.info("Syncing track %s to database", self.id)
-        Album(self.album_id, client)
+        Album.get_album(self.album_id, client)
         queries = []
         queries.append(f"INSERT OR IGNORE INTO tracks VALUES ('{self.id}', '{self.name}', '{self.updated}')")
         queries.append(f"INSERT OR IGNORE INTO albums_tracks VALUES ('{self.album_id}', '{self.id}')")
