@@ -8,7 +8,17 @@ password_hash = ""
 client_id = ""
 client_secret = ""
 
+# list of playlists that will be excluded from the update-playlists command
 excluded_playlists = [
-    # <id_of_playlist_to exclude>,
+    # <playlist_id>,
     # ...
 ]
+
+# list of playlists that will used as source for the discover-from-playlists command
+sources_playlists = [
+    # <playlist_id>,
+    # ...
+]
+
+# personal playlist where new tracks will be added with the discover-from-playlists command
+discover_playlist = "" # <playlist_id>

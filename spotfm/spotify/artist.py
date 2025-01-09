@@ -2,25 +2,38 @@ import logging
 from datetime import date
 
 from spotfm import utils
+from spotfm.utils import cache_object, retrieve_object_from_cache
 
 
 class Artist:
-    def __init__(self, artist_id, client=None, refresh=False):
-        logging.info("Initializing Artist %s", artist_id)
-        self.id = utils.parse_url(artist_id)
+    kind = "artist"
+
+    def __init__(self, id, client=None, refresh=False):
+        logging.info("Initializing Artist %s", id)
+        self.id = utils.parse_url(id)
         self.name = None
         self.genres = []
         self.updated = None
-
-        if (refresh and client is not None) or (not self.update_from_db() and client is not None):
-            self.update_from_api(client)
-            self.sync_to_db()
 
     def __repr__(self):
         return f"Artist({self.name})"
 
     def __str__(self):
         return self.name
+
+    @classmethod
+    def get_artist(cls, id, client=None, refresh=False, sync_to_db=True):
+        artist = retrieve_object_from_cache(cls.kind, id)
+        if artist is not None and (client is None or not refresh):
+            return artist
+
+        artist = Artist(id, client)
+        if client is not None and (not artist.update_from_db() or refresh):
+            artist.update_from_api(client)
+            cache_object(artist)
+            if sync_to_db:
+                artist.sync_to_db()
+        return artist
 
     def update_from_db(self):
         try:
