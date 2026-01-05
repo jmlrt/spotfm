@@ -1,31 +1,50 @@
-VENV := venv
-PYTHON := $(VENV)/bin/python
-VERSION := $(shell $(PYTHON) hacks/get_version.py)
+VERSION := $(shell uv run hacks/get_version.py)
 
-
-$(PYTHON):
-	virtualenv $(VENV) --python python3.12
-	$(PYTHON) -m pip install --upgrade pip build
-
-requirements.txt: install
-	$(PYTHON) -m pip freeze > requirements.txt
+.PHONY: sync
+sync:
+	uv sync --all-extras
 
 .PHONY: install
-install: $(PYTHON)
-	$(PYTHON) -m pip install --editable .[dev]
+install: sync
+
+.PHONY: add
+add:
+	@echo "Usage: make add PACKAGE=<package-name>"
+	@test -n "$(PACKAGE)" && uv add $(PACKAGE) || true
+
+.PHONY: remove
+remove:
+	@echo "Usage: make remove PACKAGE=<package-name>"
+	@test -n "$(PACKAGE)" && uv remove $(PACKAGE) || true
 
 .PHONY: pre-commit
 pre-commit:
-	pre-commit run --all-files
+	uv run pre-commit run --all-files
+
+.PHONY: format
+format:
+	uv run ruff format .
+
+.PHONY: lint
+lint:
+	uv run ruff check .
+
+.PHONY: lint-fix
+lint-fix:
+	uv run ruff check --fix .
+
+.PHONY: lint-fix-unsafe
+lint-fix-unsafe:
+	uv run ruff check --fix --unsafe-fixes .
 
 .PHONY: build
-build: $(PYTHON)
+build:
 	rm -fr build/* dist/*
-	$(PYTHON) -m build .
+	uv build
 
 .PHONY: clean
 clean:
-	rm -fr build dist $(VENV) *.egg-info
+	rm -fr build dist .venv *.egg-info
 	find . -type f -name '*.pyc' -delete
 	find . -type d -name __pycache__ -delete
 
@@ -34,4 +53,4 @@ publish: install build
 	git pull origin main
 	git tag -m "v$(VERSION)" v$(VERSION)
 	git push --tags
-	$(PYTHON) -m twine upload -u __token__ dist/*
+	uv run twine upload -u __token__ dist/*

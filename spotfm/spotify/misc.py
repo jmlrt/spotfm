@@ -84,7 +84,7 @@ def count_tracks(playlists_pattern=None):
         results = utils.select_db(utils.DATABASE, "SELECT id FROM playlists WHERE name LIKE ?;", (playlists_pattern,))
         ids = [id[0] for id in results]
         query = f"""
-          WITH t AS (SELECT DISTINCT track_id FROM playlists_tracks WHERE playlist_id IN ({','.join(['?']*len(ids))}))
+          WITH t AS (SELECT DISTINCT track_id FROM playlists_tracks WHERE playlist_id IN ({",".join(["?"] * len(ids))}))
           SELECT count(*) AS tracks FROM t;
         """
         return utils.select_db(utils.DATABASE, query, ids).fetchone()[0]
