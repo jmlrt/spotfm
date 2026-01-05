@@ -1,7 +1,7 @@
 import logging
 from datetime import date
 
-from spotfm import utils
+from spotfm import sqlite, utils
 from spotfm.utils import cache_object, retrieve_object_from_cache
 
 
@@ -37,14 +37,14 @@ class Artist:
 
     def update_from_db(self):
         try:
-            self.name, self.updated = utils.select_db(
-                utils.DATABASE, f"SELECT name, updated_at FROM artists WHERE id == '{self.id}'"
+            self.name, self.updated = sqlite.select_db(
+                sqlite.DATABASE, f"SELECT name, updated_at FROM artists WHERE id == '{self.id}'"
             ).fetchone()
         except TypeError:
             logging.info("Artist ID %s not found in database", self.id)
             return False
-        results = utils.select_db(
-            utils.DATABASE, f"SELECT genre FROM artists_genres WHERE artist_id == '{self.id}'"
+        results = sqlite.select_db(
+            sqlite.DATABASE, f"SELECT genre FROM artists_genres WHERE artist_id == '{self.id}'"
         ).fetchall()
         self.genres = [col[0] for col in results]
         logging.info("Artist ID %s retrieved from database", self.id)
@@ -67,4 +67,4 @@ class Artist:
                 values += f"('{self.id}','{utils.sanitize_string(genre)}'),"
             queries.append(f"INSERT OR IGNORE INTO artists_genres VALUES {values}".rstrip(","))
         logging.debug(queries)
-        utils.query_db(utils.DATABASE, queries)
+        sqlite.query_db(sqlite.DATABASE, queries)

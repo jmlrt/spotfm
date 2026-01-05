@@ -3,7 +3,7 @@ import logging
 from datetime import date
 from pathlib import Path
 
-from spotfm import utils
+from spotfm import sqlite, utils
 
 EXPORTS_PATH = Path.home() / ".spotfm" / "exports"
 
@@ -115,7 +115,7 @@ def import_json(kind):
             case "playlists":
                 queries = prepare_playlists_queries(data)
 
-        utils.query_db(utils.DATABASE, queries)
+        sqlite.query_db(sqlite.DATABASE, queries)
 
 
 def main():

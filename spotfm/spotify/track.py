@@ -2,7 +2,7 @@ import logging
 from datetime import date
 from time import sleep
 
-from spotfm import utils
+from spotfm import sqlite, utils
 from spotfm.spotify.album import Album
 from spotfm.spotify.artist import Artist
 from spotfm.spotify.constants import BATCH_SIZE, MARKET
@@ -86,15 +86,15 @@ class Track:
 
     def update_from_db(self, client=None):
         try:
-            self.name, self.updated = utils.select_db(
-                utils.DATABASE, f"SELECT name, updated_at FROM tracks WHERE id == '{self.id}'"
+            self.name, self.updated = sqlite.select_db(
+                sqlite.DATABASE, f"SELECT name, updated_at FROM tracks WHERE id == '{self.id}'"
             ).fetchone()
         except TypeError:
             logging.info("Track ID %s not found in database", self.id)
             return False
         try:
-            self.album_id = utils.select_db(
-                utils.DATABASE, f"SELECT album_id FROM albums_tracks WHERE track_id == '{self.id}'"
+            self.album_id = sqlite.select_db(
+                sqlite.DATABASE, f"SELECT album_id FROM albums_tracks WHERE track_id == '{self.id}'"
             ).fetchone()[0]
         except TypeError:
             logging.info("Album ID %s not found in database", self.id)
@@ -103,8 +103,8 @@ class Track:
         # TODO: add Album object instead
         self.album = album.name
         self.release_date = album.release_date
-        results = utils.select_db(
-            utils.DATABASE, f"SELECT artist_id FROM tracks_artists WHERE track_id == '{self.id}'"
+        results = sqlite.select_db(
+            sqlite.DATABASE, f"SELECT artist_id FROM tracks_artists WHERE track_id == '{self.id}'"
         ).fetchall()
         self.artists_id = [col[0] for col in results]
         self.artists = [Artist.get_artist(id, client) for id in self.artists_id]
@@ -142,7 +142,7 @@ class Track:
         for artist in self.artists:
             queries.append(f"INSERT OR IGNORE INTO tracks_artists VALUES ('{self.id}', '{artist.id}')")
         logging.debug(queries)
-        utils.query_db(utils.DATABASE, queries)
+        sqlite.query_db(sqlite.DATABASE, queries)
         logging.info(f"Track {self.id} added to db")
 
     def get_artists_names(self):

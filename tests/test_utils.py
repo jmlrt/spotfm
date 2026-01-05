@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 from freezegun import freeze_time
 
+from spotfm import sqlite as db_module
 from spotfm import utils
 
 
@@ -136,7 +137,7 @@ class TestQueryDb:
     def test_query_db_single_insert(self, temp_database):
         """Test single INSERT query."""
         queries = ["INSERT INTO tracks VALUES ('track1', 'Test Track', '2024-01-01')"]
-        utils.query_db(temp_database, queries)
+        db_module.query_db(temp_database, queries)
 
         # Verify data was inserted
         conn = sqlite3.connect(temp_database)
@@ -152,7 +153,7 @@ class TestQueryDb:
             "INSERT INTO tracks VALUES ('track1', 'Track 1', '2024-01-01')",
             "INSERT INTO tracks VALUES ('track2', 'Track 2', '2024-01-02')",
         ]
-        utils.query_db(temp_database, queries)
+        db_module.query_db(temp_database, queries)
 
         conn = sqlite3.connect(temp_database)
         cursor = conn.cursor()
@@ -169,7 +170,7 @@ class TestQueryDb:
             INSERT INTO tracks VALUES ('track2', 'Track 2', '2024-01-02');
             """
         ]
-        utils.query_db(temp_database, queries, script=True)
+        db_module.query_db(temp_database, queries, script=True)
 
         conn = sqlite3.connect(temp_database)
         cursor = conn.cursor()
@@ -193,7 +194,7 @@ class TestSelectDb:
         conn.close()
 
         # Query using select_db
-        result = utils.select_db(temp_database, "SELECT name FROM tracks WHERE id = 'track1'")
+        result = db_module.select_db(temp_database, "SELECT name FROM tracks WHERE id = 'track1'")
         name = result.fetchone()[0]
 
         assert name == "Test Track"
@@ -208,15 +209,126 @@ class TestSelectDb:
         conn.close()
 
         # Query with parameters (safer than f-strings)
-        result = utils.select_db(temp_database, "SELECT * FROM tracks WHERE id = ?", ("track1",))
+        result = db_module.select_db(temp_database, "SELECT * FROM tracks WHERE id = ?", ("track1",))
         row = result.fetchone()
 
         assert row == ("track1", "Test Track", "2024-01-01")
 
     def test_select_db_no_results(self, temp_database):
         """Test SELECT query with no results."""
-        result = utils.select_db(temp_database, "SELECT * FROM tracks WHERE id = 'nonexistent'")
+        result = db_module.select_db(temp_database, "SELECT * FROM tracks WHERE id = 'nonexistent'")
         assert result.fetchone() is None
+
+
+@pytest.mark.unit
+class TestQueryDbSelect:
+    """Tests for query_db_select function."""
+
+    def test_query_db_select_basic(self, temp_database):
+        """Test basic SELECT query with automatic cleanup."""
+        # Insert test data
+        conn = sqlite3.connect(temp_database)
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO tracks VALUES ('track1', 'Test Track', '2024-01-01')")
+        cursor.execute("INSERT INTO tracks VALUES ('track2', 'Track Two', '2024-01-02')")
+        conn.commit()
+        conn.close()
+
+        # Query using query_db_select
+        results = db_module.query_db_select(temp_database, "SELECT * FROM tracks ORDER BY id")
+
+        assert len(results) == 2
+        assert results[0] == ("track1", "Test Track", "2024-01-01")
+        assert results[1] == ("track2", "Track Two", "2024-01-02")
+
+    def test_query_db_select_with_params(self, temp_database):
+        """Test query_db_select with parameters."""
+        # Insert test data
+        conn = sqlite3.connect(temp_database)
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO tracks VALUES ('track1', 'Test Track', '2024-01-01')")
+        conn.commit()
+        conn.close()
+
+        # Query with parameters
+        results = db_module.query_db_select(temp_database, "SELECT name FROM tracks WHERE id = ?", ("track1",))
+
+        assert len(results) == 1
+        assert results[0][0] == "Test Track"
+
+    def test_query_db_select_no_results(self, temp_database):
+        """Test query_db_select with no results."""
+        results = db_module.query_db_select(temp_database, "SELECT * FROM tracks")
+        assert results == []
+
+
+@pytest.mark.unit
+class TestQueryDbWithResults:
+    """Tests for query_db with results parameter."""
+
+    def test_query_db_with_results_true(self, temp_database):
+        """Test query_db with results=True."""
+        # Insert test data first
+        db_module.query_db(temp_database, ["INSERT INTO tracks VALUES ('track1', 'Test Track', '2024-01-01')"])
+
+        # Query with results=True
+        results = db_module.query_db(temp_database, ["SELECT * FROM tracks WHERE id = 'track1'"], results=True)
+
+        assert results is not None
+        assert len(results) == 1
+        assert results[0] == ("track1", "Test Track", "2024-01-01")
+
+
+@pytest.mark.unit
+class TestDatabaseSwitching:
+    """Tests for database connection switching."""
+
+    def test_connection_switches_between_databases(self, tmp_path):
+        """Test that connection properly switches when database changes."""
+        # Create two separate databases
+        db1 = tmp_path / "db1.db"
+        db2 = tmp_path / "db2.db"
+
+        # Create schema for both
+        for db in [db1, db2]:
+            conn = sqlite3.connect(db)
+            conn.execute("CREATE TABLE test (id TEXT, value TEXT)")
+            conn.commit()
+            conn.close()
+
+        # Insert different data in each database
+        db_module.query_db(db1, ["INSERT INTO test VALUES ('1', 'database1')"])
+        db_module.query_db(db2, ["INSERT INTO test VALUES ('2', 'database2')"])
+
+        # Query db1
+        result1 = db_module.select_db(db1, "SELECT value FROM test").fetchone()
+        assert result1[0] == "database1"
+
+        # Query db2 - should switch connection
+        result2 = db_module.select_db(db2, "SELECT value FROM test").fetchone()
+        assert result2[0] == "database2"
+
+        # Query db1 again - should switch back
+        result3 = db_module.select_db(db1, "SELECT value FROM test").fetchone()
+        assert result3[0] == "database1"
+
+
+@pytest.mark.unit
+class TestGetAttr:
+    """Tests for __getattr__ function."""
+
+    def test_getattr_database(self):
+        """Test accessing DATABASE via __getattr__."""
+        assert db_module.DATABASE == utils.DATABASE
+
+    def test_getattr_database_log_level(self):
+        """Test accessing DATABASE_LOG_LEVEL via __getattr__."""
+        assert db_module.DATABASE_LOG_LEVEL == utils.DATABASE_LOG_LEVEL
+
+    def test_getattr_invalid_attribute(self):
+        """Test that invalid attributes raise AttributeError."""
+        with pytest.raises(AttributeError, match="has no attribute 'INVALID_ATTR'"):
+            _ = db_module.INVALID_ATTR
 
 
 @pytest.mark.unit

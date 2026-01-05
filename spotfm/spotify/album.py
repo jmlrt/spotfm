@@ -1,7 +1,7 @@
 import logging
 from datetime import date
 
-from spotfm import utils
+from spotfm import sqlite, utils
 from spotfm.spotify.artist import Artist
 from spotfm.spotify.constants import MARKET
 from spotfm.utils import cache_object, retrieve_object_from_cache
@@ -42,14 +42,14 @@ class Album:
 
     def update_from_db(self, client=None):
         try:
-            self.name, self.release_date, self.updated = utils.select_db(
-                utils.DATABASE, f"SELECT name, release_date, updated_at FROM albums WHERE id == '{self.id}'"
+            self.name, self.release_date, self.updated = sqlite.select_db(
+                sqlite.DATABASE, f"SELECT name, release_date, updated_at FROM albums WHERE id == '{self.id}'"
             ).fetchone()
         except TypeError:
             logging.info("Album ID %s not found in database", self.id)
             return False
-        results = utils.select_db(
-            utils.DATABASE, f"SELECT artist_id FROM albums_artists WHERE album_id == '{self.id}'"
+        results = sqlite.select_db(
+            sqlite.DATABASE, f"SELECT artist_id FROM albums_artists WHERE album_id == '{self.id}'"
         ).fetchall()
         self.artists_id = [col[0] for col in results]
         self.artists = [Artist.get_artist(id, client) for id in self.artists_id]
@@ -74,4 +74,4 @@ class Album:
         for artist in self.artists:
             queries.append(f"INSERT OR IGNORE INTO albums_artists VALUES ('{self.id}', '{artist.id}')")
         logging.debug(queries)
-        utils.query_db(utils.DATABASE, queries)
+        sqlite.query_db(sqlite.DATABASE, queries)
