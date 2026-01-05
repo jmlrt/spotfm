@@ -37,6 +37,38 @@ lint-fix:
 lint-fix-unsafe:
 	uv run ruff check --fix --unsafe-fixes .
 
+.PHONY: test
+test:
+	uv run pytest
+
+.PHONY: test-unit
+test-unit:
+	uv run pytest -m unit
+
+.PHONY: test-integration
+test-integration:
+	uv run pytest -m integration
+
+.PHONY: test-verbose
+test-verbose:
+	uv run pytest -vv
+
+.PHONY: test-coverage
+test-coverage:
+	uv run pytest --cov=spotfm --cov-report=html --cov-report=term
+
+.PHONY: test-parallel
+test-parallel:
+	uv run pytest -n auto
+
+.PHONY: test-watch
+test-watch:
+	uv run pytest-watch
+
+.PHONY: test-failed
+test-failed:
+	uv run pytest --lf
+
 .PHONY: build
 build:
 	rm -fr build/* dist/*

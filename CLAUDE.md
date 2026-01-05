@@ -29,6 +29,23 @@ uv run ruff check --fix .
 uv run ruff check --fix --unsafe-fixes .
 ```
 
+### Testing
+```bash
+make test              # Run all tests
+make test-unit         # Run only unit tests (fast)
+make test-integration  # Run only integration tests
+make test-coverage     # Run tests with HTML coverage report
+make test-verbose      # Run tests with verbose output
+make test-parallel     # Run tests in parallel (faster)
+make test-failed       # Re-run only failed tests
+# or directly:
+uv run pytest                    # Run all tests
+uv run pytest -m unit            # Run unit tests only
+uv run pytest -m integration     # Run integration tests only
+uv run pytest --cov=spotfm       # Run with coverage
+uv run pytest -n auto            # Run in parallel
+```
+
 ### Build and Publish
 ```bash
 make build           # Build distribution packages with uv
@@ -121,4 +138,60 @@ See [hacks/create-tables.sql](hacks/create-tables.sql) for the full schema. Key 
 
 ## Testing
 
-The `tests/` directory exists but is currently empty. When adding tests, use pytest (not currently in dev dependencies).
+The project has a comprehensive test suite with **129 tests** achieving **58% overall coverage** (100% on core modules).
+
+### Test Structure
+
+- **[tests/conftest.py](tests/conftest.py)** - Shared fixtures (temp database, cache, mock Spotify client)
+- **[tests/test_utils.py](tests/test_utils.py)** - 38 unit tests for utility functions (100% coverage)
+- **[tests/test_artist.py](tests/test_artist.py)** - 24 unit tests for Artist class (100% coverage)
+- **[tests/test_track.py](tests/test_track.py)** - 28 unit tests for Track class (97% coverage)
+- **[tests/test_album.py](tests/test_album.py)** - 17 unit tests for Album class (100% coverage)
+- **[tests/test_playlist.py](tests/test_playlist.py)** - 16 unit tests for Playlist class (97% coverage)
+- **[tests/test_integration.py](tests/test_integration.py)** - Integration and regression tests for workflows
+
+### Testing Best Practices
+
+1. **Isolation**: Each test uses temporary databases and cache directories
+2. **Fixtures**: Reusable test data via pytest fixtures in conftest.py
+3. **Markers**: Tests are marked as `@pytest.mark.unit` or `@pytest.mark.integration`
+4. **Mocking**: Extensive use of mocks to avoid real API calls
+5. **Time Freezing**: Uses `freezegun` for deterministic date testing
+6. **Coverage**: Branch coverage enabled with HTML reports in `htmlcov/`
+7. **Fast Execution**: Full suite runs in ~2 seconds
+
+### Running Tests
+
+```bash
+# Run all tests
+make test
+
+# Run specific test types
+make test-unit         # Only unit tests (fast)
+make test-integration  # Only integration tests
+
+# Run with coverage report
+make test-coverage     # Generates HTML report in htmlcov/
+
+# Run in parallel (faster)
+make test-parallel
+
+# Run only failed tests (useful during debugging)
+make test-failed
+
+# Run specific test file
+uv run pytest tests/test_utils.py
+
+# Run specific test
+uv run pytest tests/test_utils.py::TestSanitizeString::test_sanitize_removes_single_quotes
+```
+
+### CI/CD
+
+Tests run automatically via GitHub Actions on:
+- Every push to `main`
+- Every pull request
+- Multiple Python versions (3.11, 3.12)
+- Multiple platforms (Ubuntu, macOS, Windows)
+
+See [.github/workflows/tests.yml](.github/workflows/tests.yml) for the full workflow configuration.
