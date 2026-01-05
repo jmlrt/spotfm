@@ -17,13 +17,13 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "freezegun>=1.4.0",     # time mocking for date tests
+    "freezegun>=1.5.0",     # time mocking for date tests
     "ipython",
     "pre-commit",
-    "pytest>=8.0.0",
-    "pytest-cov>=4.1.0",
-    "pytest-mock>=3.12.0",
-    "pytest-xdist>=3.5.0",  # parallel test execution
+    "pytest>=9.0.0",
+    "pytest-cov>=7.0.0",
+    "pytest-mock>=3.14.0",
+    "pytest-xdist>=3.6.0",  # parallel test execution
     "ruff",
     "twine",
 ]
@@ -36,7 +36,7 @@ spfm = "spotfm.cli:main"
 
 [tool.ruff]
 line-length = 120
-target-version = "py311"
+target-version = "py314"
 
 [tool.ruff.lint]
 select = [

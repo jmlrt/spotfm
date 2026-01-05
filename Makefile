@@ -69,6 +69,20 @@ test-watch:
 test-failed:
 	uv run pytest --lf
 
+.PHONY: test-all-versions
+test-all-versions:
+	@echo "Testing across Python 3.11, 3.12, 3.13, 3.14..."
+	@for version in 3.11 3.12 3.13 3.14; do \
+		echo ""; \
+		echo "========================================"; \
+		echo "Testing with Python $$version..."; \
+		echo "========================================"; \
+		uv sync --python=$$version --all-extras --quiet && \
+		uv run --python=$$version pytest -q --tb=line || exit 1; \
+	done
+	@echo ""
+	@echo "✅ All Python versions passed!"
+
 .PHONY: build
 build:
 	rm -fr build/* dist/*
