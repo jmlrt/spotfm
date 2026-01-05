@@ -12,6 +12,7 @@ license = {file = "LICENSE"}
 authors = [{name = "Julien Mailleret", email = "julien@mailleret.fr"}]
 dependencies = [
     "pylast",
+    "rapidfuzz",
     "spotipy",
 ]
 

@@ -83,6 +83,22 @@ test-all-versions:
 	@echo ""
 	@echo "✅ All Python versions passed!"
 
+.PHONY: dupes-ids
+dupes-ids:
+	uv run spfm spotify find-duplicate-ids
+
+.PHONY: dupes-names
+dupes-names:
+	uv run spfm spotify find-duplicate-names
+
+.PHONY: dupes-ids-csv
+dupes-ids-csv:
+	uv run spfm spotify find-duplicate-ids -o data/dupes_ids.csv
+
+.PHONY: dupes-names-csv
+dupes-names-csv:
+	uv run spfm spotify find-duplicate-names -o data/dupes_names.csv
+
 .PHONY: build
 build:
 	rm -fr build/* dist/*

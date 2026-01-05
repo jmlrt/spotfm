@@ -1,7 +1,8 @@
 .cache
+.coverage
 .envrc
 .venv/
 *.egg-info
+**/__pycache__
 build/
 dist/
-**/__pycache__
