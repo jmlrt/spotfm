@@ -24,7 +24,9 @@ class Client:
             ),
         )
 
-    def get_playlists_id(self, excluded_playlists=[]):
+    def get_playlists_id(self, excluded_playlists=None):
+        if excluded_playlists is None:
+            excluded_playlists = []
         playlists_ids = []
         user = self.client.current_user()["id"]
 
@@ -43,7 +45,9 @@ class Client:
 
         return playlists_ids
 
-    def update_playlists(self, excluded_playlists=[]):
+    def update_playlists(self, excluded_playlists=None):
+        if excluded_playlists is None:
+            excluded_playlists = []
         playlists_id = self.get_playlists_id(excluded_playlists)
         utils.query_db(utils.DATABASE, ["DELETE FROM playlists", "DELETE FROM playlists_tracks"])
         for playlist_id in playlists_id:

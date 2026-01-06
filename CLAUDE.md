@@ -10,19 +10,29 @@ spotfm is a Python library and CLI tool for interacting with Spotify and Last.FM
 
 ### Setup
 ```bash
-make install          # Create venv, install package in editable mode with dev dependencies
+make install          # Sync dependencies using uv (creates .venv)
+# or directly:
+uv sync --all-extras  # Install package with all optional dependencies
 ```
 
 ### Code Quality
 ```bash
-make pre-commit      # Run all pre-commit hooks (isort, black, flake8, pyupgrade, etc.)
-pre-commit run --all-files
+make format          # Format code with ruff
+make lint            # Check code with ruff
+make lint-fix        # Auto-fix linting issues with ruff
+make lint-fix-unsafe # Auto-fix linting issues including unsafe fixes
+make pre-commit      # Run all pre-commit hooks (includes ruff)
+# or directly:
+uv run ruff format .
+uv run ruff check .
+uv run ruff check --fix .
+uv run ruff check --fix --unsafe-fixes .
 ```
 
 ### Build and Publish
 ```bash
-make build           # Build distribution packages
-make clean           # Remove build artifacts, venv, and cache files
+make build           # Build distribution packages with uv
+make clean           # Remove build artifacts, .venv, and cache files
 make publish         # Tag release, push to git, upload to PyPI
 ```
 
@@ -101,8 +111,12 @@ See [hacks/create-tables.sql](hacks/create-tables.sql) for the full schema. Key 
 ## Code Style
 
 - **Python**: 3.11+ (uses match/case statements)
-- **Formatting**: black (120 char line length), isort (black profile)
-- **Linting**: flake8, pyupgrade (--py311-plus)
+- **Package Manager**: uv (fast Python package installer and resolver)
+- **Build System**: hatchling (modern Python build backend)
+- **Formatting & Linting**: ruff (all-in-one tool replacing black, isort, flake8, pyupgrade)
+  - 120 character line length
+  - Targets Python 3.11+
+  - Auto-fixes import sorting, syntax upgrades, and common issues
 - Pre-commit hooks enforce all style rules automatically
 
 ## Testing

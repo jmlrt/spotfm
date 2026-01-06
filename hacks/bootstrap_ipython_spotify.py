@@ -1,5 +1,4 @@
-"""Script to load in iPython to bootstrap the resources required to work with the spotify module
-"""
+"""Script to load in iPython to bootstrap the resources required to work with the spotify module"""
 
 import logging
 

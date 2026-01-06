@@ -1,6 +1,6 @@
 [build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
 name = "spotfm"
@@ -19,6 +19,7 @@ dependencies = [
 dev = [
     "ipython",
     "pre-commit",
+    "ruff",
     "twine",
 ]
 
@@ -28,11 +29,32 @@ homepage = "https://github.com/jmlrt/spotfm"
 [project.scripts]
 spfm = "spotfm.cli:main"
 
-[tool.black]
+[tool.ruff]
 line-length = 120
+target-version = "py311"
 
-[tool.isort]
-profile = "black"
+[tool.ruff.lint]
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # pyflakes
+    "I",      # isort
+    "UP",     # pyupgrade
+    "B",      # flake8-bugbear
+    "C4",     # flake8-comprehensions
+    "PIE",    # flake8-pie
+    "SIM",    # flake8-simplify
+    "RUF",    # ruff-specific rules
+]
+ignore = [
+    "E203",   # whitespace before ':' (handled by formatter)
+    "E226",   # missing whitespace around arithmetic operator
+    "E501",   # line-too-long (let formatter handle this)
+    "E701",   # multiple statements on one line
+]
 
-[tool.setuptools]
-packages = ["spotfm"]
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
