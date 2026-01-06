@@ -33,10 +33,7 @@
       "Bash(time uv run:*)",
       "Bash(tree:*)",
       "Bash(uv run:*)",
-      "Bash(uv run pre-commit:*)",
-      "Bash(uv run pytest:*)",
       "Bash(uv sync:*)",
-      "Skill(create-pr)",
       "Skill(create-pr:*)"
     ]
   }

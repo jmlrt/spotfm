@@ -40,6 +40,57 @@ class Album:
                 album.sync_to_db()
         return album
 
+    @classmethod
+    def get_albums(cls, album_ids, client=None, refresh=False, sync_to_db=True):
+        """Fetch multiple albums efficiently using batch API calls."""
+        if not album_ids:
+            return []
+
+        # Remove duplicates while preserving order
+        unique_ids = list(dict.fromkeys(album_ids))
+
+        # Try cache/DB first
+        albums_dict = {}
+        ids_to_fetch = []
+
+        for album_id in unique_ids:
+            album = retrieve_object_from_cache(cls.kind, album_id)
+            if album is not None and (client is None or not refresh):
+                albums_dict[album_id] = album
+            else:
+                album = Album(album_id, client)
+                if client is not None and (not album.update_from_db(client) or refresh):
+                    ids_to_fetch.append(album_id)
+                else:
+                    albums_dict[album_id] = album
+
+        # Batch fetch from API (50 per batch)
+        if ids_to_fetch and client is not None:
+            for i in range(0, len(ids_to_fetch), 50):
+                batch_ids = ids_to_fetch[i : i + 50]
+                logging.info(f"Fetching album batch {i // 50 + 1}/{(len(ids_to_fetch) + 49) // 50}")
+                raw_albums = client.albums(batch_ids, market=MARKET)
+
+                for raw_album in raw_albums["albums"]:
+                    if raw_album is None:
+                        continue
+
+                    album = Album(raw_album["id"], client)
+                    album.name = utils.sanitize_string(raw_album["name"])
+                    album.release_date = raw_album["release_date"]
+                    album.artists_id = [artist["id"] for artist in raw_album["artists"]]
+                    album.artists = []  # Populated by caller
+                    album.updated = str(date.today())
+
+                    albums_dict[raw_album["id"]] = album
+                    cache_object(album)
+
+                    if sync_to_db:
+                        album.sync_to_db()
+
+        # Return in original order
+        return [albums_dict.get(album_id) for album_id in album_ids if album_id in albums_dict]
+
     def update_from_db(self, client=None):
         try:
             self.name, self.release_date, self.updated = sqlite.select_db(

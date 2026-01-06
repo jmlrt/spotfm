@@ -51,25 +51,118 @@ class Track:
 
     @classmethod
     def get_tracks(cls, tracks_id, client=None, refresh=False, batch_size=BATCH_SIZE):
-        tracks_id_batches = [tracks_id[i : i + batch_size] for i in range(0, len(tracks_id), batch_size)]
+        """
+        Fetch multiple tracks efficiently, leveraging cache/DB.
+
+        Strategy:
+        1. Check cache/DB for all tracks first (respects 3-tier cache)
+        2. Only batch fetch missing tracks from API
+        3. Collect album/artist IDs from missing tracks
+        4. Batch fetch only missing albums and artists
+        5. Return all tracks (cached + newly fetched)
+        """
+        if not tracks_id:
+            return []
+
         tracks = []
+        tracks_to_fetch = []
+
+        # Phase 1: Check cache/DB for all tracks (CRITICAL for performance)
+        for track_id in tracks_id:
+            # Try pickle cache first
+            track = retrieve_object_from_cache(cls.kind, track_id)
+            if track is not None and not refresh:
+                tracks.append(track)
+                continue
+
+            # Try DB
+            track = Track(track_id, client)
+            if not refresh and track.update_from_db(client):
+                tracks.append(track)
+                continue
+
+            # Track not in cache/DB, need to fetch from API
+            tracks_to_fetch.append(track_id)
+
+        # If all tracks cached, return early (typical case for update_playlists)
+        if not tracks_to_fetch:
+            logging.info(f"All {len(tracks)} tracks retrieved from cache/DB")
+            return tracks
+
+        logging.info(f"Retrieved {len(tracks)} tracks from cache/DB, fetching {len(tracks_to_fetch)} from API")
+
+        # Phase 2: Batch fetch missing tracks from API
+        tracks_id_batches = [tracks_to_fetch[i : i + batch_size] for i in range(0, len(tracks_to_fetch), batch_size)]
+        all_raw_tracks = []
 
         for i, batch in enumerate(tracks_id_batches):
-            logging.info(f"Batch: {i}/{len(tracks_id_batches)}")
+            logging.info(f"Fetching track batch {i + 1}/{len(tracks_id_batches)}")
             raw_tracks = client.tracks(batch, market=MARKET)
 
             for raw_track in raw_tracks["tracks"]:
-                try:
-                    track = Track.get_track(raw_track["id"], refresh=refresh)
-                    track.update_from_track(raw_track, client)
-                    tracks.append(track)
-                except TypeError:
-                    logging.info("Error: Track not found")
-                # Prevent rate limiting (429 errors)
-                sleep(0.1)
+                if raw_track is not None:
+                    all_raw_tracks.append(raw_track)
 
-            # Prevent rate limiting (429 errors)
-            sleep(1)
+            # Rate limiting: sleep between batches only
+            if i < len(tracks_id_batches) - 1:
+                sleep(1)
+
+        # Phase 3: Collect album/artist IDs from fetched tracks
+        album_ids = []
+        artist_ids = []
+
+        for raw_track in all_raw_tracks:
+            album_ids.append(raw_track["album"]["id"])
+            artist_ids.extend([artist["id"] for artist in raw_track["artists"]])
+
+        # Phase 4: Batch fetch albums (respects cache/DB in get_albums)
+        albums_dict = {}
+        if album_ids:
+            logging.info("Batch fetching albums (checking cache first)")
+            unique_album_ids = list(dict.fromkeys(album_ids))
+            albums = Album.get_albums(unique_album_ids, client, refresh=refresh)
+            albums_dict = {album.id: album for album in albums if album is not None}
+            if albums:
+                sleep(0.5)
+
+        # Phase 5: Batch fetch artists (respects cache/DB in get_artists)
+        artists_dict = {}
+        if artist_ids:
+            logging.info("Batch fetching artists (checking cache first)")
+            unique_artist_ids = list(dict.fromkeys(artist_ids))
+            artists = Artist.get_artists(unique_artist_ids, client, refresh=refresh)
+            artists_dict = {artist.id: artist for artist in artists if artist is not None}
+            if artists:
+                sleep(0.5)
+
+        # Phase 6: Populate album.artists
+        for album in albums_dict.values():
+            if album.artists_id:
+                album.artists = [artists_dict[aid] for aid in album.artists_id if aid in artists_dict]
+
+        # Phase 7: Create track objects from fetched data
+        for raw_track in all_raw_tracks:
+            try:
+                track = Track(raw_track["id"], client)
+                track.name = utils.sanitize_string(raw_track["name"])
+                track.album_id = raw_track["album"]["id"]
+                track.updated = str(date.today())
+
+                # Use pre-fetched album
+                album = albums_dict.get(track.album_id)
+                if album:
+                    track.album = album.name
+                    track.release_date = album.release_date
+
+                # Use pre-fetched artists
+                track.artists_id = [artist["id"] for artist in raw_track["artists"]]
+                track.artists = [artists_dict[aid] for aid in track.artists_id if aid in artists_dict]
+
+                cache_object(track)
+                tracks.append(track)
+
+            except (TypeError, KeyError) as e:
+                logging.info(f"Error processing track: {e}")
 
         return tracks
 
@@ -135,7 +228,8 @@ class Track:
 
     def sync_to_db(self, client):
         logging.info("Syncing track %s to database", self.id)
-        Album.get_album(self.album_id, client)
+        # Remove redundant Album.get_album() call
+        # Album should already be synced by Track.get_tracks()
         queries = []
         queries.append(f"INSERT OR IGNORE INTO tracks VALUES ('{self.id}', '{self.name}', '{self.updated}')")
         queries.append(f"INSERT OR IGNORE INTO albums_tracks VALUES ('{self.album_id}', '{self.id}')")

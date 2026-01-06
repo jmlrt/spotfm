@@ -159,18 +159,77 @@ See [hacks/create-tables.sql](hacks/create-tables.sql) for the full schema. Key 
   - Auto-fixes import sorting, syntax upgrades, and common issues
 - Pre-commit hooks enforce all style rules automatically
 
+## Commit Messages
+
+Write **concise, focused commit messages** that clearly describe what changed and why:
+
+### Structure
+```
+Brief summary (50 chars or less)
+
+- Key change 1
+- Key change 2
+- Key change 3
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
+```
+
+### Guidelines
+1. **Be concise**: Focus on the most important changes, not exhaustive details
+2. **Use bullet points**: Group related changes under clear categories
+3. **Highlight impact**: Mention test coverage, performance improvements, or breaking changes
+4. **Skip implementation details**: Don't describe every file changed or every function modified
+5. **Include metrics**: Add coverage percentages, test counts only if significant
+6. **Keep it scannable**: Use short sentences and clear formatting
+
+### Examples
+
+**Good** (concise):
+```
+Migrate database operations to sqlite module
+
+- Create singleton connection pattern for better performance
+- Remove duplicate query functions from utils.py
+- Add comprehensive test suite (87% coverage)
+- Use parameterized queries to prevent SQL injection
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
+```
+
+**Bad** (too verbose):
+```
+Migrate database operations to sqlite module and add comprehensive test coverage
+
+This commit consolidates database operations and adds extensive test coverage
+for the duplicate detection functionality.
+
+Database Migration:
+- Create new spotfm/sqlite.py module with singleton connection pattern
+- Migrate all database operations from utils.py to sqlite.py
+- Add connection pooling to avoid creating new connections for each query
+- Implement dynamic attribute resolution (__getattr__) for test monkeypatching
+- Add database path tracking to handle multiple databases in tests
+- Update all 9 production files to use sqlite module instead of utils
+[...15 more bullet points...]
+```
+
 ## Testing
 
-The project has a comprehensive test suite with **129 tests** achieving **58% overall coverage** (100% on core modules).
+The project has a comprehensive test suite with **179 tests** achieving **69% overall coverage** (100% on core modules).
 
 ### Test Structure
 
 - **[tests/conftest.py](tests/conftest.py)** - Shared fixtures (temp database, cache, mock Spotify client)
-- **[tests/test_utils.py](tests/test_utils.py)** - 38 unit tests for utility functions (100% coverage)
-- **[tests/test_artist.py](tests/test_artist.py)** - 24 unit tests for Artist class (100% coverage)
-- **[tests/test_track.py](tests/test_track.py)** - 28 unit tests for Track class (97% coverage)
-- **[tests/test_album.py](tests/test_album.py)** - 17 unit tests for Album class (100% coverage)
-- **[tests/test_playlist.py](tests/test_playlist.py)** - 16 unit tests for Playlist class (97% coverage)
+- **[tests/test_utils.py](tests/test_utils.py)** - Unit tests for utility and database functions (100% coverage)
+- **[tests/test_artist.py](tests/test_artist.py)** - Unit tests for Artist class (100% coverage)
+- **[tests/test_track.py](tests/test_track.py)** - Unit tests for Track class (97% coverage)
+- **[tests/test_album.py](tests/test_album.py)** - Unit tests for Album class (100% coverage)
+- **[tests/test_playlist.py](tests/test_playlist.py)** - Unit tests for Playlist class (97% coverage)
+- **[tests/test_dupes.py](tests/test_dupes.py)** - Unit tests for duplicate detection (87% coverage)
 - **[tests/test_integration.py](tests/test_integration.py)** - Integration and regression tests for workflows
 
 ### Testing Best Practices
@@ -181,7 +240,8 @@ The project has a comprehensive test suite with **129 tests** achieving **58% ov
 4. **Mocking**: Extensive use of mocks to avoid real API calls
 5. **Time Freezing**: Uses `freezegun` for deterministic date testing
 6. **Coverage**: Branch coverage enabled with HTML reports in `htmlcov/`
-7. **Fast Execution**: Full suite runs in ~2 seconds
+7. **Fast Execution**: Full suite runs in ~4 seconds
+8. **Coverage Target**: **All modified or new code must have ≥90% test coverage** before committing
 
 ### CRITICAL: Database Isolation in Tests
 
@@ -253,7 +313,40 @@ uv run pytest tests/test_utils.py
 
 # Run specific test
 uv run pytest tests/test_utils.py::TestSanitizeString::test_sanitize_removes_single_quotes
+
+# Check coverage for specific module
+uv run pytest tests/test_dupes.py --cov=spotfm.spotify.dupes --cov-report=term-missing
 ```
+
+### Coverage Verification Workflow
+
+**IMPORTANT**: Before committing any changes, verify test coverage meets the ≥90% requirement:
+
+1. **After writing/modifying code**:
+   ```bash
+   # Run tests for the modified module with coverage
+   uv run pytest tests/test_<module>.py --cov=spotfm.<module> --cov-report=term-missing
+   ```
+
+2. **Check the coverage output**:
+   - Look for the coverage percentage in the report
+   - Review "Missing" column to see uncovered lines
+   - If coverage < 90%, add more tests to cover edge cases
+
+3. **Add tests until ≥90% coverage**:
+   - Focus on branches, edge cases, and error conditions
+   - Use fixtures for test data isolation
+   - Test both success and failure paths
+
+4. **Run full test suite** before committing:
+   ```bash
+   make test
+   ```
+
+5. **Only commit when**:
+   - All tests pass (179/179 or more)
+   - Modified modules have ≥90% coverage
+   - No linting errors (pre-commit hooks pass)
 
 ### CI/CD
 
