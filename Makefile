@@ -99,6 +99,14 @@ dupes-ids-csv:
 dupes-names-csv:
 	uv run spfm spotify find-duplicate-names -o data/dupes_names.csv
 
+.PHONY: relinked
+relinked:
+	uv run spfm spotify find-relinked-tracks
+
+.PHONY: relinked-csv
+relinked-csv:
+	uv run spfm spotify find-relinked-tracks -o data/relinked_tracks.csv
+
 .PHONY: build
 build:
 	rm -fr build/* dist/*

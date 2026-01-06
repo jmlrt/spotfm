@@ -94,27 +94,40 @@ class Playlist:
         logging.info("Fetching playlist %s - %s from api", self.id, self.name)
         self.owner = utils.sanitize_string(playlist["owner"]["id"])
         results = client.playlist_items(
-            self.id, fields="items(added_at,track.id),next", market=MARKET, additional_types=["track"]
+            self.id, fields="items(added_at,track(id,linked_from)),next", market=MARKET, additional_types=["track"]
         )
         tracks = results["items"]
         while results["next"]:
             results = client.next(results)
             tracks.extend(results["items"])
-        self.raw_tracks = [(track["track"]["id"], track["added_at"]) for track in tracks if track["track"] is not None]
+        # Use linked_from.id if available (for relinked tracks), otherwise use track.id
+        # Spotify relinks tracks based on market availability, but we want the original track ID
+        self.raw_tracks = []
+        for track in tracks:
+            if track["track"] is not None:
+                track_data = track["track"]
+                # If track is relinked, use the original track ID from linked_from
+                track_id = track_data["linked_from"]["id"] if track_data.get("linked_from") else track_data["id"]
+                self.raw_tracks.append((track_id, track["added_at"]))
         self.tracks = self.get_tracks(client)
         self.updated = str(date.today())
 
     def sync_to_db(self, client):
         logging.info("Syncing playlist %s - %s to database", self.id, self.name)
         queries = []
+        # Update or insert playlist metadata
         queries.append(
-            f"INSERT OR IGNORE INTO playlists VALUES ('{self.id}', '{self.name}', '{self.owner}', '{self.updated}')"
+            f"INSERT OR REPLACE INTO playlists VALUES ('{self.id}', '{self.name}', '{self.owner}', '{self.updated}')"
         )
+        # Delete all existing tracks for this playlist to handle removed tracks
+        queries.append(f"DELETE FROM playlists_tracks WHERE playlist_id = '{self.id}'")
+        # Sync all unique tracks first
         for track in self.tracks:
             track.sync_to_db(client)
-            queries.append(
-                f"INSERT OR IGNORE INTO playlists_tracks VALUES ('{self.id}', '{track.id}', '{track.updated}')"
-            )
+        # Insert tracks using raw_tracks to preserve duplicates and added_at dates
+        # Use INSERT OR IGNORE in case playlist has same track multiple times
+        for track_id, added_at in self.raw_tracks:
+            queries.append(f"INSERT OR IGNORE INTO playlists_tracks VALUES ('{self.id}', '{track_id}', '{added_at}')")
         logging.debug(queries)
         sqlite.query_db(sqlite.DATABASE, queries)
 
