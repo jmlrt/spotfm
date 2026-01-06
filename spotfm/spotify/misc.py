@@ -2,7 +2,7 @@ import logging
 from time import sleep
 
 from spotfm import sqlite, utils
-from spotfm.spotify.constants import BATCH_SIZE, MARKET
+from spotfm.spotify.constants import BATCH_SIZE
 from spotfm.spotify.playlist import Playlist
 from spotfm.spotify.track import Track
 
@@ -25,27 +25,19 @@ def add_tracks_from_file(client, file_path):
 
 
 def add_tracks_from_file_batch(client, file_path, batch_size=BATCH_SIZE):
+    """Add tracks from file using optimized batch processing."""
     tracks_ids = utils.manage_tracks_ids_file(file_path)
 
-    # split tracks_ids in batches
-    tracks_ids_batches = [tracks_ids[i : i + batch_size] for i in range(0, len(tracks_ids), batch_size)]
+    # Track.get_tracks() handles all batching and syncing
+    tracks = Track.get_tracks(tracks_ids, client.client, refresh=False, batch_size=batch_size)
 
-    for i, batch in enumerate(tracks_ids_batches):
-        logging.info(f"Batch: {i}/{len(tracks_ids_batches)}")
-        tracks = client.client.tracks(batch, market=MARKET)
-
-        for raw_track in tracks["tracks"]:
-            try:
-                logging.info(f"Initializing track {raw_track['id']}")
-                track = Track.get_track(raw_track["id"], client.client)
-                track.update_from_track(raw_track, client.client)
-                track.sync_to_db(client.client)
-                logging.info(f"Track {track.id} added to db")
-            except TypeError:
-                logging.info("Error: Track not found")
-
-        # Prevent rate limiting (429 errors)
-        sleep(1)
+    # Sync tracks to DB
+    for track in tracks:
+        try:
+            track.sync_to_db(client.client)
+            logging.info(f"Track {track.id} added to db")
+        except Exception as e:
+            logging.info(f"Error adding track to db: {e}")
 
 
 def discover_from_playlists(client, discover_playlist_id, sources_playlists_ids, batch_size=BATCH_SIZE):

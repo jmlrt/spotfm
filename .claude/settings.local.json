@@ -3,7 +3,13 @@
     "allow": [
       "Bash(uv sync:*)",
       "Bash(uv run pytest:*)",
-      "Bash(grep:*)"
+      "Bash(make test-all-versions:*)",
+      "Bash(uv run:*)",
+      "Bash(time uv run:*)",
+      "Bash(make test-unit:*)",
+      "Bash(git add:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)"
     ]
   }
 }

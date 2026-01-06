@@ -356,26 +356,31 @@ class TestPlaylistWorkflow:
             ]
         }
 
-        # Setup albums and artists
-        mock_spotify_client.album.side_effect = [
-            {
-                "id": "album1",
-                "name": "Album 1",
-                "release_date": "2024-01-01",
-                "artists": [{"id": "artist1", "name": "Rock Artist"}],
-            },
-            {
-                "id": "album2",
-                "name": "Album 2",
-                "release_date": "2024-01-01",
-                "artists": [{"id": "artist2", "name": "Pop Artist"}],
-            },
-        ]
+        # Setup batch albums API
+        mock_spotify_client.albums.return_value = {
+            "albums": [
+                {
+                    "id": "album1",
+                    "name": "Album 1",
+                    "release_date": "2024-01-01",
+                    "artists": [{"id": "artist1", "name": "Rock Artist"}],
+                },
+                {
+                    "id": "album2",
+                    "name": "Album 2",
+                    "release_date": "2024-01-01",
+                    "artists": [{"id": "artist2", "name": "Pop Artist"}],
+                },
+            ]
+        }
 
-        mock_spotify_client.artist.side_effect = [
-            {"id": "artist1", "name": "Rock Artist", "genres": ["rock", "alternative"]},
-            {"id": "artist2", "name": "Pop Artist", "genres": ["pop", "electronic"]},
-        ]
+        # Setup batch artists API
+        mock_spotify_client.artists.return_value = {
+            "artists": [
+                {"id": "artist1", "name": "Rock Artist", "genres": ["rock", "alternative"]},
+                {"id": "artist2", "name": "Pop Artist", "genres": ["pop", "electronic"]},
+            ]
+        }
 
         # Fetch playlist
         with patch("spotfm.spotify.track.sleep"):

@@ -102,6 +102,7 @@ class TestPlaylistUpdateFromApi:
         """Test successful update from API."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
 
         mock_spotify_client.playlist.return_value = {
             "id": "playlist123",
@@ -140,26 +141,31 @@ class TestPlaylistUpdateFromApi:
             ]
         }
 
-        # Mock albums and artists
-        mock_spotify_client.album.side_effect = [
-            {
-                "id": "album1",
-                "name": "Album 1",
-                "release_date": "2024-01-01",
-                "artists": [{"id": "artist1", "name": "Artist 1"}],
-            },
-            {
-                "id": "album2",
-                "name": "Album 2",
-                "release_date": "2024-01-01",
-                "artists": [{"id": "artist2", "name": "Artist 2"}],
-            },
-        ]
+        # Mock batch albums API
+        mock_spotify_client.albums.return_value = {
+            "albums": [
+                {
+                    "id": "album1",
+                    "name": "Album 1",
+                    "release_date": "2024-01-01",
+                    "artists": [{"id": "artist1", "name": "Artist 1"}],
+                },
+                {
+                    "id": "album2",
+                    "name": "Album 2",
+                    "release_date": "2024-01-01",
+                    "artists": [{"id": "artist2", "name": "Artist 2"}],
+                },
+            ]
+        }
 
-        mock_spotify_client.artist.side_effect = [
-            {"id": "artist1", "name": "Artist 1", "genres": ["rock"]},
-            {"id": "artist2", "name": "Artist 2", "genres": ["pop"]},
-        ]
+        # Mock batch artists API
+        mock_spotify_client.artists.return_value = {
+            "artists": [
+                {"id": "artist1", "name": "Artist 1", "genres": ["rock"]},
+                {"id": "artist2", "name": "Artist 2", "genres": ["pop"]},
+            ]
+        }
 
         playlist = Playlist("playlist123")
 
@@ -401,6 +407,7 @@ class TestPlaylistGetTracks:
         """Test getting tracks from playlist."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
 
         playlist = Playlist("playlist123")
         playlist.raw_tracks = [("track1", "2024-01-01"), ("track2", "2024-01-02")]
@@ -422,25 +429,31 @@ class TestPlaylistGetTracks:
             ]
         }
 
-        mock_spotify_client.album.side_effect = [
-            {
-                "id": "album1",
-                "name": "Album 1",
-                "release_date": "2024-01-01",
-                "artists": [{"id": "artist1", "name": "Artist 1"}],
-            },
-            {
-                "id": "album2",
-                "name": "Album 2",
-                "release_date": "2024-01-01",
-                "artists": [{"id": "artist2", "name": "Artist 2"}],
-            },
-        ]
+        # Mock batch albums API
+        mock_spotify_client.albums.return_value = {
+            "albums": [
+                {
+                    "id": "album1",
+                    "name": "Album 1",
+                    "release_date": "2024-01-01",
+                    "artists": [{"id": "artist1", "name": "Artist 1"}],
+                },
+                {
+                    "id": "album2",
+                    "name": "Album 2",
+                    "release_date": "2024-01-01",
+                    "artists": [{"id": "artist2", "name": "Artist 2"}],
+                },
+            ]
+        }
 
-        mock_spotify_client.artist.side_effect = [
-            {"id": "artist1", "name": "Artist 1", "genres": []},
-            {"id": "artist2", "name": "Artist 2", "genres": []},
-        ]
+        # Mock batch artists API
+        mock_spotify_client.artists.return_value = {
+            "artists": [
+                {"id": "artist1", "name": "Artist 1", "genres": []},
+                {"id": "artist2", "name": "Artist 2", "genres": []},
+            ]
+        }
 
         with patch("spotfm.spotify.track.sleep"):
             tracks = playlist.get_tracks(mock_spotify_client)
