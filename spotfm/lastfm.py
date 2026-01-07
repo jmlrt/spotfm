@@ -26,13 +26,18 @@ class Track:
         self.title = title
         self.url = url
         self.user = user
+        self._scrobbles_cache = None  # In-memory cache for scrobbles
 
     def __str__(self):
         return f"{self.artist[0:50]} - {self.title[0:50]}"
 
     @property
     def scrobbles(self):
-        return self.user.get_track_scrobbles(self.artist, self.title)
+        """Fetch scrobbles with in-memory cache (valid for execution only)."""
+        if self._scrobbles_cache is None:
+            # First access - fetch from API
+            self._scrobbles_cache = self.user.get_track_scrobbles(self.artist, self.title)
+        return self._scrobbles_cache
 
     def get_scrobbles_count(self, period=None):
         now = datetime.now()
@@ -59,24 +64,17 @@ class User:
         self.user = client.get_authenticated_user()
 
     def get_recent_tracks_scrobbles(self, limit=10, scrobbles_minimum=0, period=90):
+        """Get recent tracks with scrobble counts (optimized)."""
         if period not in PREDEFINED_PERIODS:
             raise UnknownPeriodError(f"period shoud be part of {PREDEFINED_PERIODS}")
 
-        tracks = set()
-
-        current_track = self.user.get_now_playing()
-        if current_track is not None:
-            track = Track(
-                current_track.artist.name,
-                current_track.title,
-                current_track.get_url(),
-                self.user,
-            )
-            scrobble_count = track.get_scrobbles_count() + 1
-            if scrobble_count >= scrobbles_minimum:
-                tracks.add(track)
-
+        # Fetch recent tracks (1 API call)
         recent_tracks = self.user.get_recent_tracks(limit=limit)
+
+        # Build unique track set
+        seen_tracks = set()
+        tracks_data = []
+
         for recent_track in recent_tracks:
             track = Track(
                 recent_track.track.artist.name,
@@ -84,12 +82,31 @@ class User:
                 recent_track.track.get_url(),
                 self.user,
             )
-            scrobble_count = track.get_scrobbles_count()
-            if scrobble_count >= scrobbles_minimum:
-                tracks.add(track)
 
-        for track in tracks:
-            period_scrobbles = track.get_scrobbles_count(period)
-            total_scrobbles = track.get_scrobbles_count()
-            url = track.get_scrobbles_url(f"LAST_{period}_DAYS")
-            yield (f"{track} - {period_scrobbles} - {total_scrobbles} - {url}")
+            # Deduplicate tracks
+            track_key = (track.artist, track.title)
+            if track_key in seen_tracks:
+                continue
+            seen_tracks.add(track_key)
+
+            # CRITICAL: Fetch scrobbles ONCE per track (uses in-memory cache)
+            scrobbles = track.scrobbles
+
+            # Calculate counts from the same scrobble list
+            now = datetime.now()
+            total_count = len(scrobbles)
+            period_count = sum(1 for s in scrobbles if (now - datetime.fromtimestamp(int(s.timestamp))).days < period)
+
+            # Apply minimum threshold filter
+            if total_count >= scrobbles_minimum:
+                url = track.get_scrobbles_url(f"LAST_{period}_DAYS")
+                tracks_data.append((track, period_count, total_count, url))
+
+            # Rate limiting: 0.2s between API calls (5 req/sec = Last.FM limit)
+            from time import sleep
+
+            sleep(0.2)
+
+        # Yield results (same format as before - backward compatible)
+        for track, period_scrobbles, total_scrobbles, url in tracks_data:
+            yield f"{track} - {period_scrobbles} - {total_scrobbles} - {url}"
