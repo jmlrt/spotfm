@@ -2,7 +2,7 @@ import logging
 from collections import Counter
 from datetime import date
 
-from spotfm import utils
+from spotfm import sqlite, utils
 from spotfm.spotify.constants import BATCH_SIZE, MARKET
 from spotfm.spotify.track import Track
 from spotfm.utils import cache_object, retrieve_object_from_cache
@@ -75,14 +75,14 @@ class Playlist:
 
     def update_from_db(self):
         try:
-            self.name, self.owner, self.updated = utils.select_db(
-                utils.DATABASE, f"SELECT name, owner, updated_at FROM playlists WHERE id == '{self.id}'"
+            self.name, self.owner, self.updated = sqlite.select_db(
+                sqlite.DATABASE, f"SELECT name, owner, updated_at FROM playlists WHERE id == '{self.id}'"
             ).fetchone()
         except TypeError:
             logging.info("Playlist ID %s not found in database", self.id)
             return False
-        results = utils.select_db(
-            utils.DATABASE, f"SELECT track_id, added_at FROM playlists_tracks WHERE playlist_id == '{self.id}'"
+        results = sqlite.select_db(
+            sqlite.DATABASE, f"SELECT track_id, added_at FROM playlists_tracks WHERE playlist_id == '{self.id}'"
         ).fetchall()
         self.tracks = [(col[0], col[1]) for col in results]
         logging.info("Playlist ID %s retrieved from database", self.id)
@@ -116,7 +116,7 @@ class Playlist:
                 f"INSERT OR IGNORE INTO playlists_tracks VALUES ('{self.id}', '{track.id}', '{track.updated}')"
             )
         logging.debug(queries)
-        utils.query_db(utils.DATABASE, queries)
+        sqlite.query_db(sqlite.DATABASE, queries)
 
     def get_playlist_genres(self):
         genres = []

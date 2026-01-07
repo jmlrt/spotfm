@@ -1,7 +1,7 @@
 import spotipy
 from spotipy.oauth2 import CacheFileHandler, SpotifyOAuth
 
-from spotfm import utils
+from spotfm import sqlite
 from spotfm.spotify.constants import REDIRECT_URI, SCOPE, TOKEN_CACHE_FILE
 from spotfm.spotify.playlist import Playlist
 
@@ -49,7 +49,7 @@ class Client:
         if excluded_playlists is None:
             excluded_playlists = []
         playlists_id = self.get_playlists_id(excluded_playlists)
-        utils.query_db(utils.DATABASE, ["DELETE FROM playlists", "DELETE FROM playlists_tracks"])
+        sqlite.query_db(sqlite.DATABASE, ["DELETE FROM playlists", "DELETE FROM playlists_tracks"])
         for playlist_id in playlists_id:
             playlist = Playlist.get_playlist(playlist_id, self.client, refresh=True)
             playlist.update_from_api(self.client)

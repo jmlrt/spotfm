@@ -1,7 +1,5 @@
 import logging
 import pickle
-import sqlite3
-import time
 import tomllib
 from datetime import datetime
 from pathlib import Path
@@ -31,29 +29,6 @@ def parse_config(file=CONFIG_FILE):
     with open(file, mode="rb") as f:
         config = tomllib.load(f)
     return config
-
-
-def query_db(database, queries, script=False):
-    con = sqlite3.connect(database)
-    con.set_trace_callback(DATABASE_LOG_LEVEL)
-    cur = con.cursor()
-    for query in queries:
-        if script:
-            cur.executescript(query)
-        else:
-            cur.execute(query)
-    con.commit()
-    con.close()
-    # spare CPU load
-    time.sleep(0.01)
-
-
-def select_db(database, query, params=""):
-    con = sqlite3.connect(database)
-    con.set_trace_callback(DATABASE_LOG_LEVEL)
-    cur = con.cursor()
-    res = cur.execute(query, params)
-    return res
 
 
 # Parse a file with track ids and return a list of track ids

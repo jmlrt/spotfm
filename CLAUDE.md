@@ -48,6 +48,20 @@ uv run pytest -n auto            # Run in parallel
 uv run --python=3.13 pytest      # Run with specific Python version
 ```
 
+### Duplicate Detection
+```bash
+make dupes-ids           # Find tracks with same ID in multiple playlists (console output)
+make dupes-names         # Find similar tracks using fuzzy matching (console output)
+make dupes-ids-csv       # Export duplicate IDs to data/dupes_ids.csv
+make dupes-names-csv     # Export similar tracks to data/dupes_names.csv
+# or directly:
+spfm spotify find-duplicate-ids                  # Find duplicate track IDs
+spfm spotify find-duplicate-ids -o output.csv    # Save to CSV
+spfm spotify find-duplicate-names                # Find similar track names (fuzzy)
+spfm spotify find-duplicate-names -t 90          # Adjust similarity threshold (0-100)
+spfm spotify find-duplicate-names -o output.csv  # Save to CSV
+```
+
 ### Build and Publish
 ```bash
 make build           # Build distribution packages with uv
@@ -93,6 +107,7 @@ All entity classes (Track, Album, Artist, Playlist) follow this pattern:
 - **[spotfm/cli.py](spotfm/cli.py)** - CLI entry point with argument parsing, dispatches to lastfm_cli() or spotify_cli()
 - **[spotfm/lastfm.py](spotfm/lastfm.py)** - Last.FM client, Track, and User classes for scrobble analysis
 - **[spotfm/spotify/client.py](spotfm/spotify/client.py)** - Spotify client wrapper, handles playlist filtering and bulk updates
+- **[spotfm/spotify/dupes.py](spotfm/spotify/dupes.py)** - Duplicate detection using exact ID matching and fuzzy name matching (rapidfuzz)
 - **[spotfm/spotify/misc.py](spotfm/spotify/misc.py)** - High-level commands: discover-from-playlists, add-tracks-from-file, count-tracks
 - **[spotfm/spotify/track.py](spotfm/spotify/track.py)** - Track model with genre aggregation from artists
 - **[spotfm/spotify/playlist.py](spotfm/spotify/playlist.py)** - Playlist model with track batch operations
@@ -126,6 +141,12 @@ See [hacks/create-tables.sql](hacks/create-tables.sql) for the full schema. Key 
 5. **Global DB Connection**: [spotfm/sqlite.py](spotfm/sqlite.py) uses a module-level singleton connection with atexit cleanup.
 
 6. **Discover Workflow**: The discover-from-playlists command finds tracks in source playlists that don't exist in the DB, adds them to a destination playlist, then syncs to DB (see [spotfm/spotify/misc.py:53-82](spotfm/spotify/misc.py#L53-L82)).
+
+7. **Duplicate Detection**: The dupes module operates entirely on SQLite database data (no API calls):
+   - `find_duplicate_ids()` finds tracks appearing in multiple playlists (exact ID match)
+   - `find_duplicate_names()` uses rapidfuzz for fuzzy string matching to find similar tracks
+   - Both functions support excluding playlists via config and exporting results to CSV
+   - Fuzzy matching uses 4 algorithms: ratio, partial_ratio, token_sort_ratio, token_set_ratio
 
 ## Code Style
 

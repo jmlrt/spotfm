@@ -3,6 +3,7 @@ import logging
 
 from spotfm import lastfm, utils
 from spotfm.spotify import client as spotify_client
+from spotfm.spotify import dupes as spotify_dupes
 from spotfm.spotify import misc as spotify_misc
 
 
@@ -67,6 +68,15 @@ def spotify_cli(args, config):
             spotify_misc.discover_from_playlists(
                 client_read_write, config["spotify"]["discover_playlist"], config["spotify"]["sources_playlists"]
             )
+        case "find-duplicate-ids":
+            excluded = config["spotify"].get("excluded_playlists", [])
+            spotify_dupes.find_duplicate_ids(excluded_playlist_ids=excluded, output_file=args.output)
+        case "find-duplicate-names":
+            excluded = config["spotify"].get("excluded_playlists", [])
+            threshold = args.threshold if hasattr(args, "threshold") else 95
+            spotify_dupes.find_duplicate_names(
+                excluded_playlist_ids=excluded, output_file=args.output, threshold=threshold
+            )
 
 
 def main():
@@ -95,10 +105,16 @@ def main():
             "add-tracks-from-file",
             "add-tracks-from-file-batch",
             "discover-from-playlists",
+            "find-duplicate-ids",
+            "find-duplicate-names",
         ],
     )
     spotify_parser.add_argument("-p", "--playlists")
     spotify_parser.add_argument("-f", "--file")
+    spotify_parser.add_argument("-o", "--output", help="Output CSV file path")
+    spotify_parser.add_argument(
+        "-t", "--threshold", type=int, default=95, help="Similarity threshold for fuzzy matching (0-100, default 95)"
+    )
 
     args = parser.parse_args()
 

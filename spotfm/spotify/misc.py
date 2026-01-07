@@ -1,7 +1,7 @@
 import logging
 from time import sleep
 
-from spotfm import utils
+from spotfm import sqlite, utils
 from spotfm.spotify.constants import BATCH_SIZE, MARKET
 from spotfm.spotify.playlist import Playlist
 from spotfm.spotify.track import Track
@@ -73,22 +73,22 @@ def discover_from_playlists(client, discover_playlist_id, sources_playlists_ids,
 
 
 def count_tracks_by_playlists():
-    return utils.select_db(
-        utils.DATABASE,
+    return sqlite.select_db(
+        sqlite.DATABASE,
         "SELECT name, count(*) FROM playlists, playlists_tracks WHERE id = playlists_tracks.playlist_id GROUP BY name;",
     ).fetchall()
 
 
 def count_tracks(playlists_pattern=None):
     if playlists_pattern:
-        results = utils.select_db(utils.DATABASE, "SELECT id FROM playlists WHERE name LIKE ?;", (playlists_pattern,))
+        results = sqlite.select_db(sqlite.DATABASE, "SELECT id FROM playlists WHERE name LIKE ?;", (playlists_pattern,))
         ids = [id[0] for id in results]
         query = f"""
           WITH t AS (SELECT DISTINCT track_id FROM playlists_tracks WHERE playlist_id IN ({",".join(["?"] * len(ids))}))
           SELECT count(*) AS tracks FROM t;
         """
-        return utils.select_db(utils.DATABASE, query, ids).fetchone()[0]
-    return utils.select_db(
-        utils.DATABASE,
+        return sqlite.select_db(sqlite.DATABASE, query, ids).fetchone()[0]
+    return sqlite.select_db(
+        sqlite.DATABASE,
         "WITH t AS (SELECT DISTINCT track_id FROM playlists_tracks) SELECT count(*) AS tracks FROM t;",
     ).fetchone()[0]

@@ -250,5 +250,10 @@ def reset_module_state():
     """Reset module-level state between tests."""
     # This fixture runs automatically before each test
     # Clean up any module-level caches or connections
+    from spotfm import sqlite as db_module
+
+    # Close connection before and after each test to ensure clean state
+    db_module.close_db_connection()
     yield
-    # Cleanup after test runs
+    # Cleanup after test runs - close the global database connection
+    db_module.close_db_connection()
