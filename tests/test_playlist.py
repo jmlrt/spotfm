@@ -336,7 +336,7 @@ class TestPlaylistUpdateFromApi:
         assert playlist.raw_tracks[0][1] == "2024-01-01T00:00:00Z"
 
     @freeze_time("2024-03-15")
-    def test_update_from_api_filters_null_tracks(self, temp_cache_dir, monkeypatch, mock_spotify_client):
+    def test_update_from_api_filters_null_tracks(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
         """Test that null tracks are filtered out."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
