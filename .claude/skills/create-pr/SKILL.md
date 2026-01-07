@@ -153,20 +153,12 @@ Look for:
 
 ### Step 6: Run Pre-commit Hooks
 
-**CRITICAL: Run pre-commit ONLY on staged files to avoid false failures**
+**Use make pre-commit which runs on all files (already allowed permission)**
 
 ```bash
-# Get list of staged files
-STAGED_FILES=$(git diff --cached --name-only)
-
-# Run pre-commit only on staged files (not all files)
-if [ -n "$STAGED_FILES" ]; then
-  uv run pre-commit run --files $STAGED_FILES
-  PRECOMMIT_EXIT=$?
-else
-  echo "No staged files to check"
-  PRECOMMIT_EXIT=0
-fi
+# Run pre-commit hooks using make command (no approval needed)
+make pre-commit
+PRECOMMIT_EXIT=$?
 
 # If pre-commit makes changes, show them
 if [ $PRECOMMIT_EXIT -ne 0 ]; then
@@ -174,14 +166,15 @@ if [ $PRECOMMIT_EXIT -ne 0 ]; then
   echo "Modified files:"
   git diff --name-only
 
-  # If hooks auto-fixed files, they need to be staged
+  # If hooks auto-fixed files, stage them
+  STAGED_FILES=$(git diff --cached --name-only)
   if git diff --name-only | grep -q .; then
-    echo "Auto-fixes were applied. Staging fixed files..."
+    echo "Auto-fixes were applied. Re-staging files..."
     git add $STAGED_FILES
   fi
 
   # Re-run to ensure all hooks pass
-  uv run pre-commit run --files $STAGED_FILES
+  make pre-commit
   if [ $? -ne 0 ]; then
     echo "❌ Pre-commit hooks still failing after auto-fixes"
     # Show errors to user
@@ -190,10 +183,10 @@ if [ $PRECOMMIT_EXIT -ne 0 ]; then
 fi
 ```
 
-**Why run only on staged files:**
-- Prevents failures from unrelated code changes in working directory
-- Faster execution (only checks files being committed)
-- Avoids confusing errors about code not part of the PR
+**Why use make pre-commit:**
+- Already allowed permission - no approval prompts
+- Runs on all files to ensure repository-wide consistency
+- Handles auto-fixes and re-staging automatically
 
 If hooks fail after fixes:
 1. Show the specific errors to user
@@ -466,7 +459,7 @@ Handle common errors gracefully:
 - All git operations are safe and reversible (no force push, no destructive commands)
 - Temporary files (COMMIT_MESSAGE.md, PR_DESCRIPTION.md) are created using Write tool and cleaned up with `rm -f`
 - Draft PRs allow for further edits before marking ready for review
-- Pre-commit runs ONLY on staged files to prevent false failures from unstaged code
+- Pre-commit uses `make pre-commit` command which is already allowed (no approval prompts)
 - Test failures in unstaged code won't block PR creation (with user confirmation)
 - Security scan uses improved patterns to reduce false positives from documentation
 - All git and test commands are pre-approved in settings to avoid approval prompts during PR creation
