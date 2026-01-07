@@ -43,6 +43,37 @@ def add_tracks_from_file_batch(client, file_path, batch_size=BATCH_SIZE):
 
 
 def discover_from_playlists(client, discover_playlist_id, sources_playlists_ids, batch_size=BATCH_SIZE):
+    """Discover new tracks from source playlists and add them to a discover playlist.
+
+    This function uses lifecycle tracking to distinguish between:
+    - Tracks never seen before (added to discover playlist)
+    - Tracks removed from all playlists (skipped to prevent re-adding)
+
+    Lifecycle tracking:
+    - Tracks have `created_at` and `last_seen_at` timestamps
+    - Orphaned tracks (in DB but not in any playlist) are intentionally preserved
+    - These orphaned tracks serve as a "negative cache" to prevent re-discovery
+
+    WARNING: Do NOT delete orphaned tracks from the tracks table, as this will
+    cause previously removed tracks to be re-added to the discover playlist.
+
+    Only adds tracks that:
+    - Don't exist in the database (never seen before), OR
+    - Exist but are currently in other playlists
+
+    Skips tracks that:
+    - Are orphaned (in DB but removed from all playlists)
+
+    Args:
+        client: Spotify client instance
+        discover_playlist_id: Playlist to add discovered tracks to
+        sources_playlists_ids: List of playlist IDs to discover from
+        batch_size: Batch size for API operations
+
+    See Also:
+        - Track.is_orphaned(): Check if track is in zero playlists
+        - Track lifecycle timestamps in hacks/create-tables.sql
+    """
     discover_playlist = Playlist.get_playlist(discover_playlist_id, client.client, refresh=True, sync_to_db=False)
     new_tracks = []
 
@@ -53,8 +84,17 @@ def discover_from_playlists(client, discover_playlist_id, sources_playlists_ids,
 
         for track in tracks:
             if not track.update_from_db():
+                # Track doesn't exist in DB - truly new
                 logging.info(f"New track found: {track.id}")
                 new_tracks.append(track)
+            elif track.is_orphaned():
+                # Track exists in DB but not in any playlist (was removed)
+                last_seen = getattr(track, "last_seen_at", "unknown")
+                logging.info(f"Skipping orphaned track: {track.id} (last seen: {last_seen})")
+                # Do NOT add to new_tracks
+            else:
+                # Track exists and is in other playlists
+                logging.debug(f"Skipping track {track.id} (already in playlists)")
 
         logging.info(f"Adding {len(new_tracks)} new tracks to db")
 

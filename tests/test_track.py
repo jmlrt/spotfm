@@ -172,7 +172,7 @@ class TestTrackUpdateFromDb:
         # Insert test data
         conn = sqlite3.connect(temp_database)
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO tracks VALUES ('track1', 'Test Track', '2024-01-01')")
+        cursor.execute("INSERT INTO tracks VALUES ('track1', 'Test Track', '2024-01-01', '2024-01-01', '2024-01-01')")
         cursor.execute("INSERT INTO albums VALUES ('album1', 'Test Album', '2024-01-01', '2024-01-01')")
         cursor.execute("INSERT INTO albums_tracks VALUES ('album1', 'track1')")
         cursor.execute("INSERT INTO artists VALUES ('artist1', 'Test Artist', '2024-01-01')")
@@ -186,6 +186,8 @@ class TestTrackUpdateFromDb:
         assert result is True
         assert track.name == "Test Track"
         assert track.updated == "2024-01-01"
+        assert track.created_at == "2024-01-01"  # New: verify lifecycle timestamp
+        assert track.last_seen_at == "2024-01-01"  # New: verify lifecycle timestamp
         assert track.album_id == "album1"
         assert len(track.artists) == 1
         assert track.artists[0].id == "artist1"
@@ -320,7 +322,12 @@ class TestTrackSyncToDb:
         track_artist = cursor.execute("SELECT * FROM tracks_artists WHERE track_id = 'track123'").fetchone()
         conn.close()
 
-        assert track_data == ("track123", "Test Track", "2024-01-01")
+        # Check track data (now includes lifecycle columns)
+        assert track_data[0] == "track123"  # id
+        assert track_data[1] == "Test Track"  # name
+        assert track_data[2] == "2024-01-01"  # updated_at
+        assert track_data[3] is not None  # created_at
+        assert track_data[4] is not None  # last_seen_at
         assert album_track[0] == "album123"
         assert track_artist[1] == "artist123"
 
@@ -619,3 +626,137 @@ class TestTrackHelperMethods:
         assert "rock" in genres_str
         assert "pop" in genres_str
         assert "electronic" in genres_str
+
+
+@pytest.mark.unit
+class TestTrackLifecycleTracking:
+    """Tests for Track lifecycle tracking (created_at, last_seen_at)."""
+
+    @freeze_time("2024-01-15")
+    def test_lifecycle_timestamps_on_first_sync(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
+        """Test that tracks get lifecycle timestamps on first sync."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
+
+        # Create new track with API data
+        track = Track.get_track("newtrack1", client=mock_spotify_client, refresh=True)
+
+        # Verify timestamps are set
+        assert hasattr(track, "created_at")
+        assert hasattr(track, "last_seen_at")
+        assert track.created_at == "2024-01-15"
+        assert track.last_seen_at == "2024-01-15"
+
+        # Verify in DB
+        conn = sqlite3.connect(temp_database)
+        cursor = conn.cursor()
+        result = cursor.execute("SELECT created_at, last_seen_at FROM tracks WHERE id = 'newtrack1'").fetchone()
+        conn.close()
+
+        assert result == ("2024-01-15", "2024-01-15")
+
+    def test_lifecycle_preserves_created_at_on_update(
+        self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client
+    ):
+        """Test that created_at is preserved when track is updated."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
+
+        # First sync at 2024-01-01
+        with freeze_time("2024-01-01"):
+            track = Track.get_track("track123", client=mock_spotify_client, refresh=True)
+            assert track.created_at == "2024-01-01"
+            assert track.last_seen_at == "2024-01-01"
+
+        # Update track at 2024-01-15
+        with freeze_time("2024-01-15"):
+            track = Track.get_track("track123", client=mock_spotify_client, refresh=True)
+
+        # Verify created_at preserved, last_seen_at updated
+        assert track.created_at == "2024-01-01"  # Preserved
+        assert track.last_seen_at == "2024-01-15"  # Updated
+
+        # Verify in DB
+        conn = sqlite3.connect(temp_database)
+        cursor = conn.cursor()
+        result = cursor.execute("SELECT created_at, last_seen_at FROM tracks WHERE id = 'track123'").fetchone()
+        conn.close()
+
+        assert result == ("2024-01-01", "2024-01-15")
+
+    def test_is_orphaned_returns_true_when_not_in_playlists(self, temp_database, monkeypatch):
+        """Test that is_orphaned() returns True for tracks not in any playlist."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
+
+        # Create track in DB but not in playlists_tracks
+        conn = sqlite3.connect(temp_database)
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO tracks VALUES ('orphan1', 'Orphaned Track', '2024-01-01', '2024-01-01', '2024-01-10')"
+        )
+        cursor.execute("INSERT INTO albums VALUES ('album1', 'Album 1', '2024-01-01', '2024-01-01')")
+        cursor.execute("INSERT INTO albums_tracks VALUES ('album1', 'orphan1')")
+        cursor.execute("INSERT INTO artists VALUES ('artist1', 'Artist 1', '2024-01-01')")
+        cursor.execute("INSERT INTO tracks_artists VALUES ('orphan1', 'artist1')")
+        conn.commit()
+        conn.close()
+
+        # Create track object
+        track = Track("orphan1")
+        track.update_from_db()
+
+        # Verify is_orphaned returns True
+        assert track.is_orphaned() is True
+
+    def test_is_orphaned_returns_false_when_in_playlist(self, temp_database, monkeypatch):
+        """Test that is_orphaned() returns False for tracks in playlists."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
+
+        # Create track in DB and in playlists_tracks
+        conn = sqlite3.connect(temp_database)
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO playlists VALUES ('playlist1', 'Test Playlist', 'user123', '2024-01-01')")
+        cursor.execute(
+            "INSERT INTO tracks VALUES ('active1', 'Active Track', '2024-01-01', '2024-01-01', '2024-01-01')"
+        )
+        cursor.execute("INSERT INTO albums VALUES ('album1', 'Album 1', '2024-01-01', '2024-01-01')")
+        cursor.execute("INSERT INTO albums_tracks VALUES ('album1', 'active1')")
+        cursor.execute("INSERT INTO artists VALUES ('artist1', 'Artist 1', '2024-01-01')")
+        cursor.execute("INSERT INTO tracks_artists VALUES ('active1', 'artist1')")
+        cursor.execute("INSERT INTO playlists_tracks VALUES ('playlist1', 'active1', '2024-01-01')")
+        conn.commit()
+        conn.close()
+
+        # Create track object
+        track = Track("active1")
+        track.update_from_db()
+
+        # Verify is_orphaned returns False
+        assert track.is_orphaned() is False
+
+    def test_update_from_db_handles_null_lifecycle_timestamps(self, temp_database, monkeypatch):
+        """Test that update_from_db() handles NULL lifecycle timestamps gracefully."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
+
+        # Manually insert track with old schema (NULL timestamps)
+        conn = sqlite3.connect(temp_database)
+        cursor = conn.cursor()
+        # Use UPDATE to set columns to NULL after INSERT
+        cursor.execute("INSERT INTO tracks VALUES ('oldtrack1', 'Old Track', '2024-01-01', '2024-01-01', '2024-01-01')")
+        cursor.execute("UPDATE tracks SET created_at = NULL, last_seen_at = NULL WHERE id = 'oldtrack1'")
+        cursor.execute("INSERT INTO albums VALUES ('album1', 'Album 1', '2024-01-01', '2024-01-01')")
+        cursor.execute("INSERT INTO albums_tracks VALUES ('album1', 'oldtrack1')")
+        cursor.execute("INSERT INTO artists VALUES ('artist1', 'Artist 1', '2024-01-01')")
+        cursor.execute("INSERT INTO tracks_artists VALUES ('oldtrack1', 'artist1')")
+        conn.commit()
+        conn.close()
+
+        # Try to load track (should not crash)
+        track = Track("oldtrack1")
+        result = track.update_from_db()
+
+        # Verify it loaded successfully
+        assert result is True
+        assert track.name == "Old Track"
+        # Note: The graceful fallback in update_from_db sets default values
+        # We're not testing the specific default behavior, just that it doesn't crash

@@ -1,4 +1,5 @@
 import logging
+import sqlite3
 from datetime import date
 from time import sleep
 
@@ -179,9 +180,27 @@ class Track:
 
     def update_from_db(self, client=None):
         try:
-            self.name, self.updated = sqlite.select_db(
-                sqlite.DATABASE, f"SELECT name, updated_at FROM tracks WHERE id == '{self.id}'"
+            # Try new schema first (with lifecycle columns)
+            result = sqlite.select_db(
+                sqlite.DATABASE,
+                f"SELECT name, updated_at, created_at, last_seen_at FROM tracks WHERE id == '{self.id}'",
             ).fetchone()
+            if result:
+                self.name, self.updated, self.created_at, self.last_seen_at = result
+        except sqlite3.OperationalError as e:
+            # Fallback to old schema (columns don't exist yet)
+            if "no such column" in str(e).lower():
+                logging.debug("Lifecycle columns not found, using old schema")
+                result = sqlite.select_db(
+                    sqlite.DATABASE, f"SELECT name, updated_at FROM tracks WHERE id == '{self.id}'"
+                ).fetchone()
+                if result:
+                    self.name, self.updated = result
+                    # Set default values for missing columns
+                    self.created_at = str(date.today())
+                    self.last_seen_at = str(date.today())
+            else:
+                raise
         except TypeError:
             logging.info("Track ID %s not found in database", self.id)
             return False
@@ -215,6 +234,10 @@ class Track:
         self.artists_id = [artist["id"] for artist in track["artists"]]
         self.artists = [Artist.get_artist(id, client) for id in self.artists_id]
         self.updated = str(date.today())
+        # Only set created_at if not already set (preserve original creation date)
+        if not hasattr(self, "created_at") or self.created_at is None:
+            self.created_at = str(date.today())
+        self.last_seen_at = str(date.today())  # Always update when fetched
 
     def update_from_track(self, track, client):
         self.name = utils.sanitize_string(track["name"])
@@ -231,13 +254,51 @@ class Track:
         # Remove redundant Album.get_album() call
         # Album should already be synced by Track.get_tracks()
         queries = []
-        queries.append(f"INSERT OR IGNORE INTO tracks VALUES ('{self.id}', '{self.name}', '{self.updated}')")
+
+        # Check if lifecycle columns exist
+        try:
+            sqlite.select_db(sqlite.DATABASE, "SELECT created_at FROM tracks LIMIT 1")
+            has_lifecycle = True
+        except sqlite3.OperationalError:
+            has_lifecycle = False
+
+        if has_lifecycle:
+            # New schema with lifecycle tracking
+            created = getattr(self, "created_at", str(date.today()))
+            last_seen = str(date.today())
+            queries.append(
+                f"INSERT OR REPLACE INTO tracks VALUES "
+                f"('{self.id}', '{self.name}', '{self.updated}', "
+                f"COALESCE((SELECT created_at FROM tracks WHERE id = '{self.id}'), '{created}'), "
+                f"'{last_seen}')"
+            )
+        else:
+            # Old schema without lifecycle tracking
+            queries.append(f"INSERT OR IGNORE INTO tracks VALUES ('{self.id}', '{self.name}', '{self.updated}')")
+
         queries.append(f"INSERT OR IGNORE INTO albums_tracks VALUES ('{self.album_id}', '{self.id}')")
         for artist in self.artists:
             queries.append(f"INSERT OR IGNORE INTO tracks_artists VALUES ('{self.id}', '{artist.id}')")
         logging.debug(queries)
         sqlite.query_db(sqlite.DATABASE, queries)
         logging.info(f"Track {self.id} added to db")
+
+    def is_orphaned(self):
+        """Check if track is not currently in any playlist.
+
+        Orphaned tracks are intentionally preserved in the database to serve
+        as a "negative cache" for the discover_from_playlists feature.
+
+        WARNING: Do not delete orphaned tracks, as this will cause
+        discover_from_playlists to re-add previously removed tracks.
+
+        Returns:
+            bool: True if track exists in DB but not in any playlists_tracks entry
+        """
+        result = sqlite.select_db(
+            sqlite.DATABASE, f"SELECT COUNT(*) FROM playlists_tracks WHERE track_id = '{self.id}'"
+        ).fetchone()
+        return result[0] == 0
 
     def get_artists_names(self):
         artists_names = []
