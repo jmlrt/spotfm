@@ -16,7 +16,12 @@ def temp_dir(tmp_path):
 def temp_database(tmp_path):
     """Create a temporary SQLite database for testing."""
     db_path = tmp_path / "test_spotify.db"
-    conn = sqlite3.connect(db_path)
+
+    # Ensure parent directory exists (defensive programming for CI)
+    db_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Convert to string for sqlite3 compatibility across all platforms
+    conn = sqlite3.connect(str(db_path))
     cursor = conn.cursor()
 
     # Create minimal schema for testing
@@ -91,6 +96,7 @@ def temp_database(tmp_path):
     conn.commit()
     conn.close()
 
+    # Return Path object to match utils.DATABASE type
     return db_path
 
 

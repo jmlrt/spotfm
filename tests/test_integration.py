@@ -236,8 +236,9 @@ class TestRefreshWorkflow:
 class TestBatchOperations:
     """Test batch operations work correctly."""
 
-    def test_get_tracks_batching(self, temp_cache_dir, monkeypatch, mock_spotify_client):
+    def test_get_tracks_batching(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
         """Test Track.get_tracks properly batches requests."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
 
         track_ids = [f"track{i}" for i in range(1, 101)]  # 100 tracks
@@ -396,8 +397,9 @@ class TestPlaylistWorkflow:
 class TestErrorHandling:
     """Test error handling and edge cases."""
 
-    def test_missing_track_in_batch(self, temp_cache_dir, monkeypatch, mock_spotify_client):
+    def test_missing_track_in_batch(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
         """Test that missing tracks (None) are handled gracefully."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
 
         track_ids = ["valid1", "invalid", "valid2"]
@@ -448,8 +450,9 @@ class TestErrorHandling:
         assert tracks[0].name == "Valid Track 1"
         assert tracks[1].name == "Valid Track 2"
 
-    def test_empty_playlist(self, temp_cache_dir, monkeypatch, mock_spotify_client):
+    def test_empty_playlist(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
         """Test handling of empty playlist."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
 
         mock_spotify_client.playlist.return_value = {

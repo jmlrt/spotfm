@@ -117,8 +117,9 @@ class TestAlbumUpdateFromApi:
     """Tests for Album.update_from_api method."""
 
     @freeze_time("2024-03-15")
-    def test_update_from_api_success(self, temp_cache_dir, monkeypatch, mock_spotify_client):
+    def test_update_from_api_success(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
         """Test successful update from API."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
 
         mock_spotify_client.album.return_value = {
@@ -146,8 +147,9 @@ class TestAlbumUpdateFromApi:
         assert album.artists_id == ["artist1", "artist2"]
 
     @freeze_time("2024-03-15")
-    def test_update_from_api_sanitizes_name(self, temp_cache_dir, monkeypatch, mock_spotify_client):
+    def test_update_from_api_sanitizes_name(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
         """Test that album name is sanitized."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
 
         mock_spotify_client.album.return_value = {
@@ -274,8 +276,9 @@ class TestAlbumGetAlbum:
         assert album.release_date == "2024-01-01"
         mock_spotify_client.album.assert_called_once_with("api123", market="FR")
 
-    def test_get_album_refresh_forces_api_call(self, temp_cache_dir, monkeypatch, mock_spotify_client):
+    def test_get_album_refresh_forces_api_call(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
         """Test that refresh=True forces API call."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
 
         # Cache an album
@@ -308,8 +311,11 @@ class TestAlbumGetAlbum:
 class TestAlbumEdgeCases:
     """Tests for edge cases and error conditions."""
 
-    def test_album_with_special_characters(self, mock_spotify_client):
+    def test_album_with_special_characters(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
         """Test album with special characters in name."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
+
         mock_spotify_client.album.return_value = {
             "id": "special123",
             "name": "Greatest Hits: Volume 1",
@@ -328,8 +334,11 @@ class TestAlbumEdgeCases:
 
         assert album.name == "Greatest Hits: Volume 1"
 
-    def test_album_with_unicode_characters(self, mock_spotify_client):
+    def test_album_with_unicode_characters(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
         """Test album with Unicode characters."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
+
         mock_spotify_client.album.return_value = {
             "id": "unicode123",
             "name": "Café del Mar",
@@ -348,8 +357,11 @@ class TestAlbumEdgeCases:
 
         assert album.name == "Café del Mar"
 
-    def test_album_with_partial_date(self, mock_spotify_client):
+    def test_album_with_partial_date(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
         """Test album with partial release date (year only)."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
+
         mock_spotify_client.album.return_value = {
             "id": "partial123",
             "name": "Old Album",

@@ -305,8 +305,9 @@ class TestArtistGetArtist:
         assert artist.updated == "2024-03-15"
         mock_spotify_client.artist.assert_called_once_with("api123")
 
-    def test_get_artist_refresh_forces_api_call(self, temp_cache_dir, monkeypatch, mock_spotify_client):
+    def test_get_artist_refresh_forces_api_call(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
         """Test that refresh=True forces API call even with cache."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
 
         # Cache an artist

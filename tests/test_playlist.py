@@ -98,8 +98,9 @@ class TestPlaylistUpdateFromApi:
     """Tests for Playlist.update_from_api method."""
 
     @freeze_time("2024-03-15")
-    def test_update_from_api_success(self, temp_cache_dir, monkeypatch, mock_spotify_client):
+    def test_update_from_api_success(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
         """Test successful update from API."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
 
         mock_spotify_client.playlist.return_value = {
@@ -172,8 +173,9 @@ class TestPlaylistUpdateFromApi:
         assert len(playlist.tracks) == 2
 
     @freeze_time("2024-03-15")
-    def test_update_from_api_sanitizes_name(self, temp_cache_dir, monkeypatch, mock_spotify_client):
+    def test_update_from_api_sanitizes_name(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
         """Test that playlist name is sanitized."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
 
         mock_spotify_client.playlist.return_value = {
@@ -194,8 +196,9 @@ class TestPlaylistUpdateFromApi:
         assert playlist.name == "Johns Favorites"
 
     @freeze_time("2024-03-15")
-    def test_update_from_api_paginated_results(self, temp_cache_dir, monkeypatch, mock_spotify_client):
+    def test_update_from_api_paginated_results(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
         """Test handling paginated playlist items."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
 
         mock_spotify_client.playlist.return_value = {
@@ -265,8 +268,9 @@ class TestPlaylistUpdateFromApi:
         mock_spotify_client.next.assert_called_once()
 
     @freeze_time("2024-03-15")
-    def test_update_from_api_filters_null_tracks(self, temp_cache_dir, monkeypatch, mock_spotify_client):
+    def test_update_from_api_filters_null_tracks(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
         """Test that null tracks are filtered out."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
 
         mock_spotify_client.playlist.return_value = {
@@ -393,8 +397,9 @@ class TestPlaylistGetPlaylist:
 class TestPlaylistGetTracks:
     """Tests for Playlist.get_tracks method."""
 
-    def test_get_tracks_success(self, temp_cache_dir, monkeypatch, mock_spotify_client):
+    def test_get_tracks_success(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
         """Test getting tracks from playlist."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
 
         playlist = Playlist("playlist123")

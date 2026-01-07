@@ -160,6 +160,52 @@ The project has a comprehensive test suite with **129 tests** achieving **58% ov
 6. **Coverage**: Branch coverage enabled with HTML reports in `htmlcov/`
 7. **Fast Execution**: Full suite runs in ~2 seconds
 
+### CRITICAL: Database Isolation in Tests
+
+**All tests MUST use mock databases and NEVER access the real database at `~/.spotfm/spotify.db`.**
+
+#### When to Add Database Fixtures
+
+A test needs the `temp_database` fixture and `monkeypatch` if it:
+- Calls `get_artist()`, `get_album()`, `get_track()`, or `get_playlist()` with a client parameter
+- Calls `update_from_db()` or `sync_to_db()` methods
+- Calls `update_from_api()` which internally calls other `get_*()` methods
+
+#### How to Add Database Fixtures
+
+For any test that interacts with the database, add these parameters and setup:
+
+```python
+def test_example(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
+    """Test that interacts with database."""
+    # CRITICAL: Monkeypatch DATABASE to use temp database
+    monkeypatch.setattr(utils, "DATABASE", temp_database)
+    monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
+
+    # ... test code
+```
+
+#### Tests That Don't Need Database Fixtures
+
+Tests that only test representations, initializations, or direct API calls (without database persistence) don't need database fixtures:
+- `__repr__()`, `__str__()`, or `__init__()` methods
+- Direct calls to `update_from_api()` without `get_*()` methods
+- Tests that only mock responses without database interaction
+
+#### Current State
+
+- **Total tests**: 129
+- **Tests with DATABASE monkeypatch**: 49 (only those that need it)
+- **Tests accessing real database**: 0 ✅
+
+#### Verification
+
+To verify no tests access the real database, check that:
+1. All tests calling `get_*()` methods have `temp_database` fixture
+2. All tests calling `update_from_db()` have `temp_database` fixture
+3. `~/.spotfm/spotify.db` is never created or accessed during test runs
+4. All GitHub Actions tests pass on all platforms (Ubuntu, macOS, Windows)
+
 ### Running Tests
 
 ```bash

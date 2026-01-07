@@ -401,8 +401,9 @@ class TestTrackGetTrack:
 class TestTrackGetTracks:
     """Tests for Track.get_tracks class method."""
 
-    def test_get_tracks_single_batch(self, temp_cache_dir, monkeypatch, mock_spotify_client):
+    def test_get_tracks_single_batch(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
         """Test getting multiple tracks in single batch."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
 
         track_ids = ["track1", "track2", "track3"]
@@ -454,8 +455,9 @@ class TestTrackGetTracks:
         assert tracks[1].name == "Track 2"
         assert tracks[2].name == "Track 3"
 
-    def test_get_tracks_multiple_batches(self, temp_cache_dir, monkeypatch, mock_spotify_client):
+    def test_get_tracks_multiple_batches(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
         """Test getting tracks across multiple batches."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
 
         # Create 5 track IDs with batch_size of 2
@@ -497,8 +499,9 @@ class TestTrackGetTracks:
         # Should have made 3 calls (2+2+1)
         assert mock_spotify_client.tracks.call_count == 3
 
-    def test_get_tracks_handles_none_track(self, temp_cache_dir, monkeypatch, mock_spotify_client):
+    def test_get_tracks_handles_none_track(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
         """Test that None tracks are skipped."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
 
         track_ids = ["track1", "invalid", "track2"]

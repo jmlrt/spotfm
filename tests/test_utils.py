@@ -387,5 +387,8 @@ class TestConstants:
 
     def test_database_path(self):
         """Test DATABASE path."""
-        assert utils.DATABASE.name == "spotify.db"
-        assert utils.DATABASE.parent == utils.WORK_DIR
+        from pathlib import Path
+
+        db_path = Path(utils.DATABASE)
+        assert db_path.name == "spotify.db"
+        assert db_path.parent == utils.WORK_DIR
