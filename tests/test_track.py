@@ -405,6 +405,7 @@ class TestTrackGetTracks:
         """Test getting multiple tracks in single batch."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
 
         track_ids = ["track1", "track2", "track3"]
 
@@ -431,21 +432,23 @@ class TestTrackGetTracks:
             ]
         }
 
-        # Mock albums
-        mock_spotify_client.album.side_effect = [
-            {
-                "id": f"album{i}",
-                "name": f"Album {i}",
-                "release_date": "2024-01-01",
-                "artists": [{"id": f"artist{i}", "name": f"Artist {i}"}],
-            }
-            for i in range(1, 4)
-        ]
+        # Mock batch albums API
+        mock_spotify_client.albums.return_value = {
+            "albums": [
+                {
+                    "id": f"album{i}",
+                    "name": f"Album {i}",
+                    "release_date": "2024-01-01",
+                    "artists": [{"id": f"artist{i}", "name": f"Artist {i}"}],
+                }
+                for i in range(1, 4)
+            ]
+        }
 
-        # Mock artists
-        mock_spotify_client.artist.side_effect = [
-            {"id": f"artist{i}", "name": f"Artist {i}", "genres": []} for i in range(1, 4)
-        ]
+        # Mock batch artists API
+        mock_spotify_client.artists.return_value = {
+            "artists": [{"id": f"artist{i}", "name": f"Artist {i}", "genres": []} for i in range(1, 4)]
+        }
 
         with patch("spotfm.spotify.track.sleep"):  # Mock sleep to speed up test
             tracks = Track.get_tracks(track_ids, mock_spotify_client)
@@ -459,6 +462,7 @@ class TestTrackGetTracks:
         """Test getting tracks across multiple batches."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
 
         # Create 5 track IDs with batch_size of 2
         track_ids = [f"track{i}" for i in range(1, 6)]
@@ -478,31 +482,43 @@ class TestTrackGetTracks:
 
         mock_spotify_client.tracks.side_effect = mock_tracks_response
 
-        # Mock albums and artists
-        mock_spotify_client.album.side_effect = lambda id, market: {
-            "id": id,
-            "name": f"Album {id}",
-            "release_date": "2024-01-01",
-            "artists": [{"id": f"artist{id}", "name": f"Artist {id}"}],
-        }
+        # Mock batch albums API
+        def mock_albums_response(ids, market):
+            return {
+                "albums": [
+                    {
+                        "id": id,
+                        "name": f"Album {id}",
+                        "release_date": "2024-01-01",
+                        "artists": [{"id": f"artist{id}", "name": f"Artist {id}"}],
+                    }
+                    for id in ids
+                ]
+            }
 
-        mock_spotify_client.artist.side_effect = lambda id: {
-            "id": id,
-            "name": f"Artist {id}",
-            "genres": [],
-        }
+        mock_spotify_client.albums.side_effect = mock_albums_response
+
+        # Mock batch artists API
+        def mock_artists_response(ids):
+            return {"artists": [{"id": id, "name": f"Artist {id}", "genres": []} for id in ids]}
+
+        mock_spotify_client.artists.side_effect = mock_artists_response
 
         with patch("spotfm.spotify.track.sleep"):
             tracks = Track.get_tracks(track_ids, mock_spotify_client, batch_size=2)
 
         assert len(tracks) == 5
-        # Should have made 3 calls (2+2+1)
+        # Should have made 3 calls for tracks (2+2+1)
         assert mock_spotify_client.tracks.call_count == 3
+        # Should have made calls for albums and artists batches
+        assert mock_spotify_client.albums.call_count == 1  # All 5 albums in one batch
+        assert mock_spotify_client.artists.call_count == 1  # All 5 artists in one batch
 
     def test_get_tracks_handles_none_track(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
         """Test that None tracks are skipped."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
 
         track_ids = ["track1", "invalid", "track2"]
 
@@ -524,25 +540,31 @@ class TestTrackGetTracks:
             ]
         }
 
-        mock_spotify_client.album.side_effect = [
-            {
-                "id": "album1",
-                "name": "Album 1",
-                "release_date": "2024-01-01",
-                "artists": [{"id": "artist1", "name": "Artist 1"}],
-            },
-            {
-                "id": "album2",
-                "name": "Album 2",
-                "release_date": "2024-01-01",
-                "artists": [{"id": "artist2", "name": "Artist 2"}],
-            },
-        ]
+        # Mock batch albums API
+        mock_spotify_client.albums.return_value = {
+            "albums": [
+                {
+                    "id": "album1",
+                    "name": "Album 1",
+                    "release_date": "2024-01-01",
+                    "artists": [{"id": "artist1", "name": "Artist 1"}],
+                },
+                {
+                    "id": "album2",
+                    "name": "Album 2",
+                    "release_date": "2024-01-01",
+                    "artists": [{"id": "artist2", "name": "Artist 2"}],
+                },
+            ]
+        }
 
-        mock_spotify_client.artist.side_effect = [
-            {"id": "artist1", "name": "Artist 1", "genres": []},
-            {"id": "artist2", "name": "Artist 2", "genres": []},
-        ]
+        # Mock batch artists API
+        mock_spotify_client.artists.return_value = {
+            "artists": [
+                {"id": "artist1", "name": "Artist 1", "genres": []},
+                {"id": "artist2", "name": "Artist 2", "genres": []},
+            ]
+        }
 
         with patch("spotfm.spotify.track.sleep"):
             tracks = Track.get_tracks(track_ids, mock_spotify_client)

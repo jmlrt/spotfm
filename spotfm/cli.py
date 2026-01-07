@@ -77,6 +77,9 @@ def spotify_cli(args, config):
             spotify_dupes.find_duplicate_names(
                 excluded_playlist_ids=excluded, output_file=args.output, threshold=threshold
             )
+        case "find-relinked-tracks":
+            excluded = config["spotify"].get("excluded_playlists", [])
+            spotify_misc.find_relinked_tracks(client.client, excluded_playlist_ids=excluded, output_file=args.output)
 
 
 def main():
@@ -107,6 +110,7 @@ def main():
             "discover-from-playlists",
             "find-duplicate-ids",
             "find-duplicate-names",
+            "find-relinked-tracks",
         ],
     )
     spotify_parser.add_argument("-p", "--playlists")
