@@ -14,7 +14,7 @@ Create a PR
 2. User: "main" (or just presses enter)
 3. Fetch: `git fetch origin`
 4. Current branch: `feature/add-duplicate-detection` (already on feature branch)
-5. Rebase: `GIT_EDITOR=true git rebase --no-edit origin/main`
+5. Rebase: `GIT_EDITOR=true git rebase origin/main`
 6. Show files:
    ```
    Modified:
@@ -554,6 +554,207 @@ Your changes are committed locally on branch: feature/add-caching
 
 ---
 
+## New Features (Version 2)
+
+### Example 16: Branch Already Up-to-Date
+
+**Scenario:** Feature branch is already current with base
+
+**User Request:**
+```
+Create a PR
+```
+
+**Skill Actions:**
+1. Fetch: `git fetch origin`
+2. Check status: `git merge-base --is-ancestor origin/main HEAD`
+3. Result: ✅ Branch is already up to date with main
+4. Skip rebase (no need)
+5. Continue with file selection...
+
+**Benefit:** Saves time and avoids unnecessary rebase operations
+
+---
+
+### Example 17: Unstaged Changes During Rebase
+
+**Scenario:** User has uncommitted work in progress
+
+**Skill Actions:**
+1. Fetch: `git fetch origin`
+2. Check for rebase need: Yes, needs rebase
+3. Check for unstaged changes: `git diff-files --quiet` → Found changes
+4. Inform user:
+   ```
+   ⚠️ You have unstaged changes. These will be preserved during rebase.
+   ```
+5. Ask: "How to proceed?"
+   - Stash changes and rebase
+   - Skip rebase for now
+   - Cancel PR creation
+6. User: "Skip rebase"
+7. Continue with file selection...
+
+**Benefit:** Handles real-world scenarios where developers have WIP code
+
+---
+
+### Example 18: Pre-commit Runs on All Files (Old Behavior)
+
+**Problem:** Pre-commit running on all files caused false failures
+
+**Old Behavior:**
+```bash
+make pre-commit
+# Runs on ALL files including unstaged changes
+# ❌ FAILED: spotfm/spotify/track.py has undefined variable
+# (But track.py is NOT part of this PR!)
+```
+
+**New Behavior:**
+```bash
+STAGED_FILES=$(git diff --cached --name-only)
+uv run pre-commit run --files $STAGED_FILES
+# Runs ONLY on staged files
+# ✅ PASSED: All staged files are clean
+```
+
+**Benefit:** Prevents false failures from unrelated code
+
+---
+
+### Example 19: Test Failures in Unstaged Code
+
+**Scenario:** Tests fail but not in code being committed
+
+**Skill Actions:**
+1. Stage files: `.claude/skills/create-pr/*`
+2. Security check: ✅ Passed
+3. Pre-commit (staged files only): ✅ Passed
+4. Run tests: `make test`
+5. Result: ❌ 23 tests failed in test_track.py
+6. Analysis:
+   ```
+   ❌ Tests failed
+   Analyzing test failures...
+
+   Failed tests are in: spotfm/spotify/track.py (NOT staged)
+   Your staged files: .claude/skills/create-pr/
+
+   Test failures are NOT related to your changes.
+   ```
+7. Ask: "Test failures detected in unstaged code (not part of this PR). Continue anyway? (y/N)"
+8. User: "y"
+9. Continue with commit...
+
+**Benefit:** Allows PR creation even when unrelated code has issues
+
+---
+
+### Example 20: Documentation-Only Changes
+
+**Scenario:** Only updating README and docs
+
+**Skill Actions:**
+1. Stage files:
+   ```
+   A  .claude/skills/create-pr/README.md
+   A  .claude/skills/create-pr/SKILL.md
+   M  .claude/settings.local.json
+   ```
+2. Security check: ✅
+3. Pre-commit (staged only): ✅
+4. Detect doc-only changes:
+   ```
+   📝 Detected documentation-only changes
+   ```
+5. Ask: "Skip test execution for docs-only PR? (Y/n)"
+6. User: "Y" (or just enters)
+7. Skip tests:
+   ```
+   ⏭️  Skipping tests for documentation-only changes
+   ```
+8. Continue to commit...
+
+**Benefit:** Faster PR creation for documentation updates
+
+---
+
+### Example 21: Improved Secret Detection (Reduced False Positives)
+
+**Old Behavior:**
+```bash
+# Would flag ALL of these:
+git diff --cached | grep -iE "(password|secret|api_key)"
+
+# Matches in documentation:
++ - Check for `password` in code       ❌ False positive!
++ - Scans for `api_key` patterns       ❌ False positive!
++ - Look for `secret` assignments      ❌ False positive!
+```
+
+**New Behavior:**
+```bash
+# Smarter pattern matching:
+git diff --cached | grep -iE '(password|secret|api_key)["\s]*[:=]["\s]*["\x27][^"\x27]{8,}'
+
+# Only matches actual assignments:
++ password = "mypassword123"            ✅ Real secret!
++ api_key: "sk_live_abc123"            ✅ Real secret!
++ # Check for passwords                ⏭️  Ignored (comment)
++ - Look for `api_key` patterns        ⏭️  Ignored (docs)
+```
+
+**Additional Checks:**
+```bash
+# Also checks for common prefixes:
+git diff --cached | grep -E '(sk_live_|pk_live_|ghp_|gho_|AKIA[0-9A-Z]{16})'
+
++ token = "ghp_abc123xyz789"           ✅ GitHub token detected!
++ AWS_KEY = "AKIA1234567890ABCDEF"     ✅ AWS key detected!
+```
+
+**Benefit:** Fewer false alarms, better real secret detection
+
+---
+
+### Example 22: Better gh CLI Error Messages
+
+**Old Behavior:**
+```
+❌ Failed to create PR via gh CLI
+```
+
+**New Behavior:**
+```bash
+# Check if gh is installed
+if ! command -v gh &> /dev/null; then
+  echo "❌ GitHub CLI (gh) is not installed"
+  echo "Install with: brew install gh"
+  exit 1
+fi
+
+# Check if authenticated
+if ! gh auth status &> /dev/null; then
+  echo "❌ Not authenticated with GitHub"
+  echo "Run: gh auth login"
+  exit 1
+fi
+
+# If PR creation fails:
+echo "❌ Failed to create PR"
+echo "Possible issues:"
+echo "1. No permission to create PR in this repository"
+echo "2. Branch already has an open PR"
+echo "3. Network connectivity issues"
+echo ""
+echo "Try creating manually at: https://github.com/jmlrt/spotfm/pull/new/feature-branch"
+```
+
+**Benefit:** Clear, actionable error messages
+
+---
+
 ## Summary
 
 These examples demonstrate:
@@ -568,6 +769,13 @@ These examples demonstrate:
 - ✅ Edge cases
 - ✅ Integration with project templates
 - ✅ Troubleshooting common issues
+- ✨ **NEW:** Branch status checking
+- ✨ **NEW:** Unstaged changes handling
+- ✨ **NEW:** Pre-commit on staged files only
+- ✨ **NEW:** Smart test failure handling
+- ✨ **NEW:** Documentation-only detection
+- ✨ **NEW:** Improved secret scanning
+- ✨ **NEW:** Better error messages
 
 The skill is designed to be:
 - **Safe**: Multiple validation checkpoints
@@ -575,3 +783,4 @@ The skill is designed to be:
 - **Automated**: Handles repetitive tasks
 - **Informative**: Clear feedback at each step
 - **Recoverable**: Graceful error handling
+- **Intelligent**: Distinguishes between staged and unstaged code issues

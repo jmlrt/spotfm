@@ -42,17 +42,45 @@ if [ "$CURRENT_BRANCH" = "main" ] || [ "$CURRENT_BRANCH" = "master" ]; then
 fi
 ```
 
-### Step 3: Rebase Feature Branch on Base Branch
+### Step 3: Check Branch Status and Handle Rebase
+
+**Check if branch is up-to-date first:**
 
 ```bash
-# Non-interactive rebase
-GIT_EDITOR=true git rebase --no-edit origin/<base-branch>
+# Check if feature branch is already up-to-date with base
+git fetch origin
+if git merge-base --is-ancestor origin/<base-branch> HEAD; then
+  echo "✅ Branch is already up to date with <base-branch>"
+  NEEDS_REBASE=false
+else
+  echo "Branch needs to be rebased on <base-branch>"
+  NEEDS_REBASE=true
+fi
+```
 
-# If rebase fails, inform user and exit
-if [ $? -ne 0 ]; then
-  echo "Rebase failed. Please resolve conflicts manually."
-  git rebase --abort
-  exit 1
+**Handle unstaged changes before rebasing:**
+
+```bash
+# Only rebase if needed
+if [ "$NEEDS_REBASE" = true ]; then
+  # Check for unstaged changes
+  if ! git diff-files --quiet; then
+    echo "⚠️ You have unstaged changes. These will be preserved during rebase."
+    # Ask user if they want to proceed
+    # Options: 1) Stash and rebase, 2) Skip rebase, 3) Cancel
+  fi
+
+  # Non-interactive rebase (removed --no-edit flag for compatibility)
+  GIT_EDITOR=true git rebase origin/<base-branch>
+
+  # If rebase fails, inform user and exit
+  if [ $? -ne 0 ]; then
+    echo "❌ Rebase failed. Please resolve conflicts manually."
+    git rebase --abort
+    exit 1
+  fi
+
+  echo "✅ Successfully rebased on <base-branch>"
 fi
 ```
 
@@ -86,65 +114,142 @@ git status --porcelain
 
 **CRITICAL: Check staged files for sensitive data**
 
-Scan for common patterns:
+**Improved pattern matching to reduce false positives:**
+
 ```bash
-# Check for potential secrets in staged files
-git diff --cached | grep -iE "(password|secret|api[_-]?key|token|credential|private[_-]?key|aws|stripe)" --color=always
+# Look for actual assignment patterns, not just keywords in documentation
+git diff --cached | grep -iE '(password|secret|api[_-]?key|token|credential|private[_-]?key|aws_secret|stripe)["\s]*[:=]["\s]*["\x27][^"\x27]{8,}' --color=always
+
+# Also check for common secret formats
+git diff --cached | grep -E '(sk_live_|pk_live_|sk_test_|-----BEGIN (PRIVATE|RSA) KEY-----|ghp_|gho_|AKIA[0-9A-Z]{16})' --color=always
 ```
 
-Look for:
-- API keys (e.g., `api_key = "sk_live_..."`)
-- Passwords (e.g., `password = "..."`)
-- Private keys (e.g., `-----BEGIN PRIVATE KEY-----`)
-- AWS credentials (e.g., `AWS_SECRET_ACCESS_KEY`)
-- Database URLs with credentials
-- OAuth tokens
-- Email addresses in comments (potential PII)
+**Smarter detection:**
+- Ignore markdown code blocks (lines starting with ` ``` ` or indented with 4+ spaces in .md files)
+- Ignore comments explaining security (e.g., "# Check for passwords")
+- Focus on actual assignments: `password = "value"`, `api_key: "value"`
+- Look for common secret prefixes: `sk_live_`, `ghp_`, `AKIA`, etc.
 
-If found:
-1. **STOP immediately**
-2. Unstage the problematic files
-3. Inform user which files contain potential secrets
-4. Ask user to remove secrets or use environment variables
-5. Do NOT proceed until resolved
+Look for:
+- API keys with assignment (e.g., `api_key = "sk_live_..."`)
+- Passwords with values (e.g., `password = "actualpassword"`)
+- Private keys (e.g., `-----BEGIN PRIVATE KEY-----`)
+- AWS credentials (e.g., `AWS_SECRET_ACCESS_KEY = "AKIA..."`)
+- Database URLs with credentials (e.g., `postgres://user:pass@host`)
+- OAuth tokens with assignment
+- Email addresses in code (potential PII)
+
+**If potential secrets found:**
+1. Review the matches to filter out false positives (documentation, examples)
+2. If real secrets detected:
+   - **STOP immediately**
+   - Show user the specific lines with secrets
+   - Ask user to confirm if these are real secrets or false positives
+3. If confirmed as secrets:
+   - Unstage the problematic files
+   - Inform user which files contain secrets
+   - Suggest using environment variables or secret management
+4. Do NOT proceed until resolved
 
 ### Step 6: Run Pre-commit Hooks
 
-```bash
-# Run pre-commit on staged files
-make pre-commit
+**CRITICAL: Run pre-commit ONLY on staged files to avoid false failures**
 
-# If pre-commit makes changes, show them and ask to stage
-if [ $? -ne 0 ]; then
-  echo "Pre-commit hooks made changes. Review and stage them."
-  git diff
+```bash
+# Get list of staged files
+STAGED_FILES=$(git diff --cached --name-only)
+
+# Run pre-commit only on staged files (not all files)
+if [ -n "$STAGED_FILES" ]; then
+  uv run pre-commit run --files $STAGED_FILES
+  PRECOMMIT_EXIT=$?
+else
+  echo "No staged files to check"
+  PRECOMMIT_EXIT=0
 fi
 
-# Re-run to ensure all hooks pass
-make pre-commit
+# If pre-commit makes changes, show them
+if [ $PRECOMMIT_EXIT -ne 0 ]; then
+  echo "⚠️ Pre-commit hooks made changes or found issues."
+  echo "Modified files:"
+  git diff --name-only
+
+  # If hooks auto-fixed files, they need to be staged
+  if git diff --name-only | grep -q .; then
+    echo "Auto-fixes were applied. Staging fixed files..."
+    git add $STAGED_FILES
+  fi
+
+  # Re-run to ensure all hooks pass
+  uv run pre-commit run --files $STAGED_FILES
+  if [ $? -ne 0 ]; then
+    echo "❌ Pre-commit hooks still failing after auto-fixes"
+    # Show errors to user
+    # Ask if they want to fix manually or skip hooks (not recommended)
+  fi
+fi
 ```
 
+**Why run only on staged files:**
+- Prevents failures from unrelated code changes in working directory
+- Faster execution (only checks files being committed)
+- Avoids confusing errors about code not part of the PR
+
 If hooks fail after fixes:
-1. Show the errors to user
-2. Ask if they want to fix manually or skip hooks (not recommended)
-3. Do NOT proceed until hooks pass
+1. Show the specific errors to user
+2. Ask if they want to:
+   - Fix manually and re-run
+   - Skip hooks (not recommended, ask for confirmation)
+   - Cancel PR creation
+3. Do NOT proceed until hooks pass (unless user explicitly overrides)
 
 ### Step 7: Run Tests
 
-```bash
-# Run full test suite
-make test
+**Smart test execution with option to skip for docs-only changes:**
 
-# If tests fail, show output and stop
-if [ $? -ne 0 ]; then
-  echo "Tests failed. Please fix before creating PR."
-  exit 1
+```bash
+# Check if changes are documentation-only
+STAGED_FILES=$(git diff --cached --name-only)
+DOC_ONLY=$(echo "$STAGED_FILES" | grep -vE '\.(md|txt|rst|pdf|png|jpg|svg)$' || true)
+
+if [ -z "$DOC_ONLY" ]; then
+  echo "📝 Detected documentation-only changes"
+  # Ask user: "Skip test execution for docs-only PR? (Y/n)"
+  SKIP_TESTS=true
+else
+  SKIP_TESTS=false
+fi
+
+# Run tests unless skipped
+if [ "$SKIP_TESTS" = false ]; then
+  echo "🧪 Running test suite..."
+  make test
+  TEST_EXIT=$?
+
+  # If tests fail, analyze if failures are in staged or unstaged code
+  if [ $TEST_EXIT -ne 0 ]; then
+    echo "❌ Tests failed"
+
+    # Check if failures are related to staged files
+    # Parse test output to see which modules failed
+    echo "Analyzing test failures..."
+
+    # If failures are in unstaged code, offer to continue anyway
+    # Ask user: "Test failures detected in unstaged code (not part of this PR). Continue anyway? (y/N)"
+  fi
+else
+  echo "⏭️  Skipping tests for documentation-only changes"
 fi
 ```
 
+**Handling test failures:**
+1. **Failures in staged code**: STOP and require fixes
+2. **Failures in unstaged code**: Warn user, but allow proceeding if they confirm
+3. **All tests pass**: Continue to commit
+
 **Coverage requirement**: Ensure modified modules have ≥90% coverage
 ```bash
-# For modified Python files, check coverage
+# For modified Python files, optionally check coverage
 uv run pytest tests/test_<module>.py --cov=spotfm.<module> --cov-report=term-missing
 ```
 
@@ -253,20 +358,44 @@ EOF
 # Push feature branch to remote
 git push -u origin <feature-branch>
 
+# Check if gh CLI is available
+if ! command -v gh &> /dev/null; then
+  echo "❌ GitHub CLI (gh) is not installed"
+  echo "Install with: brew install gh"
+  echo "Or create PR manually at: https://github.com/<repo>/pull/new/<feature-branch>"
+  exit 1
+fi
+
+# Check if authenticated
+if ! gh auth status &> /dev/null; then
+  echo "❌ Not authenticated with GitHub"
+  echo "Run: gh auth login"
+  exit 1
+fi
+
 # Create draft PR using gh CLI
 gh pr create \
   --base <base-branch> \
   --head <feature-branch> \
   --draft \
+  --title "<pr-title>" \
   --body-file PR_DESCRIPTION.md
 
-# If gh pr create fails, show error and suggest manual creation
+# Capture PR URL
+PR_URL=$(gh pr view --json url -q .url)
+
 if [ $? -ne 0 ]; then
-  echo "Failed to create PR via gh CLI. You may need to:"
-  echo "1. Install GitHub CLI: brew install gh"
-  echo "2. Authenticate: gh auth login"
-  echo "3. Or create PR manually at: https://github.com/<repo>/compare"
+  echo "❌ Failed to create PR"
+  echo "Possible issues:"
+  echo "1. No permission to create PR in this repository"
+  echo "2. Branch already has an open PR"
+  echo "3. Network connectivity issues"
+  echo ""
+  echo "Try creating manually at: https://github.com/<repo>/pull/new/<feature-branch>"
+  exit 1
 fi
+
+echo "✅ Draft PR created: $PR_URL"
 ```
 
 ### Step 13: Cleanup Temporary Files
@@ -304,29 +433,42 @@ Next steps:
 
 Handle common errors gracefully:
 
-1. **Rebase conflicts**: Abort rebase, inform user, exit
-2. **Pre-commit failures**: Show errors, allow manual fix, re-run
-3. **Test failures**: Show output, stop process, exit
-4. **Secrets detected**: Stop immediately, unstage files, warn user
-5. **Push failures**: Show error, suggest checking permissions
-6. **gh CLI not installed**: Provide installation instructions
+1. **Unstaged changes during rebase**: Inform user, offer to stash or skip rebase
+2. **Rebase conflicts**: Abort rebase, inform user, exit
+3. **Pre-commit failures**: Show errors, allow manual fix, re-run (only on staged files)
+4. **Test failures in staged code**: STOP and require fixes
+5. **Test failures in unstaged code**: Warn user, allow proceeding with confirmation
+6. **Secrets detected**: Review for false positives, stop if confirmed, unstage files
+7. **Push failures**: Show error, suggest checking permissions
+8. **gh CLI not installed**: Provide installation instructions and manual PR URL
+9. **gh CLI not authenticated**: Provide auth instructions
+10. **Branch already up-to-date**: Skip rebase, continue workflow
 
 ## Safety Checks
 
 **NEVER proceed if**:
-- Secrets or credentials detected in staged files
-- Tests are failing
-- Pre-commit hooks fail (without user override)
+- Real secrets or credentials detected in staged files (after filtering false positives)
+- Tests are failing in staged code
+- Pre-commit hooks fail on staged files (without user override)
 - Rebase has conflicts
 - Working directory has merge conflicts
 
+**MAY proceed with user confirmation if**:
+- Tests fail in unstaged code (unrelated to PR)
+- Documentation-only changes (can skip tests)
+- User explicitly overrides pre-commit failures (not recommended)
+
 ## Notes
 
-- This skill operates in **non-interactive mode** for git operations (using `GIT_EDITOR=true --no-edit`)
+- This skill operates in **non-interactive mode** for git operations (using `GIT_EDITOR=true`)
+- The `--no-edit` flag has been removed from rebase for compatibility with older git versions
 - User interaction happens through `AskUserQuestion` tool for file selection and branch naming
 - All git operations are safe and reversible (no force push, no destructive commands)
 - Temporary files (COMMIT_MESSAGE.md, PR_DESCRIPTION.md) are always cleaned up
 - Draft PRs allow for further edits before marking ready for review
+- Pre-commit runs ONLY on staged files to prevent false failures from unstaged code
+- Test failures in unstaged code won't block PR creation (with user confirmation)
+- Security scan uses improved patterns to reduce false positives from documentation
 
 ## Examples
 

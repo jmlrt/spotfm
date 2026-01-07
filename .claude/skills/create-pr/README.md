@@ -28,24 +28,28 @@ Create a PR against develop
 ## What It Does
 
 1. ✅ Fetches latest base branch (default: main)
-2. ✅ Creates feature branch if on main/master
-3. ✅ Rebases feature branch on base branch (non-interactive)
-4. ✅ Shows modified/untracked files for selection
-5. ✅ Scans for leaked credentials/secrets
-6. ✅ Runs pre-commit hooks
-7. ✅ Runs test suite
-8. ✅ Generates concise commit message
-9. ✅ Generates PR description
-10. ✅ Creates draft PR on GitHub
-11. ✅ Cleans up temporary files
+2. ✅ Checks if branch is up-to-date (skips rebase if not needed)
+3. ✅ Creates feature branch if on main/master
+4. ✅ Handles unstaged changes during rebase
+5. ✅ Rebases feature branch on base branch (non-interactive)
+6. ✅ Shows modified/untracked files for selection
+7. ✅ Scans for leaked credentials/secrets (improved pattern matching)
+8. ✅ Runs pre-commit hooks (only on staged files)
+9. ✅ Runs test suite (with option to skip for docs-only changes)
+10. ✅ Handles test failures in unstaged code gracefully
+11. ✅ Generates concise commit message
+12. ✅ Generates PR description
+13. ✅ Creates draft PR on GitHub
+14. ✅ Cleans up temporary files
 
 ## Key Features
 
 ### Safety First
 - **Never uses `git add --all`** - Files are selected interactively
-- **Secret detection** - Scans for API keys, passwords, tokens, etc.
-- **Pre-commit validation** - Ensures code quality standards
-- **Test enforcement** - All tests must pass before PR creation
+- **Improved secret detection** - Smarter pattern matching to reduce false positives
+- **Pre-commit validation** - Runs only on staged files (prevents false failures)
+- **Smart test handling** - Distinguishes between failures in staged vs unstaged code
+- **Skip tests for docs** - Option to skip test suite for documentation-only changes
 - **Draft PRs** - PRs created as drafts for review
 
 ### Smart File Selection
@@ -55,15 +59,17 @@ Create a PR against develop
 - Filters out cache directories and build artifacts
 
 ### Non-Interactive Mode
-- Uses `GIT_EDITOR=true --no-edit` for git operations
+- Uses `GIT_EDITOR=true` for git operations (compatible with all git versions)
 - No interactive prompts during git rebase
 - User interaction through Claude's `AskUserQuestion` tool
 - Fully automated workflow
+- Handles unstaged changes gracefully during rebase
 
 ### Comprehensive Validation
-- Security checks for leaked credentials
-- Pre-commit hooks (formatting, linting, type checking)
-- Full test suite execution
+- Security checks for leaked credentials (with false positive filtering)
+- Pre-commit hooks on staged files only (formatting, linting, type checking)
+- Full test suite execution (with smart handling of failures)
+- Option to skip tests for documentation-only changes
 - Coverage verification (≥90% for modified modules)
 
 ## Prerequisites
@@ -114,20 +120,20 @@ The skill uses permissions defined in `.claude/settings.local.json`:
 4. Never stages temp or cache files
 
 ### Security Scanning
-Searches for patterns like:
-- `api_key`, `API_KEY`
-- `password`, `PASSWORD`
-- `token`, `TOKEN`
-- `secret`, `SECRET`
-- Private keys
+Improved pattern matching for:
+- Assignment patterns: `password = "value"`, `api_key: "secret"`
+- Secret prefixes: `sk_live_`, `pk_live_`, `ghp_`, `gho_`, `AKIA`
+- Private keys: `-----BEGIN PRIVATE KEY-----`
 - AWS credentials
 - Database URLs with credentials
+- Filters out false positives from documentation and code examples
 
 ### Validation Pipeline
-1. **Security check** - Scan staged files for secrets
-2. **Pre-commit** - Run hooks, stage fixes if needed
-3. **Tests** - Run full test suite
-4. **Coverage** - Verify ≥90% for modified modules
+1. **Security check** - Scan staged files for secrets (filters false positives)
+2. **Pre-commit** - Run hooks only on staged files, stage fixes if needed
+3. **Tests** - Run full test suite (skip option for docs-only)
+4. **Test analysis** - Distinguish failures in staged vs unstaged code
+5. **Coverage** - Verify ≥90% for modified modules
 
 ### Commit & PR
 1. Generate commit message (project style)
@@ -141,12 +147,16 @@ Searches for patterns like:
 ## Error Handling
 
 The skill handles:
+- ✅ Branch already up-to-date (skip rebase)
+- ⚠️ Unstaged changes during rebase (inform user, offer options)
 - ❌ Rebase conflicts (abort and exit)
-- ❌ Secrets detected (unstage and exit)
-- ❌ Pre-commit failures (show errors, allow fixes)
-- ❌ Test failures (show output and exit)
-- ❌ gh CLI not installed (show instructions)
+- ⚠️ Secrets detected (review for false positives, confirm before blocking)
+- ❌ Pre-commit failures on staged files (show errors, allow fixes)
+- ⚠️ Test failures in unstaged code (warn but allow proceeding with confirmation)
+- ❌ Test failures in staged code (require fixes)
+- ❌ gh CLI not installed (show installation instructions)
 - ❌ gh not authenticated (show setup steps)
+- ✅ Documentation-only changes (offer to skip tests)
 
 ## Commit Message Format
 
@@ -269,6 +279,21 @@ For issues or questions:
 1. Check [examples.md](examples.md) for troubleshooting scenarios
 2. Review [reference.md](reference.md) for detailed documentation
 3. See the main [CLAUDE.md](../../../CLAUDE.md) for project guidelines
+
+## What's New
+
+### Version 2 (2026-01-07)
+- ✨ Improved rebase handling with branch status check
+- ✨ Removed `--no-edit` flag for better git compatibility
+- ✨ Smarter security scanning with reduced false positives
+- ✨ Pre-commit runs only on staged files (prevents false failures)
+- ✨ Intelligent test failure handling (staged vs unstaged code)
+- ✨ Option to skip tests for documentation-only changes
+- ✨ Better error handling for unstaged changes during rebase
+- ✨ Enhanced gh CLI validation with specific error messages
+
+### Version 1 (2026-01-07)
+- Initial release with automated PR creation workflow
 
 ## Version
 
