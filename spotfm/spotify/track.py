@@ -116,7 +116,7 @@ class Track:
         track = client.track(self.id, market=MARKET)
         self.name = utils.sanitize_string(track["name"])
         self.album_id = track["album"]["id"]
-        album = Album.get_album(self.album_id)
+        album = Album.get_album(self.album_id, client)
         self.album = album.name
         self.release_date = album.release_date
         self.artists_id = [artist["id"] for artist in track["artists"]]

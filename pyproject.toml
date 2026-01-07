@@ -17,8 +17,13 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
+    "freezegun>=1.4.0",     # time mocking for date tests
     "ipython",
     "pre-commit",
+    "pytest>=8.0.0",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.12.0",
+    "pytest-xdist>=3.5.0",  # parallel test execution
     "ruff",
     "twine",
 ]
@@ -58,3 +63,48 @@ quote-style = "double"
 indent-style = "space"
 skip-magic-trailing-comma = false
 line-ending = "auto"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-v",                      # verbose output
+    "--strict-markers",        # error on unknown markers
+    "--tb=short",              # shorter traceback format
+    "--cov=spotfm",            # coverage for spotfm package
+    "--cov-report=term-missing", # show missing lines in coverage
+    "--cov-report=html",       # generate HTML coverage report
+    "--cov-branch",            # measure branch coverage
+]
+markers = [
+    "unit: Unit tests that don't require external services",
+    "integration: Integration tests that may require setup",
+    "slow: Tests that take a long time to run",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]
+
+[tool.coverage.run]
+source = ["spotfm"]
+omit = [
+    "*/tests/*",
+    "*/__init__.py",
+    "*/hacks/*",
+]
+
+[tool.coverage.report]
+precision = 2
+show_missing = true
+skip_covered = false
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "def __str__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
