@@ -264,3 +264,43 @@ Tests run automatically via GitHub Actions on:
 - Multiple platforms (Ubuntu, macOS, Windows)
 
 See [.github/workflows/tests.yml](.github/workflows/tests.yml) for the full workflow configuration.
+
+## Claude Code Settings
+
+### Permissions Management
+
+The project uses `.claude/settings.local.json` to manage Claude Code permissions for bash commands and skills.
+
+**IMPORTANT: Permissions MUST be kept in alphabetical order.**
+
+When adding new permissions:
+1. Insert the permission in alphabetical order
+2. Sort order rules:
+   - `Bash()` permissions come before `Skill()` permissions
+   - Within `Bash()`, sort by command name (e.g., `cat` before `git`)
+   - Within same command, sort by subcommand (e.g., `git add` before `git commit`)
+   - Wildcard permissions (`*`) come after the base permission
+
+Example structure:
+```json
+{
+  "permissions": {
+    "allow": [
+      "Bash(cat:*)",
+      "Bash(gh pr create:*)",
+      "Bash(gh pr view:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(make test:*)",
+      "Skill(create-pr)",
+      "Skill(create-pr:*)"
+    ]
+  }
+}
+```
+
+**Why alphabetical order?**
+- Easier to find existing permissions
+- Prevents duplicate permissions
+- Cleaner git diffs when adding/removing permissions
+- Consistent with project organization standards
