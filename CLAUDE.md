@@ -38,12 +38,14 @@ make test-coverage     # Run tests with HTML coverage report
 make test-verbose      # Run tests with verbose output
 make test-parallel     # Run tests in parallel (faster)
 make test-failed       # Re-run only failed tests
+make test-all-versions # Run tests across Python 3.11, 3.12, 3.13, 3.14
 # or directly:
 uv run pytest                    # Run all tests
 uv run pytest -m unit            # Run unit tests only
 uv run pytest -m integration     # Run integration tests only
 uv run pytest --cov=spotfm       # Run with coverage
 uv run pytest -n auto            # Run in parallel
+uv run --python=3.13 pytest      # Run with specific Python version
 ```
 
 ### Build and Publish
