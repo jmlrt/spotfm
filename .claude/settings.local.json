@@ -1,15 +1,17 @@
 {
   "permissions": {
     "allow": [
-      "Bash(uv sync:*)",
-      "Bash(uv run pytest:*)",
-      "Bash(make test-all-versions:*)",
-      "Bash(uv run:*)",
-      "Bash(time uv run:*)",
-      "Bash(make test-unit:*)",
+      "Bash(find:*)",
       "Bash(git add:*)",
+      "Bash(git show:*)",
       "Bash(grep:*)",
-      "Bash(find:*)"
+      "Bash(make test-all-versions:*)",
+      "Bash(make test-unit:*)",
+      "Bash(make test:*)",
+      "Bash(time uv run:*)",
+      "Bash(uv run pytest:*)",
+      "Bash(uv run:*)",
+      "Bash(uv sync:*)"
     ]
   }
 }
