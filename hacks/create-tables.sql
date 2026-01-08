@@ -7,10 +7,18 @@ CREATE TABLE IF NOT EXISTS playlists(
 );
 
 -- DROP TABLE tracks;
+-- Tracks table with lifecycle tracking
+-- created_at: When track was first discovered (never changes)
+-- last_seen_at: Last time track appeared in any playlist (updated on sync)
+-- NOTE: Orphaned tracks (not in playlists_tracks) are INTENTIONALLY preserved
+--       to prevent re-discovery by discover_from_playlists feature.
+--       DO NOT delete orphaned tracks without understanding impact on discovery.
 CREATE TABLE IF NOT EXISTS tracks(
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
-  updated_at TEXT NOT NULL
+  updated_at TEXT NOT NULL,
+  created_at TEXT,      -- When first discovered
+  last_seen_at TEXT     -- Last seen in any playlist
 );
 
 -- DROP TABLE albums;
