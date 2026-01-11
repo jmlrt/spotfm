@@ -102,6 +102,7 @@ class TestPlaylistUpdateFromApi:
         """Test successful update from API."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
 
         mock_spotify_client.playlist.return_value = {
             "id": "playlist123",
@@ -140,26 +141,31 @@ class TestPlaylistUpdateFromApi:
             ]
         }
 
-        # Mock albums and artists
-        mock_spotify_client.album.side_effect = [
-            {
-                "id": "album1",
-                "name": "Album 1",
-                "release_date": "2024-01-01",
-                "artists": [{"id": "artist1", "name": "Artist 1"}],
-            },
-            {
-                "id": "album2",
-                "name": "Album 2",
-                "release_date": "2024-01-01",
-                "artists": [{"id": "artist2", "name": "Artist 2"}],
-            },
-        ]
+        # Mock batch albums API
+        mock_spotify_client.albums.return_value = {
+            "albums": [
+                {
+                    "id": "album1",
+                    "name": "Album 1",
+                    "release_date": "2024-01-01",
+                    "artists": [{"id": "artist1", "name": "Artist 1"}],
+                },
+                {
+                    "id": "album2",
+                    "name": "Album 2",
+                    "release_date": "2024-01-01",
+                    "artists": [{"id": "artist2", "name": "Artist 2"}],
+                },
+            ]
+        }
 
-        mock_spotify_client.artist.side_effect = [
-            {"id": "artist1", "name": "Artist 1", "genres": ["rock"]},
-            {"id": "artist2", "name": "Artist 2", "genres": ["pop"]},
-        ]
+        # Mock batch artists API
+        mock_spotify_client.artists.return_value = {
+            "artists": [
+                {"id": "artist1", "name": "Artist 1", "genres": ["rock"]},
+                {"id": "artist2", "name": "Artist 2", "genres": ["pop"]},
+            ]
+        }
 
         playlist = Playlist("playlist123")
 
@@ -268,6 +274,71 @@ class TestPlaylistUpdateFromApi:
         mock_spotify_client.next.assert_called_once()
 
     @freeze_time("2024-03-15")
+    def test_update_from_api_handles_relinked_tracks(
+        self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client
+    ):
+        """Test that relinked tracks use the original track ID from linked_from."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
+
+        mock_spotify_client.playlist.return_value = {
+            "id": "playlist123",
+            "name": "Test Playlist",
+            "owner": {"id": "user123"},
+        }
+
+        # Simulate a relinked track scenario
+        # Track was originally track2, but Spotify relinked it to track1 for this market
+        mock_spotify_client.playlist_items.return_value = {
+            "items": [
+                {
+                    "track": {
+                        "id": "track1",  # Relinked track ID
+                        "linked_from": {"id": "track2"},  # Original track ID
+                    },
+                    "added_at": "2024-01-01T00:00:00Z",
+                }
+            ],
+            "next": None,
+        }
+
+        mock_spotify_client.tracks.return_value = {
+            "tracks": [
+                {
+                    "id": "track2",
+                    "name": "Track 2",
+                    "album": {"id": "album2", "name": "Album 2"},
+                    "artists": [{"id": "artist2", "name": "Artist 2"}],
+                }
+            ]
+        }
+
+        mock_spotify_client.albums.return_value = {
+            "albums": [
+                {
+                    "id": "album2",
+                    "name": "Album 2",
+                    "release_date": "2024-01-01",
+                    "artists": [{"id": "artist2", "name": "Artist 2"}],
+                }
+            ]
+        }
+
+        mock_spotify_client.artists.return_value = {
+            "artists": [{"id": "artist2", "name": "Artist 2", "genres": ["pop"]}]
+        }
+
+        playlist = Playlist("playlist123")
+
+        with patch("spotfm.spotify.track.sleep"):
+            playlist.update_from_api(mock_spotify_client)
+
+        # Should use the original track ID from linked_from
+        assert len(playlist.raw_tracks) == 1
+        assert playlist.raw_tracks[0][0] == "track2"  # Original track ID, not track1
+        assert playlist.raw_tracks[0][1] == "2024-01-01T00:00:00Z"
+
+    @freeze_time("2024-03-15")
     def test_update_from_api_filters_null_tracks(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
         """Test that null tracks are filtered out."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
@@ -347,6 +418,7 @@ class TestPlaylistSyncToDb:
         playlist.name = "Test Playlist"
         playlist.owner = "user123"
         playlist.updated = "2024-01-01"
+        playlist.raw_tracks = [("track1", "2024-01-01T00:00:00Z")]
 
         # Create mock tracks
         track1 = Track("track1")
@@ -369,7 +441,98 @@ class TestPlaylistSyncToDb:
         conn.close()
 
         assert playlist_data == ("playlist123", "Test Playlist", "user123", "2024-01-01")
-        assert len(playlist_tracks) >= 1
+        assert len(playlist_tracks) == 1
+        assert playlist_tracks[0] == ("playlist123", "track1", "2024-01-01T00:00:00Z")
+
+    def test_sync_to_db_removes_old_tracks(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
+        """Test that sync_to_db removes tracks that are no longer in the playlist."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
+
+        # First sync: playlist with 3 tracks
+        conn = sqlite3.connect(temp_database)
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO playlists VALUES ('playlist123', 'Test Playlist', 'user123', '2024-01-01')")
+        cursor.execute("INSERT INTO playlists_tracks VALUES ('playlist123', 'track1', '2024-01-01T00:00:00Z')")
+        cursor.execute("INSERT INTO playlists_tracks VALUES ('playlist123', 'track2', '2024-01-02T00:00:00Z')")
+        cursor.execute("INSERT INTO playlists_tracks VALUES ('playlist123', 'track3', '2024-01-03T00:00:00Z')")
+        conn.commit()
+        conn.close()
+
+        # Second sync: playlist now only has track1 and track3 (track2 was removed)
+        playlist = Playlist("playlist123")
+        playlist.name = "Test Playlist"
+        playlist.owner = "user123"
+        playlist.updated = "2024-01-02"
+        playlist.raw_tracks = [("track1", "2024-01-01T00:00:00Z"), ("track3", "2024-01-03T00:00:00Z")]
+
+        track1 = Track("track1")
+        track1.name = "Track 1"
+        track1.album_id = "album1"
+        track1.updated = "2024-01-01"
+        track1.artists = []
+
+        track3 = Track("track3")
+        track3.name = "Track 3"
+        track3.album_id = "album3"
+        track3.updated = "2024-01-03"
+        track3.artists = []
+
+        playlist.tracks = [track1, track3]
+
+        # Mock album.get_album
+        with patch("spotfm.spotify.track.Album.get_album"):
+            playlist.sync_to_db(mock_spotify_client)
+
+        # Verify track2 was removed
+        conn = sqlite3.connect(temp_database)
+        cursor = conn.cursor()
+        playlist_tracks = cursor.execute(
+            "SELECT track_id FROM playlists_tracks WHERE playlist_id = 'playlist123' ORDER BY track_id"
+        ).fetchall()
+        conn.close()
+
+        # Should only have track1 and track3, track2 should be deleted
+        assert len(playlist_tracks) == 2
+        assert playlist_tracks[0][0] == "track1"
+        assert playlist_tracks[1][0] == "track3"
+
+    def test_sync_to_db_handles_duplicate_tracks(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
+        """Test that sync_to_db handles playlists with the same track multiple times."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
+
+        # Playlist with track1 added twice (same track, different added_at timestamps)
+        playlist = Playlist("playlist123")
+        playlist.name = "Test Playlist"
+        playlist.owner = "user123"
+        playlist.updated = "2024-01-01"
+        playlist.raw_tracks = [("track1", "2024-01-01T00:00:00Z"), ("track1", "2024-01-05T00:00:00Z")]
+
+        track1 = Track("track1")
+        track1.name = "Track 1"
+        track1.album_id = "album1"
+        track1.updated = "2024-01-01"
+        track1.artists = []
+
+        # tracks list should only have unique tracks
+        playlist.tracks = [track1]
+
+        # Mock album.get_album
+        with patch("spotfm.spotify.track.Album.get_album"):
+            playlist.sync_to_db(mock_spotify_client)
+
+        # Verify only one entry is stored (first occurrence due to INSERT OR IGNORE)
+        conn = sqlite3.connect(temp_database)
+        cursor = conn.cursor()
+        playlist_tracks = cursor.execute(
+            "SELECT track_id, added_at FROM playlists_tracks WHERE playlist_id = 'playlist123'"
+        ).fetchall()
+        conn.close()
+
+        # Should only have one entry (first one wins with INSERT OR IGNORE)
+        assert len(playlist_tracks) == 1
+        assert playlist_tracks[0] == ("track1", "2024-01-01T00:00:00Z")
 
 
 @pytest.mark.unit
@@ -401,6 +564,7 @@ class TestPlaylistGetTracks:
         """Test getting tracks from playlist."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
 
         playlist = Playlist("playlist123")
         playlist.raw_tracks = [("track1", "2024-01-01"), ("track2", "2024-01-02")]
@@ -422,25 +586,31 @@ class TestPlaylistGetTracks:
             ]
         }
 
-        mock_spotify_client.album.side_effect = [
-            {
-                "id": "album1",
-                "name": "Album 1",
-                "release_date": "2024-01-01",
-                "artists": [{"id": "artist1", "name": "Artist 1"}],
-            },
-            {
-                "id": "album2",
-                "name": "Album 2",
-                "release_date": "2024-01-01",
-                "artists": [{"id": "artist2", "name": "Artist 2"}],
-            },
-        ]
+        # Mock batch albums API
+        mock_spotify_client.albums.return_value = {
+            "albums": [
+                {
+                    "id": "album1",
+                    "name": "Album 1",
+                    "release_date": "2024-01-01",
+                    "artists": [{"id": "artist1", "name": "Artist 1"}],
+                },
+                {
+                    "id": "album2",
+                    "name": "Album 2",
+                    "release_date": "2024-01-01",
+                    "artists": [{"id": "artist2", "name": "Artist 2"}],
+                },
+            ]
+        }
 
-        mock_spotify_client.artist.side_effect = [
-            {"id": "artist1", "name": "Artist 1", "genres": []},
-            {"id": "artist2", "name": "Artist 2", "genres": []},
-        ]
+        # Mock batch artists API
+        mock_spotify_client.artists.return_value = {
+            "artists": [
+                {"id": "artist1", "name": "Artist 1", "genres": []},
+                {"id": "artist2", "name": "Artist 2", "genres": []},
+            ]
+        }
 
         with patch("spotfm.spotify.track.sleep"):
             tracks = playlist.get_tracks(mock_spotify_client)

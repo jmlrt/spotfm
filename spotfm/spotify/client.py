@@ -46,11 +46,26 @@ class Client:
         return playlists_ids
 
     def update_playlists(self, excluded_playlists=None):
+        """
+        Update all playlists from Spotify API.
+
+        Refetches playlist metadata and track lists. Track/album/artist
+        metadata is preserved in cache/DB since it rarely changes.
+        """
         if excluded_playlists is None:
             excluded_playlists = []
         playlists_id = self.get_playlists_id(excluded_playlists)
+
+        # Delete playlist metadata and playlist-track relationships
+        # Keeps tracks/albums/artists tables intact (metadata rarely changes)
         sqlite.query_db(sqlite.DATABASE, ["DELETE FROM playlists", "DELETE FROM playlists_tracks"])
+
         for playlist_id in playlists_id:
+            # refresh=True fetches latest playlist metadata and track IDs
+            # Track.get_tracks() is called with refresh=False (default) to respect cache
             playlist = Playlist.get_playlist(playlist_id, self.client, refresh=True)
-            playlist.update_from_api(self.client)
+
+            # Remove redundant call - already done by get_playlist(refresh=True)
+            # playlist.update_from_api(self.client)
+
             playlist.sync_to_db(self.client)
