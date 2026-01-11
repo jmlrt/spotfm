@@ -274,8 +274,11 @@ class TestPlaylistUpdateFromApi:
         mock_spotify_client.next.assert_called_once()
 
     @freeze_time("2024-03-15")
-    def test_update_from_api_handles_relinked_tracks(self, temp_cache_dir, monkeypatch, mock_spotify_client):
+    def test_update_from_api_handles_relinked_tracks(
+        self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client
+    ):
         """Test that relinked tracks use the original track ID from linked_from."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
 
         mock_spotify_client.playlist.return_value = {
