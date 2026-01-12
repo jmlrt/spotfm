@@ -3,7 +3,7 @@ from datetime import date
 
 from spotfm import sqlite, utils
 from spotfm.spotify.artist import Artist
-from spotfm.spotify.constants import MARKET
+from spotfm.spotify.constants import ALBUM_BATCH_SIZE, MARKET
 from spotfm.utils import cache_object, retrieve_object_from_cache
 
 
@@ -64,11 +64,13 @@ class Album:
                 else:
                     albums_dict[album_id] = album
 
-        # Batch fetch from API (50 per batch)
+        # Batch fetch from API using ALBUM_BATCH_SIZE (Spotify API limit for albums)
         if ids_to_fetch and client is not None:
-            for i in range(0, len(ids_to_fetch), 50):
-                batch_ids = ids_to_fetch[i : i + 50]
-                logging.info(f"Fetching album batch {i // 50 + 1}/{(len(ids_to_fetch) + 49) // 50}")
+            for i in range(0, len(ids_to_fetch), ALBUM_BATCH_SIZE):
+                batch_ids = ids_to_fetch[i : i + ALBUM_BATCH_SIZE]
+                batch_num = i // ALBUM_BATCH_SIZE + 1
+                total_batches = (len(ids_to_fetch) + ALBUM_BATCH_SIZE - 1) // ALBUM_BATCH_SIZE
+                logging.info(f"Fetching album batch {batch_num}/{total_batches}")
                 raw_albums = client.albums(batch_ids, market=MARKET)
 
                 for raw_album in raw_albums["albums"]:
