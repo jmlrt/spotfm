@@ -148,6 +148,28 @@ See [hacks/create-tables.sql](hacks/create-tables.sql) for the full schema. Key 
    - Both functions support excluding playlists via config and exporting results to CSV
    - Fuzzy matching uses 4 algorithms: ratio, partial_ratio, token_sort_ratio, token_set_ratio
 
+8. **Track Lifecycle Tracking & Orphaned Tracks** (CRITICAL):
+   - **Purpose**: Tracks have lifecycle timestamps to prevent re-discovering intentionally removed tracks
+   - **Schema**:
+     - `created_at`: When track was first discovered (set once, never changes)
+     - `last_seen_at`: Last time track appeared in any playlist (updated on every sync)
+   - **Orphaned tracks**: Tracks that exist in `tracks` table but not in `playlists_tracks`
+     - These are tracks that were removed from ALL playlists
+     - They accumulate in the database over time (this is intentional)
+   - **Discovery behavior**: `discover_from_playlists` skips orphaned tracks to prevent re-adding removed tracks
+
+   **⚠️ CRITICAL WARNING**:
+   - **DO NOT delete orphaned tracks from the `tracks` table**
+   - Orphaned tracks serve as a "negative cache" for the discovery feature
+   - Deleting them will cause `discover_from_playlists` to re-add previously removed tracks
+   - If cleanup is needed, it should only be done for tracks not seen in 90+ days AND with explicit user opt-in
+
+   **Implementation notes**:
+   - `track.is_orphaned()` checks if track is in zero playlists
+   - See [spotfm/spotify/misc.py:45-106](spotfm/spotify/misc.py#L45-L106) for discovery logic
+   - See [spotfm/spotify/track.py](spotfm/spotify/track.py) for lifecycle timestamp handling
+   - See [spotfm/spotify/track.py:285-301](spotfm/spotify/track.py#L285-L301) for `is_orphaned()` implementation
+
 ## Code Style
 
 - **Python**: 3.11+ (uses match/case statements)
