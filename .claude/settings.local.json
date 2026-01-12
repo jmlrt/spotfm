@@ -34,7 +34,8 @@
       "Bash(tree:*)",
       "Bash(uv run:*)",
       "Bash(uv sync:*)",
-      "Skill(create-pr:*)"
+      "Skill(create-pr:*)",
+      "Bash(sqlite3:*)"
     ]
   }
 }
