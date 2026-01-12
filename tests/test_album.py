@@ -379,3 +379,181 @@ class TestAlbumEdgeCases:
         album.update_from_api(mock_spotify_client)
 
         assert album.release_date == "1969"
+
+
+@pytest.mark.unit
+class TestAlbumGetAlbums:
+    """Tests for Album.get_albums batch method."""
+
+    def test_get_albums_empty_list(self):
+        """Test get_albums with empty list."""
+        albums = Album.get_albums([])
+        assert albums == []
+
+    def test_get_albums_single_batch(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
+        """Test get_albums with fewer than ALBUM_BATCH_SIZE albums."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
+
+        # Mock albums API response
+        mock_spotify_client.albums.return_value = {
+            "albums": [
+                {
+                    "id": "album1",
+                    "name": "Album 1",
+                    "release_date": "2024-01-01",
+                    "artists": [{"id": "artist1", "name": "Artist 1"}],
+                },
+                {
+                    "id": "album2",
+                    "name": "Album 2",
+                    "release_date": "2024-01-02",
+                    "artists": [{"id": "artist2", "name": "Artist 2"}],
+                },
+            ]
+        }
+
+        with freeze_time("2024-03-15"):
+            albums = Album.get_albums(["album1", "album2"], mock_spotify_client, sync_to_db=False)
+
+        assert len(albums) == 2
+        assert albums[0].name == "Album 1"
+        assert albums[1].name == "Album 2"
+        mock_spotify_client.albums.assert_called_once()
+
+    def test_get_albums_multiple_batches(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
+        """Test get_albums with more than ALBUM_BATCH_SIZE albums (20 per batch)."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
+
+        # Create 25 album IDs (requires 2 batches: 20 + 5)
+        album_ids = [f"album{i}" for i in range(1, 26)]
+
+        # Mock first batch (20 albums)
+        batch1_response = {
+            "albums": [
+                {
+                    "id": f"album{i}",
+                    "name": f"Album {i}",
+                    "release_date": "2024-01-01",
+                    "artists": [{"id": f"artist{i}", "name": f"Artist {i}"}],
+                }
+                for i in range(1, 21)
+            ]
+        }
+
+        # Mock second batch (5 albums)
+        batch2_response = {
+            "albums": [
+                {
+                    "id": f"album{i}",
+                    "name": f"Album {i}",
+                    "release_date": "2024-01-01",
+                    "artists": [{"id": f"artist{i}", "name": f"Artist {i}"}],
+                }
+                for i in range(21, 26)
+            ]
+        }
+
+        mock_spotify_client.albums.side_effect = [batch1_response, batch2_response]
+
+        with freeze_time("2024-03-15"):
+            albums = Album.get_albums(album_ids, mock_spotify_client, sync_to_db=False)
+
+        # Verify results
+        assert len(albums) == 25
+        assert albums[0].name == "Album 1"
+        assert albums[24].name == "Album 25"
+
+        # Verify API was called twice (2 batches)
+        assert mock_spotify_client.albums.call_count == 2
+
+        # Verify first batch had 20 IDs
+        first_call_args = mock_spotify_client.albums.call_args_list[0][0][0]
+        assert len(first_call_args) == 20
+
+        # Verify second batch had 5 IDs
+        second_call_args = mock_spotify_client.albums.call_args_list[1][0][0]
+        assert len(second_call_args) == 5
+
+    def test_get_albums_removes_duplicates(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
+        """Test get_albums removes duplicate IDs while preserving order."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
+
+        mock_spotify_client.albums.return_value = {
+            "albums": [
+                {
+                    "id": "album1",
+                    "name": "Album 1",
+                    "release_date": "2024-01-01",
+                    "artists": [{"id": "artist1", "name": "Artist 1"}],
+                }
+            ]
+        }
+
+        with freeze_time("2024-03-15"):
+            albums = Album.get_albums(["album1", "album1", "album1"], mock_spotify_client, sync_to_db=False)
+
+        # Should only fetch once despite duplicates
+        assert len(albums) == 3  # Original length preserved
+        mock_spotify_client.albums.assert_called_once()
+
+    def test_get_albums_handles_none_response(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
+        """Test get_albums handles None in API response (deleted albums)."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
+
+        # Mock response with one valid album and one None (deleted/unavailable)
+        mock_spotify_client.albums.return_value = {
+            "albums": [
+                {
+                    "id": "album1",
+                    "name": "Album 1",
+                    "release_date": "2024-01-01",
+                    "artists": [{"id": "artist1", "name": "Artist 1"}],
+                },
+                None,  # Deleted or unavailable album
+            ]
+        }
+
+        with freeze_time("2024-03-15"):
+            albums = Album.get_albums(["album1", "deleted_album"], mock_spotify_client, sync_to_db=False)
+
+        # Should only return valid albums
+        assert len(albums) == 1
+        assert albums[0].name == "Album 1"
+
+    def test_get_albums_uses_cache(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
+        """Test get_albums uses cached albums and only fetches missing ones."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
+
+        # Cache album1
+        cached_album = Album("album1")
+        cached_album.name = "Cached Album 1"
+        cached_album.release_date = "2024-01-01"
+        utils.cache_object(cached_album)
+
+        # Mock API for album2 only
+        mock_spotify_client.albums.return_value = {
+            "albums": [
+                {
+                    "id": "album2",
+                    "name": "API Album 2",
+                    "release_date": "2024-01-02",
+                    "artists": [{"id": "artist2", "name": "Artist 2"}],
+                }
+            ]
+        }
+
+        with freeze_time("2024-03-15"):
+            albums = Album.get_albums(["album1", "album2"], mock_spotify_client, sync_to_db=False)
+
+        # Should return both albums
+        assert len(albums) == 2
+        assert albums[0].name == "Cached Album 1"
+        assert albums[1].name == "API Album 2"
+
+        # Should only call API for album2
+        mock_spotify_client.albums.assert_called_once_with(["album2"], market="FR")
