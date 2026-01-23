@@ -113,10 +113,19 @@ def count_tracks_by_playlists():
     ).fetchall()
 
 
-def count_tracks(playlists_pattern=None):
-    if playlists_pattern:
-        results = sqlite.select_db(sqlite.DATABASE, "SELECT id FROM playlists WHERE name LIKE ?;", (playlists_pattern,))
+def count_tracks(playlists_patterns=None):
+    if playlists_patterns:
+        # Handle both single pattern (string) and multiple patterns (list)
+        if isinstance(playlists_patterns, str):
+            playlists_patterns = [playlists_patterns]
+        # Build OR conditions for multiple patterns
+        like_conditions = " OR ".join(["name LIKE ?"] * len(playlists_patterns))
+        results = sqlite.select_db(
+            sqlite.DATABASE, f"SELECT id FROM playlists WHERE {like_conditions};", playlists_patterns
+        )
         ids = [id[0] for id in results]
+        if not ids:
+            return 0
         query = f"""
           WITH t AS (SELECT DISTINCT track_id FROM playlists_tracks WHERE playlist_id IN ({",".join(["?"] * len(ids))}))
           SELECT count(*) AS tracks FROM t;
@@ -173,7 +182,6 @@ def find_relinked_tracks(client, excluded_playlist_ids=None, output_file=None):
         results = client.playlist_items(
             playlist_id,
             fields="items(added_at,track(id,name,artists,linked_from)),next",
-            market=MARKET,
             additional_types=["track"],
         )
 
@@ -221,7 +229,7 @@ def find_relinked_tracks(client, excluded_playlist_ids=None, output_file=None):
                     )
 
                     logging.info(
-                        f"  Found relinked track: {original_artists} - {original_name} → {artists} - {track_name}"
+                        f"  Found relinked track: {original_artists} - {original_name} -> {artists} - {track_name}"
                     )
 
     logging.info(f"Found {len(relinked_tracks)} relinked tracks across {total_playlists} playlists")
@@ -232,15 +240,189 @@ def find_relinked_tracks(client, excluded_playlist_ids=None, output_file=None):
     else:
         for track in relinked_tracks:
             print(
-                f"Relinked;{track['playlist_name']};{track['original_track']};→;{track['replacement_track']};{track['original_id']};{track['replacement_id']}"
+                f"Relinked;{track['playlist_name']};{track['original_track']};->;{track['replacement_track']};{track['original_id']};{track['replacement_id']}"
             )
 
     return relinked_tracks
 
 
+def list_playlists_with_track_counts():
+    """Lists all playlists with their track counts, sorted by playlist name."""
+    query = """
+        SELECT
+            p.name,
+            p.id,
+            COUNT(pt.track_id) AS track_count
+        FROM
+            playlists AS p
+        LEFT JOIN
+            playlists_tracks AS pt ON p.id = pt.playlist_id
+        GROUP BY
+            p.id, p.name
+        ORDER BY
+            p.name COLLATE NOCASE;
+    """
+    return sqlite.select_db(sqlite.DATABASE, query).fetchall()
+
+
+def find_tracks_by_criteria(playlist_ids, start_date=None, end_date=None, genre_pattern=None, output_file=None):
+    """
+    Finds tracks from specified playlists that match date or genre criteria.
+
+    Args:
+        playlist_ids: List of playlist IDs to search within.
+        start_date: Start date for album release date filtering (YYYY-MM-DD).
+        end_date: End date for album release date filtering (YYYY-MM-DD).
+        genre_pattern: Regex pattern for genre filtering.
+        output_file: Path to output CSV file if specified.
+
+    Returns:
+        List of dictionaries containing track information.
+    """
+    if not playlist_ids:
+        return []
+
+    # Base query for track information
+    base_query = """
+        SELECT
+            t.id AS track_id,
+            t.name AS track_name,
+            SUBSTR(al.release_date, 1, 4) AS release_year,
+            al.name AS album_name,
+            GROUP_CONCAT(DISTINCT ar.name) AS artist_names,
+            GROUP_CONCAT(DISTINCT ag.genre) AS artist_genres
+        FROM
+            tracks AS t
+        INNER JOIN
+            playlists_tracks AS pt ON t.id = pt.track_id
+        LEFT JOIN
+            albums_tracks AS atr ON t.id = atr.track_id
+        LEFT JOIN
+            albums AS al ON atr.album_id = al.id
+        LEFT JOIN
+            tracks_artists AS tar ON t.id = tar.track_id
+        LEFT JOIN
+            artists AS ar ON tar.artist_id = ar.id
+        LEFT JOIN
+            artists_genres AS ag ON ar.id = ag.artist_id
+    """
+
+    # Build WHERE clauses
+    where_clauses = []
+    params = []
+
+    # Filter by playlist IDs
+    playlist_placeholders = ",".join(["?"] * len(playlist_ids))
+    where_clauses.append(f"pt.playlist_id IN ({playlist_placeholders})")
+    params.extend(playlist_ids)
+
+    # Filter by date range
+    if start_date and end_date:
+        where_clauses.append("al.release_date BETWEEN ? AND ?")
+        params.extend([start_date, end_date])
+    elif start_date:
+        where_clauses.append("al.release_date >= ?")
+        params.append(start_date)
+    elif end_date:
+        where_clauses.append("al.release_date <= ?")
+        params.append(end_date)
+
+    # Filter by genre pattern
+    if genre_pattern:
+        # Need a subquery to filter by genre after aggregation
+        # SQLite REGEXP is case-sensitive, so use LOWER for expr and item
+        genre_subquery = """
+            SELECT DISTINCT t2.id
+            FROM tracks AS t2
+            LEFT JOIN tracks_artists AS tar2 ON t2.id = tar2.track_id
+            LEFT JOIN artists AS ar2 ON tar2.artist_id = ar2.id
+            LEFT JOIN artists_genres AS ag2 ON ar2.id = ag2.artist_id
+            WHERE LOWER(ag2.genre) REGEXP LOWER(?)
+        """
+        where_clauses.append(f"t.id IN ({genre_subquery})")
+        params.append(genre_pattern)
+
+    group_by_clause = """
+        GROUP BY
+            t.id, t.name, al.name, al.release_date
+    """
+
+    order_by_clause = """
+        ORDER BY
+            artist_names COLLATE NOCASE, track_name COLLATE NOCASE
+    """
+
+    full_query = base_query
+
+    if where_clauses:
+        full_query += " WHERE " + " AND ".join(where_clauses)
+
+    full_query += group_by_clause + order_by_clause
+
+    logging.debug(f"Executing query: {full_query} with params: {params}")
+
+    raw_results = sqlite.select_db(sqlite.DATABASE, full_query, tuple(params)).fetchall()
+
+    # Process results into a list of dicts for easier handling
+    results = []
+    for row in raw_results:
+        track_id, track_name, release_year, album_name, artist_names, artist_genres = row
+        results.append(
+            {
+                "track_id": track_id,
+                "track_name": track_name,
+                "release_year": release_year,
+                "album_name": album_name,
+                "artist_names": artist_names,
+                "artist_genres": artist_genres,
+            }
+        )
+
+    if output_file:
+        write_tracks_to_csv(results, output_file)
+
+    return results
+
+
+def write_tracks_to_csv(tracks_data, output_file):
+    """Write track data to CSV file.
+
+    Args:
+        tracks_data: List of dictionaries containing track information.
+        output_file: Path to output CSV file.
+    """
+    output_path = Path(output_file)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    with open(output_path, "w", newline="") as csvfile:
+        fieldnames = [
+            "Track Name",
+            "Artist(s)",
+            "Album Name",
+            "Release Year",
+            "Genre(s)",
+            "Track ID",
+        ]
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter=";")
+        writer.writeheader()
+
+        for track in tracks_data:
+            writer.writerow(
+                {
+                    "Track Name": track["track_name"],
+                    "Artist(s)": track["artist_names"],
+                    "Album Name": track["album_name"],
+                    "Release Year": track["release_year"],
+                    "Genre(s)": track["artist_genres"],
+                    "Track ID": track["track_id"],
+                }
+            )
+
+    logging.info(f"Wrote {len(tracks_data)} tracks to {output_path}")
+
+
 def write_relinked_tracks_csv(relinked_tracks, output_file):
     """Write relinked tracks to CSV file.
-
     Args:
         relinked_tracks: List of relinked track dicts
         output_file: Path to output CSV file

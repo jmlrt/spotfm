@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from spotfm import utils
+from spotfm import sqlite, utils
 from spotfm.spotify import misc
 
 
@@ -391,3 +391,189 @@ class TestWriteRelinkedTracksCsv:
             "My Playlist;Original Artist - Original Song;orig123;New Artist - New Song;new456;2024-01-15T10:30:00Z"
             in lines[1]
         )
+
+
+@pytest.fixture
+def mock_sqlite_select_db(monkeypatch):
+    """Fixture to mock sqlite.select_db."""
+    mock_db = MagicMock()
+    monkeypatch.setattr(sqlite, "select_db", mock_db)
+    return mock_db
+
+
+@pytest.mark.unit
+class TestCountTracks:
+    """Tests for count_tracks function."""
+
+    def test_count_tracks_no_pattern(self, temp_database, monkeypatch):
+        """Test counting all tracks without a pattern."""
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
+
+        # Setup database with playlists and tracks
+        conn = sqlite3.connect(temp_database)
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO playlists VALUES ('p1', 'Playlist 1', 'user1', '2024-01-01')")
+        cursor.execute("INSERT INTO playlists VALUES ('p2', 'Playlist 2', 'user1', '2024-01-01')")
+        cursor.execute("INSERT INTO playlists_tracks VALUES ('p1', 't1', '2024-01-01')")
+        cursor.execute("INSERT INTO playlists_tracks VALUES ('p1', 't2', '2024-01-01')")
+        cursor.execute("INSERT INTO playlists_tracks VALUES ('p2', 't1', '2024-01-01')")  # Same track in p2
+        cursor.execute("INSERT INTO playlists_tracks VALUES ('p2', 't3', '2024-01-01')")
+        conn.commit()
+        conn.close()
+
+        result = misc.count_tracks()
+
+        # Should return 3 unique tracks (t1, t2, t3)
+        assert result == 3
+
+    def test_count_tracks_single_pattern_as_list(self, temp_database, monkeypatch):
+        """Test counting tracks with a single pattern passed as list."""
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
+
+        conn = sqlite3.connect(temp_database)
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO playlists VALUES ('p1', 'IR Playlist', 'user1', '2024-01-01')")
+        cursor.execute("INSERT INTO playlists VALUES ('p2', 'Other', 'user1', '2024-01-01')")
+        cursor.execute("INSERT INTO playlists_tracks VALUES ('p1', 't1', '2024-01-01')")
+        cursor.execute("INSERT INTO playlists_tracks VALUES ('p1', 't2', '2024-01-01')")
+        cursor.execute("INSERT INTO playlists_tracks VALUES ('p2', 't3', '2024-01-01')")
+        conn.commit()
+        conn.close()
+
+        # Pass pattern as list (how argparse provides it with nargs="+")
+        result = misc.count_tracks(["IR%"])
+
+        assert result == 2
+
+    def test_count_tracks_single_pattern_as_string(self, temp_database, monkeypatch):
+        """Test counting tracks with a single pattern passed as string."""
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
+
+        conn = sqlite3.connect(temp_database)
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO playlists VALUES ('p1', 'IR Playlist', 'user1', '2024-01-01')")
+        cursor.execute("INSERT INTO playlists VALUES ('p2', 'Other', 'user1', '2024-01-01')")
+        cursor.execute("INSERT INTO playlists_tracks VALUES ('p1', 't1', '2024-01-01')")
+        cursor.execute("INSERT INTO playlists_tracks VALUES ('p1', 't2', '2024-01-01')")
+        cursor.execute("INSERT INTO playlists_tracks VALUES ('p2', 't3', '2024-01-01')")
+        conn.commit()
+        conn.close()
+
+        # Pass pattern as string (for backwards compatibility)
+        result = misc.count_tracks("IR%")
+
+        assert result == 2
+
+    def test_count_tracks_multiple_patterns(self, temp_database, monkeypatch):
+        """Test counting tracks with multiple patterns."""
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
+
+        conn = sqlite3.connect(temp_database)
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO playlists VALUES ('p1', 'IR Playlist', 'user1', '2024-01-01')")
+        cursor.execute("INSERT INTO playlists VALUES ('p2', 'Jazz Hits', 'user1', '2024-01-01')")
+        cursor.execute("INSERT INTO playlists VALUES ('p3', 'Rock', 'user1', '2024-01-01')")
+        cursor.execute("INSERT INTO playlists_tracks VALUES ('p1', 't1', '2024-01-01')")
+        cursor.execute("INSERT INTO playlists_tracks VALUES ('p2', 't2', '2024-01-01')")
+        cursor.execute("INSERT INTO playlists_tracks VALUES ('p3', 't3', '2024-01-01')")
+        conn.commit()
+        conn.close()
+
+        # Multiple patterns matching IR and Jazz
+        result = misc.count_tracks(["IR%", "Jazz%"])
+
+        assert result == 2
+
+    def test_count_tracks_no_matching_playlists(self, temp_database, monkeypatch):
+        """Test counting tracks when no playlists match the pattern."""
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
+
+        conn = sqlite3.connect(temp_database)
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO playlists VALUES ('p1', 'Rock', 'user1', '2024-01-01')")
+        cursor.execute("INSERT INTO playlists_tracks VALUES ('p1', 't1', '2024-01-01')")
+        conn.commit()
+        conn.close()
+
+        result = misc.count_tracks(["NonExistent%"])
+
+        assert result == 0
+
+    def test_count_tracks_deduplicates_across_playlists(self, temp_database, monkeypatch):
+        """Test that tracks appearing in multiple matching playlists are counted once."""
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
+
+        conn = sqlite3.connect(temp_database)
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO playlists VALUES ('p1', 'IR A', 'user1', '2024-01-01')")
+        cursor.execute("INSERT INTO playlists VALUES ('p2', 'IR B', 'user1', '2024-01-01')")
+        # Same track in both playlists
+        cursor.execute("INSERT INTO playlists_tracks VALUES ('p1', 't1', '2024-01-01')")
+        cursor.execute("INSERT INTO playlists_tracks VALUES ('p2', 't1', '2024-01-01')")
+        conn.commit()
+        conn.close()
+
+        result = misc.count_tracks(["IR%"])
+
+        # Should count t1 only once even though it's in both playlists
+        assert result == 1
+
+
+@pytest.mark.unit
+class TestListPlaylistsWithTrackCounts:
+    def test_returns_correct_format_and_order(self, mock_sqlite_select_db):
+        """Test that the function returns data in the correct format and order."""
+        mock_sqlite_select_db.return_value.fetchall.return_value = [
+            ("Playlist A", "id_A", 5),
+            ("Playlist B", "id_B", 15),
+            ("Playlist C", "id_C", 10),
+        ]
+
+        result = misc.list_playlists_with_track_counts()
+
+        # The function itself sorts, so the mock data should be in expected output order
+        assert result == [
+            ("Playlist A", "id_A", 5),
+            ("Playlist B", "id_B", 15),
+            ("Playlist C", "id_C", 10),
+        ]
+        mock_sqlite_select_db.assert_called_once()
+        assert (
+            mock_sqlite_select_db.call_args[0][1]
+            == """
+        SELECT
+            p.name,
+            p.id,
+            COUNT(pt.track_id) AS track_count
+        FROM
+            playlists AS p
+        LEFT JOIN
+            playlists_tracks AS pt ON p.id = pt.playlist_id
+        GROUP BY
+            p.id, p.name
+        ORDER BY
+            p.name COLLATE NOCASE;
+    """
+        )
+
+    def test_empty_database(self, mock_sqlite_select_db):
+        """Test with an empty database."""
+        mock_sqlite_select_db.return_value.fetchall.return_value = []
+
+        result = misc.list_playlists_with_track_counts()
+        assert result == []
+        mock_sqlite_select_db.assert_called_once()
+
+    def test_playlists_without_tracks(self, mock_sqlite_select_db):
+        """Test with playlists that have no tracks."""
+        mock_sqlite_select_db.return_value.fetchall.return_value = [
+            ("Empty Playlist", "id_empty", 0),
+            ("Has Tracks", "id_full", 20),
+        ]
+
+        result = misc.list_playlists_with_track_counts()
+        assert result == [
+            ("Empty Playlist", "id_empty", 0),
+            ("Has Tracks", "id_full", 20),
+        ]
+        mock_sqlite_select_db.assert_called_once()
