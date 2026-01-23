@@ -36,7 +36,9 @@
       "Bash(uv sync:*)",
       "Skill(create-pr:*)",
       "Bash(sqlite3:*)",
-      "Bash(spfm spotify count-tracks:*)"
+      "Bash(spfm spotify count-tracks:*)",
+      "Bash(make lint:*)",
+      "Bash(make lint-fix:*)"
     ]
   }
 }

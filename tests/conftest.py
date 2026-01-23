@@ -256,6 +256,10 @@ def reset_module_state():
 
     # Close connection before and after each test to ensure clean state
     db_module.close_db_connection()
+    # Clear migrated databases set to allow migration to run on fresh test databases
+    db_module._migrated_databases.clear()
     yield
     # Cleanup after test runs - close the global database connection
     db_module.close_db_connection()
+    # Clear migrated databases set after test
+    db_module._migrated_databases.clear()

@@ -1,5 +1,6 @@
 import atexit
 import logging
+import re
 import sqlite3
 import time
 
@@ -8,7 +9,7 @@ from spotfm import utils
 # Global variables for the database connection
 _db_connection = None
 _current_database = None
-_migration_completed = False
+_migrated_databases = set()  # Track which databases have been migrated
 
 
 # Dynamic attributes to always reference utils values (important for test monkeypatching)
@@ -30,14 +31,17 @@ def migrate_database_schema(database=None):
     Args:
         database: Path to database (defaults to utils.DATABASE)
     """
-    global _migration_completed
-
-    # Skip if already migrated in this session
-    if _migration_completed:
-        return
+    global _migrated_databases
 
     if database is None:
         database = utils.DATABASE
+
+    # Convert to string for consistent comparison
+    database_str = str(database)
+
+    # Skip if already migrated this specific database
+    if database_str in _migrated_databases:
+        return
 
     logging.info("Checking database schema version...")
 
@@ -50,7 +54,7 @@ def migrate_database_schema(database=None):
             cursor.execute("SELECT created_at FROM tracks LIMIT 1")
             logging.info("Database schema is up-to-date")
             conn.close()
-            _migration_completed = True
+            _migrated_databases.add(database_str)
             return
         except sqlite3.OperationalError:
             logging.info("Migrating database schema to add lifecycle tracking...")
@@ -110,13 +114,13 @@ def migrate_database_schema(database=None):
         conn.close()
 
         logging.info("Database migration completed successfully")
-        _migration_completed = True
+        _migrated_databases.add(database_str)
 
     except Exception as e:
         logging.error(f"Database migration failed: {e}")
         # Don't prevent application from running if migration fails
         # The code has fallbacks for missing columns
-        _migration_completed = True  # Mark as attempted to avoid retry loops
+        _migrated_databases.add(database_str)  # Mark as attempted to avoid retry loops
 
 
 def get_db_connection(database):
@@ -131,6 +135,7 @@ def get_db_connection(database):
         if _db_connection is not None:
             _db_connection.close()
         _db_connection = sqlite3.connect(database)
+        _db_connection.create_function("REGEXP", 2, _regexp)
         _db_connection.set_trace_callback(utils.DATABASE_LOG_LEVEL)
         _current_database = database_str
     return _db_connection
@@ -147,6 +152,12 @@ def close_db_connection():
 
 # Register the cleanup function globally
 atexit.register(close_db_connection)
+
+
+def _regexp(expr, item):
+    """SQLite REGEXP function."""
+    reg = re.compile(expr)
+    return reg.search(item) is not None
 
 
 def query_db(database, queries, script=False, results=False):

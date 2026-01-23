@@ -407,7 +407,7 @@ class TestCountTracks:
 
     def test_count_tracks_no_pattern(self, temp_database, monkeypatch):
         """Test counting all tracks without a pattern."""
-        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
 
         # Setup database with playlists and tracks
         conn = sqlite3.connect(temp_database)
@@ -428,7 +428,7 @@ class TestCountTracks:
 
     def test_count_tracks_single_pattern_as_list(self, temp_database, monkeypatch):
         """Test counting tracks with a single pattern passed as list."""
-        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
 
         conn = sqlite3.connect(temp_database)
         cursor = conn.cursor()
@@ -447,7 +447,7 @@ class TestCountTracks:
 
     def test_count_tracks_single_pattern_as_string(self, temp_database, monkeypatch):
         """Test counting tracks with a single pattern passed as string."""
-        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
 
         conn = sqlite3.connect(temp_database)
         cursor = conn.cursor()
@@ -466,7 +466,7 @@ class TestCountTracks:
 
     def test_count_tracks_multiple_patterns(self, temp_database, monkeypatch):
         """Test counting tracks with multiple patterns."""
-        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
 
         conn = sqlite3.connect(temp_database)
         cursor = conn.cursor()
@@ -486,7 +486,7 @@ class TestCountTracks:
 
     def test_count_tracks_no_matching_playlists(self, temp_database, monkeypatch):
         """Test counting tracks when no playlists match the pattern."""
-        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
 
         conn = sqlite3.connect(temp_database)
         cursor = conn.cursor()
@@ -501,7 +501,7 @@ class TestCountTracks:
 
     def test_count_tracks_deduplicates_across_playlists(self, temp_database, monkeypatch):
         """Test that tracks appearing in multiple matching playlists are counted once."""
-        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
 
         conn = sqlite3.connect(temp_database)
         cursor = conn.cursor()
