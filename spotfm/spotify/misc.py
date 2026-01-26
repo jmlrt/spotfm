@@ -270,7 +270,7 @@ def find_tracks_by_criteria(playlist_ids, start_date=None, end_date=None, genre_
     Finds tracks from specified playlists that match date or genre criteria.
 
     Args:
-        playlist_ids: List of playlist IDs to search within.
+        playlist_ids: Playlist ID(s) to search within. Can be a single string or list of strings.
         start_date: Start date for album release date filtering (YYYY-MM-DD).
         end_date: End date for album release date filtering (YYYY-MM-DD).
         genre_pattern: Regex pattern for genre filtering.
@@ -281,6 +281,10 @@ def find_tracks_by_criteria(playlist_ids, start_date=None, end_date=None, genre_
     """
     if not playlist_ids:
         return []
+
+    # Handle both single ID (string) and multiple IDs (list)
+    if isinstance(playlist_ids, str):
+        playlist_ids = [playlist_ids]
 
     # Base query for track information
     base_query = """

@@ -45,7 +45,7 @@ class Client:
 
         return playlists_ids
 
-    def update_playlists(self, excluded_playlists=None, playlists_pattern=None):
+    def update_playlists(self, excluded_playlists=None, playlists_patterns=None):
         """
         Update playlists from Spotify API.
 
@@ -54,32 +54,40 @@ class Client:
 
         Args:
             excluded_playlists: List of playlist IDs to exclude
-            playlists_pattern: Playlist ID or SQL LIKE pattern to filter playlists by name
-                              Examples: "3iunZ1EyEIWUv3irhm1Au1" (exact ID)
-                                       "%Discover%" (name pattern)
-                              If provided, only updates playlists matching this filter
+            playlists_patterns: Playlist ID(s) or SQL LIKE pattern(s) to filter playlists by name
+                               Can be a single string or list of strings.
+                               Examples: "3iunZ1EyEIWUv3irhm1Au1" (exact ID)
+                                        "%Discover%" (name pattern)
+                                        ["playlist1", "playlist2"] (multiple patterns)
+                               If provided, only updates playlists matching these filters
         """
         if excluded_playlists is None:
             excluded_playlists = []
 
-        if playlists_pattern:
-            # Check if it looks like a playlist ID (22 alphanumeric characters)
-            if len(playlists_pattern) == 22 and playlists_pattern.isalnum():
-                # Treat as exact playlist ID - fetch from Spotify API directly
-                playlists_id = [playlists_pattern]
-            else:
-                # Try exact ID match in DB first
-                results = sqlite.select_db(
-                    sqlite.DATABASE, "SELECT id FROM playlists WHERE id = ?;", (playlists_pattern,)
-                )
-                playlists_id = [id[0] for id in results]
+        if playlists_patterns:
+            # Handle both single pattern (string) and multiple patterns (list)
+            if isinstance(playlists_patterns, str):
+                playlists_patterns = [playlists_patterns]
 
-                # If no exact match, try name pattern match
-                if not playlists_id:
-                    results = sqlite.select_db(
-                        sqlite.DATABASE, "SELECT id FROM playlists WHERE name LIKE ?;", (playlists_pattern,)
-                    )
-                    playlists_id = [id[0] for id in results]
+            playlists_id = []
+            for pattern in playlists_patterns:
+                # Check if it looks like a playlist ID (22 alphanumeric characters)
+                if len(pattern) == 22 and pattern.isalnum():
+                    # Treat as exact playlist ID - fetch from Spotify API directly
+                    playlists_id.append(pattern)
+                else:
+                    # Try exact ID match in DB first
+                    results = sqlite.select_db(sqlite.DATABASE, "SELECT id FROM playlists WHERE id = ?;", (pattern,))
+                    ids_from_db = [id[0] for id in results]
+
+                    # If no exact match, try name pattern match
+                    if not ids_from_db:
+                        results = sqlite.select_db(
+                            sqlite.DATABASE, "SELECT id FROM playlists WHERE name LIKE ?;", (pattern,)
+                        )
+                        ids_from_db = [id[0] for id in results]
+
+                    playlists_id.extend(ids_from_db)
 
             # Only delete data for matching playlists (if they exist in DB)
             if playlists_id:
