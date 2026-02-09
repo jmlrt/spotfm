@@ -155,9 +155,23 @@ atexit.register(close_db_connection)
 
 
 def _regexp(expr, item):
-    """SQLite REGEXP function."""
-    reg = re.compile(expr)
-    return reg.search(item) is not None
+    """SQLite REGEXP function.
+
+    Safe implementation for use as a SQLite user-defined function:
+    - Returns False if expr or item is None (SQL NULL).
+    - Returns False if expr is an invalid regular expression.
+    """
+    # Treat NULL values as non-matching
+    if expr is None or item is None:
+        return False
+
+    try:
+        reg = re.compile(expr)
+        return reg.search(item) is not None
+    except re.error:
+        # Invalid regular expression; log at debug level and treat as non-match
+        logging.debug("Invalid regular expression in SQLite REGEXP: %r", expr)
+        return False
 
 
 def query_db(database, queries, script=False, results=False):

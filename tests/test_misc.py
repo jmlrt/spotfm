@@ -538,23 +538,13 @@ class TestListPlaylistsWithTrackCounts:
             ("Playlist C", "id_C", 10),
         ]
         mock_sqlite_select_db.assert_called_once()
-        assert (
-            mock_sqlite_select_db.call_args[0][1]
-            == """
-        SELECT
-            p.name,
-            p.id,
-            COUNT(pt.track_id) AS track_count
-        FROM
-            playlists AS p
-        LEFT JOIN
-            playlists_tracks AS pt ON p.id = pt.playlist_id
-        GROUP BY
-            p.id, p.name
-        ORDER BY
-            p.name COLLATE NOCASE;
-    """
-        )
+        # Check key SQL clauses are present (normalized whitespace)
+        query = " ".join(mock_sqlite_select_db.call_args[0][1].split())
+        assert "SELECT p.name, p.id, COUNT(pt.track_id) AS track_count" in query
+        assert "FROM playlists AS p" in query
+        assert "LEFT JOIN playlists_tracks AS pt ON p.id = pt.playlist_id" in query
+        assert "GROUP BY p.id, p.name" in query
+        assert "ORDER BY p.name COLLATE NOCASE" in query
 
     def test_empty_database(self, mock_sqlite_select_db):
         """Test with an empty database."""

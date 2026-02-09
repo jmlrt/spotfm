@@ -69,12 +69,12 @@ class Client:
             if isinstance(playlists_patterns, str):
                 playlists_patterns = [playlists_patterns]
 
-            playlists_id = []
+            playlist_ids = []
             for pattern in playlists_patterns:
                 # Check if it looks like a playlist ID (22 alphanumeric characters)
                 if len(pattern) == 22 and pattern.isalnum():
                     # Treat as exact playlist ID - fetch from Spotify API directly
-                    playlists_id.append(pattern)
+                    playlist_ids.append(pattern)
                 else:
                     # Try exact ID match in DB first
                     results = sqlite.select_db(sqlite.DATABASE, "SELECT id FROM playlists WHERE id = ?;", (pattern,))
@@ -87,25 +87,25 @@ class Client:
                         )
                         ids_from_db = [id[0] for id in results]
 
-                    playlists_id.extend(ids_from_db)
+                    playlist_ids.extend(ids_from_db)
 
             # Only delete data for matching playlists (if they exist in DB)
-            if playlists_id:
-                placeholders = ",".join(["?"] * len(playlists_id))
+            if playlist_ids:
+                placeholders = ",".join(["?"] * len(playlist_ids))
                 con = sqlite.get_db_connection(sqlite.DATABASE)
                 cur = con.cursor()
-                cur.execute(f"DELETE FROM playlists WHERE id IN ({placeholders})", playlists_id)
-                cur.execute(f"DELETE FROM playlists_tracks WHERE playlist_id IN ({placeholders})", playlists_id)
+                cur.execute(f"DELETE FROM playlists WHERE id IN ({placeholders})", playlist_ids)
+                cur.execute(f"DELETE FROM playlists_tracks WHERE playlist_id IN ({placeholders})", playlist_ids)
                 con.commit()
         else:
             # Update all playlists
-            playlists_id = self.get_playlists_id(excluded_playlists)
+            playlist_ids = self.get_playlists_id(excluded_playlists)
 
             # Delete playlist metadata and playlist-track relationships
             # Keeps tracks/albums/artists tables intact (metadata rarely changes)
             sqlite.query_db(sqlite.DATABASE, ["DELETE FROM playlists", "DELETE FROM playlists_tracks"])
 
-        for playlist_id in playlists_id:
+        for playlist_id in playlist_ids:
             # refresh=True fetches latest playlist metadata and track IDs
             # Track.get_tracks() is called with refresh=False (default) to respect cache
             playlist = Playlist.get_playlist(playlist_id, self.client, refresh=True)

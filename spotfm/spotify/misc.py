@@ -194,6 +194,7 @@ def find_relinked_tracks(client, excluded_playlist_ids=None, output_file=None):
         results = client.playlist_items(
             playlist_id,
             fields="items(added_at,track(id,name,artists,linked_from)),next",
+            market=MARKET,
             additional_types=["track"],
         )
 

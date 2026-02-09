@@ -249,7 +249,7 @@ When staging and committing changes, ensure ONLY changes from the current task a
 
 ## Testing
 
-The project has a comprehensive test suite with **179 tests** achieving **69% overall coverage** (100% on core modules).
+The project has a comprehensive test suite with **243 tests** achieving **76% overall coverage** (100% on core modules).
 
 ### Test Structure
 

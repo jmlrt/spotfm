@@ -15,12 +15,6 @@ def mock_sqlite_select_db(monkeypatch):
     return mock_db
 
 
-@pytest.fixture
-def mock_path_mkdir(monkeypatch):
-    """Fixture to mock Path.parent.mkdir."""
-    monkeypatch.setattr(Path, "mkdir", MagicMock())
-
-
 class TestFindTracksByCriteria:
     def test_find_tracks_by_criteria_no_filters(self, mock_sqlite_select_db):
         """Test basic track retrieval without any date or genre filters."""

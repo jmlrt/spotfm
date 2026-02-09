@@ -86,7 +86,7 @@ def spotify_cli(args, config):
             for name, p_id, count in playlists:
                 print(f"{name} ({p_id}): {count} tracks")
                 total_tracks += count
-            print(f"TOTAL: {total_tracks} tracks")
+            print(f"TOTAL playlist entries: {total_tracks}")
         case "find-tracks":
             tracks = spotify_misc.find_tracks_by_criteria(
                 playlist_patterns=args.playlists,
