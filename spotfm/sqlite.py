@@ -168,9 +168,9 @@ def _regexp(expr, item):
     try:
         reg = re.compile(expr)
         return reg.search(item) is not None
-    except re.error:
-        # Invalid regular expression; log at debug level and treat as non-match
-        logging.debug("Invalid regular expression in SQLite REGEXP: %r", expr)
+    except (re.error, TypeError):
+        # Invalid regular expression or non-text value; log at debug level and treat as non-match
+        logging.debug("Invalid regular expression or non-text value in SQLite REGEXP: expr=%r, item=%r", expr, item)
         return False
 
 

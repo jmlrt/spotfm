@@ -9,6 +9,69 @@ from spotfm.spotify.playlist import Playlist
 from spotfm.spotify.track import Track
 
 
+def resolve_playlist_patterns_to_ids(playlists_patterns, include_names=False):
+    """Normalize and resolve playlist patterns to a list of playlist IDs.
+
+    Supports:
+    - A single string pattern or an iterable of patterns.
+    - Direct playlist IDs (22 alphanumeric chars).
+    - Exact ID lookup in the database.
+    - Name pattern lookup via SQL LIKE.
+
+    Args:
+        playlists_patterns: String or list of strings representing playlist IDs or patterns
+        include_names: If True, also return playlist names for logging
+
+    Returns:
+        If include_names=False: List of playlist IDs
+        If include_names=True: Tuple of (list of playlist IDs, list of playlist names)
+    """
+    if not playlists_patterns:
+        return ([], []) if include_names else []
+
+    # Handle both single pattern (string) and multiple patterns (list)
+    if isinstance(playlists_patterns, str):
+        playlists_patterns = [playlists_patterns]
+
+    ids = []
+    names = [] if include_names else None
+
+    for pattern in playlists_patterns:
+        # Check if it looks like a playlist ID (22 alphanumeric characters)
+        if isinstance(pattern, str) and len(pattern) == 22 and pattern.isalnum():
+            ids.append(pattern)
+            if include_names:
+                # Fetch playlist name from DB for logging
+                results = sqlite.select_db(sqlite.DATABASE, "SELECT name FROM playlists WHERE id = ?;", (pattern,))
+                name_row = results.fetchone()
+                names.append(name_row[0] if name_row else pattern)
+        else:
+            # Try exact ID match first, then name pattern match
+            query = (
+                "SELECT id, name FROM playlists WHERE id = ?;"
+                if include_names
+                else "SELECT id FROM playlists WHERE id = ?;"
+            )
+            results = sqlite.select_db(sqlite.DATABASE, query, (pattern,))
+            rows = results.fetchall()
+
+            if not rows:
+                query = (
+                    "SELECT id, name FROM playlists WHERE name LIKE ?;"
+                    if include_names
+                    else "SELECT id FROM playlists WHERE name LIKE ?;"
+                )
+                results = sqlite.select_db(sqlite.DATABASE, query, (pattern,))
+                rows = results.fetchall()
+
+            for row in rows:
+                ids.append(row[0])
+                if include_names:
+                    names.append(row[1])
+
+    return (ids, names) if include_names else ids
+
+
 def add_tracks_from_file(client, file_path):
     tracks_ids = utils.manage_tracks_ids_file(file_path)
 
@@ -115,26 +178,8 @@ def count_tracks_by_playlists():
 
 def count_tracks(playlists_patterns=None):
     if playlists_patterns:
-        # Handle both single pattern (string) and multiple patterns (list)
-        if isinstance(playlists_patterns, str):
-            playlists_patterns = [playlists_patterns]
-
         # Resolve patterns to playlist IDs (supports both exact IDs and LIKE patterns)
-        ids = []
-        for pattern in playlists_patterns:
-            # Check if it looks like a playlist ID (22 alphanumeric characters)
-            if len(pattern) == 22 and pattern.isalnum():
-                ids.append(pattern)
-            else:
-                # Try exact ID match first, then name pattern match
-                results = sqlite.select_db(sqlite.DATABASE, "SELECT id FROM playlists WHERE id = ?;", (pattern,))
-                ids_from_db = [row[0] for row in results]
-                if not ids_from_db:
-                    results = sqlite.select_db(
-                        sqlite.DATABASE, "SELECT id FROM playlists WHERE name LIKE ?;", (pattern,)
-                    )
-                    ids_from_db = [row[0] for row in results]
-                ids.extend(ids_from_db)
+        ids = resolve_playlist_patterns_to_ids(playlists_patterns)
 
         if not ids:
             return 0
@@ -295,36 +340,8 @@ def find_tracks_by_criteria(playlist_patterns, start_date=None, end_date=None, g
     Returns:
         List of dictionaries containing track information.
     """
-    if not playlist_patterns:
-        return []
-
-    # Handle both single pattern (string) and multiple patterns (list)
-    if isinstance(playlist_patterns, str):
-        playlist_patterns = [playlist_patterns]
-
     # Resolve patterns to playlist IDs (supports both exact IDs and LIKE patterns)
-    playlist_ids = []
-    playlist_names = []
-    for pattern in playlist_patterns:
-        # Check if it looks like a playlist ID (22 alphanumeric characters)
-        if len(pattern) == 22 and pattern.isalnum():
-            # Fetch playlist name from DB for logging
-            results = sqlite.select_db(sqlite.DATABASE, "SELECT name FROM playlists WHERE id = ?;", (pattern,))
-            name_row = results.fetchone()
-            playlist_ids.append(pattern)
-            playlist_names.append(name_row[0] if name_row else pattern)
-        else:
-            # Try exact ID match first, then name pattern match
-            results = sqlite.select_db(sqlite.DATABASE, "SELECT id, name FROM playlists WHERE id = ?;", (pattern,))
-            rows = results.fetchall()
-            if not rows:
-                results = sqlite.select_db(
-                    sqlite.DATABASE, "SELECT id, name FROM playlists WHERE name LIKE ?;", (pattern,)
-                )
-                rows = results.fetchall()
-            for row in rows:
-                playlist_ids.append(row[0])
-                playlist_names.append(row[1])
+    playlist_ids, playlist_names = resolve_playlist_patterns_to_ids(playlist_patterns, include_names=True)
 
     if not playlist_ids:
         logging.info(f"No playlists found matching patterns: {playlist_patterns}")

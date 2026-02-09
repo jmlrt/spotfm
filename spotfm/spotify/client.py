@@ -3,6 +3,7 @@ from spotipy.oauth2 import CacheFileHandler, SpotifyOAuth
 
 from spotfm import sqlite
 from spotfm.spotify.constants import REDIRECT_URI, SCOPE, TOKEN_CACHE_FILE
+from spotfm.spotify.misc import resolve_playlist_patterns_to_ids
 from spotfm.spotify.playlist import Playlist
 
 # TODO:
@@ -65,29 +66,8 @@ class Client:
             excluded_playlists = []
 
         if playlists_patterns:
-            # Handle both single pattern (string) and multiple patterns (list)
-            if isinstance(playlists_patterns, str):
-                playlists_patterns = [playlists_patterns]
-
-            playlist_ids = []
-            for pattern in playlists_patterns:
-                # Check if it looks like a playlist ID (22 alphanumeric characters)
-                if len(pattern) == 22 and pattern.isalnum():
-                    # Treat as exact playlist ID - fetch from Spotify API directly
-                    playlist_ids.append(pattern)
-                else:
-                    # Try exact ID match in DB first
-                    results = sqlite.select_db(sqlite.DATABASE, "SELECT id FROM playlists WHERE id = ?;", (pattern,))
-                    ids_from_db = [id[0] for id in results]
-
-                    # If no exact match, try name pattern match
-                    if not ids_from_db:
-                        results = sqlite.select_db(
-                            sqlite.DATABASE, "SELECT id FROM playlists WHERE name LIKE ?;", (pattern,)
-                        )
-                        ids_from_db = [id[0] for id in results]
-
-                    playlist_ids.extend(ids_from_db)
+            # Resolve patterns to playlist IDs (supports both exact IDs and LIKE patterns)
+            playlist_ids = resolve_playlist_patterns_to_ids(playlists_patterns)
 
             # Only delete data for matching playlists (if they exist in DB)
             if playlist_ids:
