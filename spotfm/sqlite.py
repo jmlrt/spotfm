@@ -151,11 +151,12 @@ def close_db_connection():
         _current_database = None
 
 
-def reset_migration_state_for_tests():
+def _reset_migration_state_for_tests():
     """Reset migration state for test isolation.
 
-    This is a public helper for tests to clear the migration tracking set,
+    Internal helper for tests to clear the migration tracking set,
     allowing migrations to run on fresh test databases.
+    Not part of the public API - for testing purposes only.
     """
     global _migrated_databases
     _migrated_databases.clear()

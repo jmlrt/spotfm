@@ -531,7 +531,7 @@ class TestListPlaylistsWithTrackCounts:
 
         result = misc.list_playlists_with_track_counts()
 
-        # The function itself sorts, so the mock data should be in expected output order
+        # The SQL query applies ORDER BY p.name COLLATE NOCASE, so this mock data is already in expected output order
         assert result == [
             ("Playlist A", "id_A", 5),
             ("Playlist B", "id_B", 15),

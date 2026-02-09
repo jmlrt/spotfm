@@ -403,7 +403,7 @@ def find_tracks_by_criteria(playlist_patterns, start_date=None, end_date=None, g
     # Filter by genre pattern
     if genre_pattern:
         # Need a subquery to filter by genre after aggregation
-        # SQLite REGEXP is case-sensitive, so use LOWER for expr and item
+        # REGEXP uses case-insensitive matching (re.IGNORECASE in _regexp UDF)
         genre_subquery = """
             SELECT DISTINCT t2.id
             FROM tracks AS t2
