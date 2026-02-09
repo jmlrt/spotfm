@@ -90,7 +90,7 @@ class TestFindTracksByCriteria:
         assert len(results) == 1
         assert results[0]["track_name"] == "Track One"
 
-        expected_query_part_genres = "LOWER(ag2.genre) REGEXP LOWER(?)"
+        expected_query_part_genres = "ag2.genre REGEXP ?"
         query = mock_sqlite_select_db.call_args_list[2][0][1]
         assert expected_query_part_genres in query
         assert mock_sqlite_select_db.call_args_list[2][0][2] == ("playlist1_id", genre_pattern)
@@ -120,7 +120,7 @@ class TestFindTracksByCriteria:
 
         expected_query_part_playlists = "pt.playlist_id IN (?)"
         expected_query_part_dates = "al.release_date BETWEEN ? AND ?"
-        expected_query_part_genres = "LOWER(ag2.genre) REGEXP LOWER(?)"
+        expected_query_part_genres = "ag2.genre REGEXP ?"
 
         full_query = mock_sqlite_select_db.call_args_list[2][0][1]
         assert expected_query_part_playlists in full_query

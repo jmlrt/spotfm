@@ -35,16 +35,19 @@ def resolve_playlist_patterns_to_ids(playlists_patterns, include_names=False):
 
     ids = []
     names = [] if include_names else None
+    seen_ids = set()  # Track seen IDs to avoid duplicates
 
     for pattern in playlists_patterns:
         # Check if it looks like a playlist ID (22 alphanumeric characters)
         if isinstance(pattern, str) and len(pattern) == 22 and pattern.isalnum():
-            ids.append(pattern)
-            if include_names:
-                # Fetch playlist name from DB for logging
-                results = sqlite.select_db(sqlite.DATABASE, "SELECT name FROM playlists WHERE id = ?;", (pattern,))
-                name_row = results.fetchone()
-                names.append(name_row[0] if name_row else pattern)
+            if pattern not in seen_ids:
+                seen_ids.add(pattern)
+                ids.append(pattern)
+                if include_names:
+                    # Fetch playlist name from DB for logging
+                    results = sqlite.select_db(sqlite.DATABASE, "SELECT name FROM playlists WHERE id = ?;", (pattern,))
+                    name_row = results.fetchone()
+                    names.append(name_row[0] if name_row else pattern)
         else:
             # Try exact ID match first, then name pattern match
             query = (
@@ -65,9 +68,12 @@ def resolve_playlist_patterns_to_ids(playlists_patterns, include_names=False):
                 rows = results.fetchall()
 
             for row in rows:
-                ids.append(row[0])
-                if include_names:
-                    names.append(row[1])
+                playlist_id = row[0]
+                if playlist_id not in seen_ids:
+                    seen_ids.add(playlist_id)
+                    ids.append(playlist_id)
+                    if include_names:
+                        names.append(row[1])
 
     return (ids, names) if include_names else ids
 
@@ -404,7 +410,7 @@ def find_tracks_by_criteria(playlist_patterns, start_date=None, end_date=None, g
             LEFT JOIN tracks_artists AS tar2 ON t2.id = tar2.track_id
             LEFT JOIN artists AS ar2 ON tar2.artist_id = ar2.id
             LEFT JOIN artists_genres AS ag2 ON ar2.id = ag2.artist_id
-            WHERE LOWER(ag2.genre) REGEXP LOWER(?)
+            WHERE ag2.genre REGEXP ?
         """
         where_clauses.append(f"t.id IN ({genre_subquery})")
         params.append(genre_pattern)

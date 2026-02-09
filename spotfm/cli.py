@@ -82,11 +82,11 @@ def spotify_cli(args, config):
             spotify_misc.find_relinked_tracks(client.client, excluded_playlist_ids=excluded, output_file=args.output)
         case "list-playlists-with-track-counts":
             playlists = spotify_misc.list_playlists_with_track_counts()
-            total_tracks = 0
+            total_entries = 0
             for name, p_id, count in playlists:
                 print(f"{name} ({p_id}): {count} tracks")
-                total_tracks += count
-            print(f"TOTAL playlist entries: {total_tracks}")
+                total_entries += count
+            print(f"TOTAL playlist entries: {total_entries}")
         case "find-tracks":
             tracks = spotify_misc.find_tracks_by_criteria(
                 playlist_patterns=args.playlists,

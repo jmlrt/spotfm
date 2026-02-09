@@ -3,6 +3,7 @@ import logging
 import re
 import sqlite3
 import time
+from functools import lru_cache
 
 from spotfm import utils
 
@@ -150,8 +151,28 @@ def close_db_connection():
         _current_database = None
 
 
+def reset_migration_state_for_tests():
+    """Reset migration state for test isolation.
+
+    This is a public helper for tests to clear the migration tracking set,
+    allowing migrations to run on fresh test databases.
+    """
+    global _migrated_databases
+    _migrated_databases.clear()
+
+
 # Register the cleanup function globally
 atexit.register(close_db_connection)
+
+
+@lru_cache(maxsize=128)
+def _compile_regex(expr):
+    """Compile and cache regex patterns for SQLite REGEXP function.
+
+    Uses LRU cache to avoid recompiling the same pattern for every row.
+    Case-insensitive matching is enabled by default.
+    """
+    return re.compile(expr, re.IGNORECASE)
 
 
 def _regexp(expr, item):
@@ -160,13 +181,15 @@ def _regexp(expr, item):
     Safe implementation for use as a SQLite user-defined function:
     - Returns False if expr or item is None (SQL NULL).
     - Returns False if expr is an invalid regular expression.
+    - Caches compiled regex patterns for performance.
+    - Uses case-insensitive matching by default.
     """
     # Treat NULL values as non-matching
     if expr is None or item is None:
         return False
 
     try:
-        reg = re.compile(expr)
+        reg = _compile_regex(expr)
         return reg.search(item) is not None
     except (re.error, TypeError):
         # Invalid regular expression or non-text value; log at debug level and treat as non-match
