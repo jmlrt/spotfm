@@ -181,6 +181,10 @@ See [hacks/create-tables.sql](hacks/create-tables.sql) for the full schema. Key 
   - Auto-fixes import sorting, syntax upgrades, and common issues
 - Pre-commit hooks enforce all style rules automatically
 
+## Development Practices
+
+When fixing a bug or inconsistency in one CLI command, proactively check ALL similar commands for the same issue before considering the task done. Do not wait for the user to ask twice.
+
 ## Commit Messages
 
 Write **concise, focused commit messages** that clearly describe what changed and why:
@@ -238,6 +242,10 @@ Database Migration:
 - Update all 9 production files to use sqlite module instead of utils
 [...15 more bullet points...]
 ```
+
+## Git Workflow
+
+When staging and committing changes, ensure ONLY changes from the current task are included. Review staged files against the current session scope before committing.
 
 ## Testing
 

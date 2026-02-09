@@ -89,7 +89,7 @@ def spotify_cli(args, config):
             print(f"TOTAL: {total_tracks} tracks")
         case "find-tracks":
             tracks = spotify_misc.find_tracks_by_criteria(
-                playlist_ids=args.playlists,
+                playlist_patterns=args.playlists,
                 start_date=args.start_date,
                 end_date=args.end_date,
                 genre_pattern=args.genre,
@@ -98,9 +98,9 @@ def spotify_cli(args, config):
             if not args.output:  # Only print to console if no output file specified
                 for track in tracks:
                     print(
-                        f"{track['track_name']} by {track['artist_names']} "
-                        f"({track['album_name']}, {track['release_year']}) "
-                        f"[{track['artist_genres']}]"
+                        f"{track['artist_names']} - {track['track_name']} - "
+                        f"{track['album_name']} - {track['release_year']} - "
+                        f"{track['artist_genres']}"
                     )
 
 
@@ -137,7 +137,9 @@ def main():
             "find-tracks",
         ],
     )
-    spotify_parser.add_argument("-p", "--playlists", nargs="+", help="One or more playlist IDs")
+    spotify_parser.add_argument(
+        "-p", "--playlists", nargs="+", help="Playlist ID(s) or name pattern(s) (use %% as wildcard for LIKE syntax)"
+    )
     spotify_parser.add_argument("-f", "--file")
     spotify_parser.add_argument("-o", "--output", help="Output CSV file path")
     spotify_parser.add_argument("--start-date", help="Filter by album release start date (YYYY-MM-DD)")

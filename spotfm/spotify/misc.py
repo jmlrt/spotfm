@@ -118,12 +118,24 @@ def count_tracks(playlists_patterns=None):
         # Handle both single pattern (string) and multiple patterns (list)
         if isinstance(playlists_patterns, str):
             playlists_patterns = [playlists_patterns]
-        # Build OR conditions for multiple patterns
-        like_conditions = " OR ".join(["name LIKE ?"] * len(playlists_patterns))
-        results = sqlite.select_db(
-            sqlite.DATABASE, f"SELECT id FROM playlists WHERE {like_conditions};", playlists_patterns
-        )
-        ids = [id[0] for id in results]
+
+        # Resolve patterns to playlist IDs (supports both exact IDs and LIKE patterns)
+        ids = []
+        for pattern in playlists_patterns:
+            # Check if it looks like a playlist ID (22 alphanumeric characters)
+            if len(pattern) == 22 and pattern.isalnum():
+                ids.append(pattern)
+            else:
+                # Try exact ID match first, then name pattern match
+                results = sqlite.select_db(sqlite.DATABASE, "SELECT id FROM playlists WHERE id = ?;", (pattern,))
+                ids_from_db = [row[0] for row in results]
+                if not ids_from_db:
+                    results = sqlite.select_db(
+                        sqlite.DATABASE, "SELECT id FROM playlists WHERE name LIKE ?;", (pattern,)
+                    )
+                    ids_from_db = [row[0] for row in results]
+                ids.extend(ids_from_db)
+
         if not ids:
             return 0
         query = f"""
@@ -240,7 +252,7 @@ def find_relinked_tracks(client, excluded_playlist_ids=None, output_file=None):
     else:
         for track in relinked_tracks:
             print(
-                f"Relinked;{track['playlist_name']};{track['original_track']};->;{track['replacement_track']};{track['original_id']};{track['replacement_id']}"
+                f"Relinked - {track['playlist_name']} - {track['original_track']} -> {track['replacement_track']} - {track['original_id']} - {track['replacement_id']}"
             )
 
     return relinked_tracks
@@ -265,12 +277,15 @@ def list_playlists_with_track_counts():
     return sqlite.select_db(sqlite.DATABASE, query).fetchall()
 
 
-def find_tracks_by_criteria(playlist_ids, start_date=None, end_date=None, genre_pattern=None, output_file=None):
+def find_tracks_by_criteria(playlist_patterns, start_date=None, end_date=None, genre_pattern=None, output_file=None):
     """
     Finds tracks from specified playlists that match date or genre criteria.
 
     Args:
-        playlist_ids: Playlist ID(s) to search within. Can be a single string or list of strings.
+        playlist_patterns: Playlist ID(s) or name pattern(s) to search within.
+                          Can be a single string or list of strings.
+                          Supports exact playlist IDs (22 alphanumeric chars) or
+                          SQL LIKE patterns (e.g., 'Discover%' matches 'Discover Dest').
         start_date: Start date for album release date filtering (YYYY-MM-DD).
         end_date: End date for album release date filtering (YYYY-MM-DD).
         genre_pattern: Regex pattern for genre filtering.
@@ -279,12 +294,42 @@ def find_tracks_by_criteria(playlist_ids, start_date=None, end_date=None, genre_
     Returns:
         List of dictionaries containing track information.
     """
-    if not playlist_ids:
+    if not playlist_patterns:
         return []
 
-    # Handle both single ID (string) and multiple IDs (list)
-    if isinstance(playlist_ids, str):
-        playlist_ids = [playlist_ids]
+    # Handle both single pattern (string) and multiple patterns (list)
+    if isinstance(playlist_patterns, str):
+        playlist_patterns = [playlist_patterns]
+
+    # Resolve patterns to playlist IDs (supports both exact IDs and LIKE patterns)
+    playlist_ids = []
+    playlist_names = []
+    for pattern in playlist_patterns:
+        # Check if it looks like a playlist ID (22 alphanumeric characters)
+        if len(pattern) == 22 and pattern.isalnum():
+            # Fetch playlist name from DB for logging
+            results = sqlite.select_db(sqlite.DATABASE, "SELECT name FROM playlists WHERE id = ?;", (pattern,))
+            name_row = results.fetchone()
+            playlist_ids.append(pattern)
+            playlist_names.append(name_row[0] if name_row else pattern)
+        else:
+            # Try exact ID match first, then name pattern match
+            results = sqlite.select_db(sqlite.DATABASE, "SELECT id, name FROM playlists WHERE id = ?;", (pattern,))
+            rows = results.fetchall()
+            if not rows:
+                results = sqlite.select_db(
+                    sqlite.DATABASE, "SELECT id, name FROM playlists WHERE name LIKE ?;", (pattern,)
+                )
+                rows = results.fetchall()
+            for row in rows:
+                playlist_ids.append(row[0])
+                playlist_names.append(row[1])
+
+    if not playlist_ids:
+        logging.info(f"No playlists found matching patterns: {playlist_patterns}")
+        return []
+
+    logging.info(f"Searching in playlists: {', '.join(playlist_names)}")
 
     # Base query for track information
     base_query = """
@@ -400,8 +445,8 @@ def write_tracks_to_csv(tracks_data, output_file):
 
     with open(output_path, "w", newline="") as csvfile:
         fieldnames = [
-            "Track Name",
             "Artist(s)",
+            "Track Name",
             "Album Name",
             "Release Year",
             "Genre(s)",
@@ -413,8 +458,8 @@ def write_tracks_to_csv(tracks_data, output_file):
         for track in tracks_data:
             writer.writerow(
                 {
-                    "Track Name": track["track_name"],
                     "Artist(s)": track["artist_names"],
+                    "Track Name": track["track_name"],
                     "Album Name": track["album_name"],
                     "Release Year": track["release_year"],
                     "Genre(s)": track["artist_genres"],
