@@ -138,7 +138,7 @@ def find_duplicate_ids(excluded_playlist_ids=None, output_file=None):
         write_duplicates_csv(duplicates, output_file)
     else:
         for dup in duplicates:
-            print(f"Dupe ID;{dup['track']};{dup['playlists']}")
+            print(f"Dupe ID - {dup['track']} - {dup['playlists']}")
 
     logging.info(f"Found {len(duplicates)} tracks with duplicate IDs")
     return duplicates
@@ -588,8 +588,8 @@ def find_duplicate_names(excluded_playlist_ids=None, output_file=None, threshold
     else:
         for dup in duplicates:
             print(
-                f"Dupe Name;{dup['track1']};{dup['track2']};"
-                f"{dup['score']};{dup['ratio_type']};{dup['playlists1']};{dup['playlists2']}"
+                f"Dupe Name - {dup['artists1']} - {dup['track1']} - {dup['artists2']} - {dup['track2']} - "
+                f"{dup['score']} - {dup['ratio_type']} - {dup['playlists1']} - {dup['playlists2']}"
             )
 
     logging.info(f"Found {len(duplicates)} similar track pairs")

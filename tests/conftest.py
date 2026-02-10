@@ -256,6 +256,22 @@ def reset_module_state():
 
     # Close connection before and after each test to ensure clean state
     db_module.close_db_connection()
+    # Clear migrated databases set to allow migration to run on fresh test databases
+    db_module._reset_migration_state_for_tests()
     yield
     # Cleanup after test runs - close the global database connection
     db_module.close_db_connection()
+    # Clear migrated databases set after test
+    db_module._reset_migration_state_for_tests()
+
+
+@pytest.fixture
+def mock_sqlite_select_db(monkeypatch):
+    """Fixture to mock sqlite.select_db."""
+    from unittest.mock import MagicMock
+
+    from spotfm import sqlite
+
+    mock_db = MagicMock()
+    monkeypatch.setattr(sqlite, "select_db", mock_db)
+    return mock_db

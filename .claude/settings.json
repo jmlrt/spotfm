@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cat:*)",
+      "Bash(chmod:*)",
+      "Bash(gh auth:*)",
+      "Bash(gh issue:*)",
+      "Bash(gh pr:*)",
+      "Bash(GIT_EDITOR=true git rebase:*)",
+      "Bash(git:*)",
+      "Bash(grep:*)",
+      "Bash(jq:*)",
+      "Bash(ls:*)",
+      "Bash(make:*)",
+      "Bash(mkdir:*)",
+      "Bash(rm:*)",
+      "Bash(ruff:*)",
+      "Bash(spfm:*)",
+      "Bash(time uv run:*)",
+      "Bash(tree:*)",
+      "Bash(uv:*)",
+      "Skill(create-pr:*)"
+    ]
+  }
+}

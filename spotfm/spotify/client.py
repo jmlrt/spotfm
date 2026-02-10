@@ -3,6 +3,7 @@ from spotipy.oauth2 import CacheFileHandler, SpotifyOAuth
 
 from spotfm import sqlite
 from spotfm.spotify.constants import REDIRECT_URI, SCOPE, TOKEN_CACHE_FILE
+from spotfm.spotify.misc import resolve_playlist_patterns_to_ids
 from spotfm.spotify.playlist import Playlist
 
 # TODO:
@@ -45,7 +46,7 @@ class Client:
 
         return playlists_ids
 
-    def update_playlists(self, excluded_playlists=None, playlists_pattern=None):
+    def update_playlists(self, excluded_playlists=None, playlists_patterns=None):
         """
         Update playlists from Spotify API.
 
@@ -54,50 +55,37 @@ class Client:
 
         Args:
             excluded_playlists: List of playlist IDs to exclude
-            playlists_pattern: Playlist ID or SQL LIKE pattern to filter playlists by name
-                              Examples: "3iunZ1EyEIWUv3irhm1Au1" (exact ID)
-                                       "%Discover%" (name pattern)
-                              If provided, only updates playlists matching this filter
+            playlists_patterns: Playlist ID(s) or SQL LIKE pattern(s) to filter playlists by name
+                               Can be a single string or list of strings.
+                               Examples: "3iunZ1EyEIWUv3irhm1Au1" (exact ID)
+                                        "%Discover%" (name pattern)
+                                        ["playlist1", "playlist2"] (multiple patterns)
+                               If provided, only updates playlists matching these filters
         """
         if excluded_playlists is None:
             excluded_playlists = []
 
-        if playlists_pattern:
-            # Check if it looks like a playlist ID (22 alphanumeric characters)
-            if len(playlists_pattern) == 22 and playlists_pattern.isalnum():
-                # Treat as exact playlist ID - fetch from Spotify API directly
-                playlists_id = [playlists_pattern]
-            else:
-                # Try exact ID match in DB first
-                results = sqlite.select_db(
-                    sqlite.DATABASE, "SELECT id FROM playlists WHERE id = ?;", (playlists_pattern,)
-                )
-                playlists_id = [id[0] for id in results]
-
-                # If no exact match, try name pattern match
-                if not playlists_id:
-                    results = sqlite.select_db(
-                        sqlite.DATABASE, "SELECT id FROM playlists WHERE name LIKE ?;", (playlists_pattern,)
-                    )
-                    playlists_id = [id[0] for id in results]
+        if playlists_patterns:
+            # Resolve patterns to playlist IDs (supports both exact IDs and LIKE patterns)
+            playlist_ids = resolve_playlist_patterns_to_ids(playlists_patterns)
 
             # Only delete data for matching playlists (if they exist in DB)
-            if playlists_id:
-                placeholders = ",".join(["?"] * len(playlists_id))
+            if playlist_ids:
+                placeholders = ",".join(["?"] * len(playlist_ids))
                 con = sqlite.get_db_connection(sqlite.DATABASE)
                 cur = con.cursor()
-                cur.execute(f"DELETE FROM playlists WHERE id IN ({placeholders})", playlists_id)
-                cur.execute(f"DELETE FROM playlists_tracks WHERE playlist_id IN ({placeholders})", playlists_id)
+                cur.execute(f"DELETE FROM playlists WHERE id IN ({placeholders})", playlist_ids)
+                cur.execute(f"DELETE FROM playlists_tracks WHERE playlist_id IN ({placeholders})", playlist_ids)
                 con.commit()
         else:
             # Update all playlists
-            playlists_id = self.get_playlists_id(excluded_playlists)
+            playlist_ids = self.get_playlists_id(excluded_playlists)
 
             # Delete playlist metadata and playlist-track relationships
             # Keeps tracks/albums/artists tables intact (metadata rarely changes)
             sqlite.query_db(sqlite.DATABASE, ["DELETE FROM playlists", "DELETE FROM playlists_tracks"])
 
-        for playlist_id in playlists_id:
+        for playlist_id in playlist_ids:
             # refresh=True fetches latest playlist metadata and track IDs
             # Track.get_tracks() is called with refresh=False (default) to respect cache
             playlist = Playlist.get_playlist(playlist_id, self.client, refresh=True)

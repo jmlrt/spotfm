@@ -1,14 +1,16 @@
 import atexit
 import logging
+import re
 import sqlite3
 import time
+from functools import lru_cache
 
 from spotfm import utils
 
 # Global variables for the database connection
 _db_connection = None
 _current_database = None
-_migration_completed = False
+_migrated_databases = set()  # Track which databases have been migrated
 
 
 # Dynamic attributes to always reference utils values (important for test monkeypatching)
@@ -30,14 +32,17 @@ def migrate_database_schema(database=None):
     Args:
         database: Path to database (defaults to utils.DATABASE)
     """
-    global _migration_completed
-
-    # Skip if already migrated in this session
-    if _migration_completed:
-        return
+    global _migrated_databases
 
     if database is None:
         database = utils.DATABASE
+
+    # Convert to string for consistent comparison
+    database_str = str(database)
+
+    # Skip if already migrated this specific database
+    if database_str in _migrated_databases:
+        return
 
     logging.info("Checking database schema version...")
 
@@ -50,7 +55,7 @@ def migrate_database_schema(database=None):
             cursor.execute("SELECT created_at FROM tracks LIMIT 1")
             logging.info("Database schema is up-to-date")
             conn.close()
-            _migration_completed = True
+            _migrated_databases.add(database_str)
             return
         except sqlite3.OperationalError:
             logging.info("Migrating database schema to add lifecycle tracking...")
@@ -110,13 +115,13 @@ def migrate_database_schema(database=None):
         conn.close()
 
         logging.info("Database migration completed successfully")
-        _migration_completed = True
+        _migrated_databases.add(database_str)
 
     except Exception as e:
         logging.error(f"Database migration failed: {e}")
         # Don't prevent application from running if migration fails
         # The code has fallbacks for missing columns
-        _migration_completed = True  # Mark as attempted to avoid retry loops
+        _migrated_databases.add(database_str)  # Mark as attempted to avoid retry loops
 
 
 def get_db_connection(database):
@@ -131,6 +136,7 @@ def get_db_connection(database):
         if _db_connection is not None:
             _db_connection.close()
         _db_connection = sqlite3.connect(database)
+        _db_connection.create_function("REGEXP", 2, _regexp)
         _db_connection.set_trace_callback(utils.DATABASE_LOG_LEVEL)
         _current_database = database_str
     return _db_connection
@@ -145,8 +151,51 @@ def close_db_connection():
         _current_database = None
 
 
+def _reset_migration_state_for_tests():
+    """Reset migration state for test isolation.
+
+    Internal helper for tests to clear the migration tracking set,
+    allowing migrations to run on fresh test databases.
+    Not part of the public API - for testing purposes only.
+    """
+    global _migrated_databases
+    _migrated_databases.clear()
+
+
 # Register the cleanup function globally
 atexit.register(close_db_connection)
+
+
+@lru_cache(maxsize=128)
+def _compile_regex(expr):
+    """Compile and cache regex patterns for SQLite REGEXP function.
+
+    Uses LRU cache to avoid recompiling the same pattern for every row.
+    Case-insensitive matching is enabled by default.
+    """
+    return re.compile(expr, re.IGNORECASE)
+
+
+def _regexp(expr, item):
+    """SQLite REGEXP function.
+
+    Safe implementation for use as a SQLite user-defined function:
+    - Returns False if expr or item is None (SQL NULL).
+    - Returns False if expr is an invalid regular expression.
+    - Caches compiled regex patterns for performance.
+    - Uses case-insensitive matching by default.
+    """
+    # Treat NULL values as non-matching
+    if expr is None or item is None:
+        return False
+
+    try:
+        reg = _compile_regex(expr)
+        return reg.search(item) is not None
+    except (re.error, TypeError):
+        # Invalid regular expression or non-text value; log at debug level and treat as non-match
+        logging.debug("Invalid regular expression or non-text value in SQLite REGEXP: expr=%r, item=%r", expr, item)
+        return False
 
 
 def query_db(database, queries, script=False, results=False):

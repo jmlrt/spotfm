@@ -80,6 +80,28 @@ def spotify_cli(args, config):
         case "find-relinked-tracks":
             excluded = config["spotify"].get("excluded_playlists", [])
             spotify_misc.find_relinked_tracks(client.client, excluded_playlist_ids=excluded, output_file=args.output)
+        case "list-playlists-with-track-counts":
+            playlists = spotify_misc.list_playlists_with_track_counts()
+            total_entries = 0
+            for name, p_id, count in playlists:
+                print(f"{name} ({p_id}): {count} tracks")
+                total_entries += count
+            print(f"TOTAL playlist entries: {total_entries}")
+        case "find-tracks":
+            tracks = spotify_misc.find_tracks_by_criteria(
+                playlist_patterns=args.playlists,
+                start_date=args.start_date,
+                end_date=args.end_date,
+                genre_pattern=args.genre,
+                output_file=args.output,
+            )
+            if not args.output:  # Only print to console if no output file specified
+                for track in tracks:
+                    print(
+                        f"{track['artist_names']} - {track['track_name']} - "
+                        f"{track['album_name']} - {track['release_year']} - "
+                        f"{track['artist_genres']}"
+                    )
 
 
 def main():
@@ -111,11 +133,18 @@ def main():
             "find-duplicate-ids",
             "find-duplicate-names",
             "find-relinked-tracks",
+            "list-playlists-with-track-counts",
+            "find-tracks",
         ],
     )
-    spotify_parser.add_argument("-p", "--playlists")
+    spotify_parser.add_argument(
+        "-p", "--playlists", nargs="+", help="Playlist ID(s) or name pattern(s) (use %% as wildcard for LIKE syntax)"
+    )
     spotify_parser.add_argument("-f", "--file")
     spotify_parser.add_argument("-o", "--output", help="Output CSV file path")
+    spotify_parser.add_argument("--start-date", help="Filter by album release start date (YYYY-MM-DD)")
+    spotify_parser.add_argument("--end-date", help="Filter by album release end date (YYYY-MM-DD)")
+    spotify_parser.add_argument("--genre", help="Filter by genre using a regex pattern")
     spotify_parser.add_argument(
         "-t", "--threshold", type=int, default=95, help="Similarity threshold for fuzzy matching (0-100, default 95)"
     )
