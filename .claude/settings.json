@@ -6,6 +6,7 @@
       "Bash(gh auth:*)",
       "Bash(gh issue:*)",
       "Bash(gh pr:*)",
+      "Bash(gh run:*)",
       "Bash(GIT_EDITOR=true git rebase:*)",
       "Bash(git:*)",
       "Bash(grep:*)",
