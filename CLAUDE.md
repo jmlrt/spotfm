@@ -197,9 +197,7 @@ Brief summary (50 chars or less)
 - Key change 2
 - Key change 3
 
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
-
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
+Co-Authored-By: Claude Code <noreply@anthropic.com>
 ```
 
 ### Guidelines
@@ -221,9 +219,7 @@ Migrate database operations to sqlite module
 - Add comprehensive test suite (87% coverage)
 - Use parameterized queries to prevent SQL injection
 
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
-
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
+Co-Authored-By: Claude Code <noreply@anthropic.com>
 ```
 
 **Bad** (too verbose):
@@ -390,9 +386,16 @@ See [.github/workflows/tests.yml](.github/workflows/tests.yml) for the full work
 
 ## Claude Code Settings
 
+### Global Skills
+
+The following skills are installed globally at `~/.claude/skills/`:
+- **create-pr** - Automated PR creation workflow with validation and testing
+
+Local project-specific skills can be placed at `.claude/skills/` if needed.
+
 ### Permissions Management
 
-The project uses `.claude/settings.local.json` to manage Claude Code permissions for bash commands and skills.
+The project uses `.claude/settings.json` to manage Claude Code permissions for bash commands and skills.
 
 **IMPORTANT: Permissions MUST be kept in alphabetical order.**
 
