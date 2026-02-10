@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from spotfm import sqlite, utils
+from spotfm import utils
 from spotfm.spotify import misc
 
 
@@ -391,14 +391,6 @@ class TestWriteRelinkedTracksCsv:
             "My Playlist;Original Artist - Original Song;orig123;New Artist - New Song;new456;2024-01-15T10:30:00Z"
             in lines[1]
         )
-
-
-@pytest.fixture
-def mock_sqlite_select_db(monkeypatch):
-    """Fixture to mock sqlite.select_db."""
-    mock_db = MagicMock()
-    monkeypatch.setattr(sqlite, "select_db", mock_db)
-    return mock_db
 
 
 @pytest.mark.unit

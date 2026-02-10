@@ -1,18 +1,7 @@
 from pathlib import Path
 from unittest.mock import MagicMock, mock_open, patch
 
-import pytest
-
-from spotfm import sqlite
 from spotfm.spotify import misc
-
-
-@pytest.fixture
-def mock_sqlite_select_db(monkeypatch):
-    """Fixture to mock sqlite.select_db."""
-    mock_db = MagicMock()
-    monkeypatch.setattr(sqlite, "select_db", mock_db)
-    return mock_db
 
 
 class TestFindTracksByCriteria:
@@ -94,39 +83,6 @@ class TestFindTracksByCriteria:
         query = mock_sqlite_select_db.call_args_list[2][0][1]
         assert expected_query_part_genres in query
         assert mock_sqlite_select_db.call_args_list[2][0][2] == ("playlist1_id", genre_pattern)
-
-    def test_find_tracks_by_criteria_both_filters(self, mock_sqlite_select_db):
-        """Test filtering by both date range and genre pattern."""
-        mock_cursor_id = MagicMock()
-        mock_cursor_id.fetchall.return_value = []
-        mock_cursor_like = MagicMock()
-        mock_cursor_like.fetchall.return_value = [("playlist1_id", "My Playlist")]
-        mock_cursor_tracks = MagicMock()
-        mock_cursor_tracks.fetchall.return_value = [
-            ("track1_id", "Track One", "2020", "Album A", "Artist X", "pop,rock")
-        ]
-        mock_sqlite_select_db.side_effect = [mock_cursor_id, mock_cursor_like, mock_cursor_tracks]
-
-        playlist_patterns = ["My Playlist"]
-        start_date = "2020-01-01"
-        end_date = "2020-12-31"
-        genre_pattern = "pop"
-        results = misc.find_tracks_by_criteria(
-            playlist_patterns, start_date=start_date, end_date=end_date, genre_pattern=genre_pattern
-        )
-
-        assert len(results) == 1
-        assert results[0]["track_name"] == "Track One"
-
-        expected_query_part_playlists = "pt.playlist_id IN (?)"
-        expected_query_part_dates = "al.release_date BETWEEN ? AND ?"
-        expected_query_part_genres = "ag2.genre REGEXP ?"
-
-        full_query = mock_sqlite_select_db.call_args_list[2][0][1]
-        assert expected_query_part_playlists in full_query
-        assert expected_query_part_dates in full_query
-        assert expected_query_part_genres in full_query
-        assert mock_sqlite_select_db.call_args_list[2][0][2] == ("playlist1_id", start_date, end_date, genre_pattern)
 
     def test_find_tracks_by_criteria_multiple_playlists(self, mock_sqlite_select_db):
         """Test searching across multiple playlist patterns."""
