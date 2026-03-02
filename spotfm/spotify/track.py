@@ -92,78 +92,19 @@ class Track:
 
         logging.info(f"Retrieved {len(tracks)} tracks from cache/DB, fetching {len(tracks_to_fetch)} from API")
 
-        # Phase 2: Batch fetch missing tracks from API
-        tracks_id_batches = [tracks_to_fetch[i : i + batch_size] for i in range(0, len(tracks_to_fetch), batch_size)]
-        all_raw_tracks = []
-
-        for i, batch in enumerate(tracks_id_batches):
-            logging.info(f"Fetching track batch {i + 1}/{len(tracks_id_batches)}")
-            raw_tracks = client.tracks(batch, market=MARKET)
-
-            for raw_track in raw_tracks["tracks"]:
-                if raw_track is not None:
-                    all_raw_tracks.append(raw_track)
-
-            # Rate limiting: sleep between batches only
-            if i < len(tracks_id_batches) - 1:
-                sleep(1)
-
-        # Phase 3: Collect album/artist IDs from fetched tracks
-        album_ids = []
-        artist_ids = []
-
-        for raw_track in all_raw_tracks:
-            album_ids.append(raw_track["album"]["id"])
-            artist_ids.extend([artist["id"] for artist in raw_track["artists"]])
-
-        # Phase 4: Batch fetch albums (respects cache/DB in get_albums)
-        albums_dict = {}
-        if album_ids:
-            logging.info("Batch fetching albums (checking cache first)")
-            unique_album_ids = list(dict.fromkeys(album_ids))
-            albums = Album.get_albums(unique_album_ids, client, refresh=refresh)
-            albums_dict = {album.id: album for album in albums if album is not None}
-            if albums:
-                sleep(0.5)
-
-        # Phase 5: Batch fetch artists (respects cache/DB in get_artists)
-        artists_dict = {}
-        if artist_ids:
-            logging.info("Batch fetching artists (checking cache first)")
-            unique_artist_ids = list(dict.fromkeys(artist_ids))
-            artists = Artist.get_artists(unique_artist_ids, client, refresh=refresh)
-            artists_dict = {artist.id: artist for artist in artists if artist is not None}
-            if artists:
-                sleep(0.5)
-
-        # Phase 6: Populate album.artists
-        for album in albums_dict.values():
-            if album.artists_id:
-                album.artists = [artists_dict[aid] for aid in album.artists_id if aid in artists_dict]
-
-        # Phase 7: Create track objects from fetched data
-        for raw_track in all_raw_tracks:
+        # Phase 2: Fetch missing tracks individually (Spotify removed batch endpoint)
+        # Use get_track() for each missing track to leverage its cache hierarchy
+        for i, track_id in enumerate(tracks_to_fetch):
             try:
-                track = Track(raw_track["id"], client)
-                track.name = utils.sanitize_string(raw_track["name"])
-                track.album_id = raw_track["album"]["id"]
-                track.updated = str(date.today())
-
-                # Use pre-fetched album
-                album = albums_dict.get(track.album_id)
-                if album:
-                    track.album = album.name
-                    track.release_date = album.release_date
-
-                # Use pre-fetched artists
-                track.artists_id = [artist["id"] for artist in raw_track["artists"]]
-                track.artists = [artists_dict[aid] for aid in track.artists_id if aid in artists_dict]
-
-                cache_object(track)
-                tracks.append(track)
-
-            except (TypeError, KeyError) as e:
-                logging.info(f"Error processing track: {e}")
+                track = cls.get_track(track_id, client, refresh=refresh, sync_to_db=True)
+                if track.name is not None:
+                    tracks.append(track)
+            except Exception as e:
+                # Skip tracks that can't be fetched (deleted, unavailable, etc.)
+                logging.debug(f"Failed to fetch track {track_id}: {e}")
+            # Rate limiting: sleep between individual calls
+            if i < len(tracks_to_fetch) - 1:
+                sleep(0.1)
 
         return tracks
 
