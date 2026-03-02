@@ -36,13 +36,14 @@ PERFORMANCE OPTIMIZATION:
 
 import logging
 import sqlite3
+from concurrent.futures import ThreadPoolExecutor
 from datetime import date
 from time import sleep
 
 from spotfm import sqlite, utils
 from spotfm.spotify.album import Album
 from spotfm.spotify.artist import Artist
-from spotfm.spotify.constants import MARKET
+from spotfm.spotify.constants import BATCH_SIZE, MARKET
 from spotfm.utils import cache_object, retrieve_object_from_cache
 
 # Per-database cache for lifecycle columns existence check to handle database switching at runtime.
@@ -111,25 +112,16 @@ class Track:
         return track
 
     @classmethod
-    def get_tracks(cls, tracks_id, client=None, refresh=False):
+    def get_tracks(cls, tracks_id, client=None, refresh=False, batch_size=BATCH_SIZE):
         """
         Fetch multiple tracks efficiently, leveraging cache/DB.
 
-        Args:
-            tracks_id: List of track IDs to fetch
-            client: Spotify client (optional)
-            refresh: Force refresh from API instead of using cache/DB
-
         Strategy:
         1. Check cache/DB for all tracks first (respects 3-tier cache)
-        2. Fetch missing tracks individually from API using get_track()
-           - Each get_track() call fetches its own track, album, and artists
-           - Caching is leveraged at each level for efficiency
-        3. Return all tracks (cached + newly fetched)
-
-        Note: Previously this method batch-fetched albums/artists, but Spotify
-        removed batch endpoints (Feb 2026). Now each get_track() handles its own
-        dependencies. Consider optimizing this for better performance.
+        2. Only batch fetch missing tracks from API
+        3. Collect album/artist IDs from missing tracks
+        4. Batch fetch only missing albums and artists
+        5. Return all tracks (cached + newly fetched)
         """
         if not tracks_id:
             return []
@@ -160,36 +152,99 @@ class Track:
             logging.info(f"All {len(tracks)} tracks retrieved from cache/DB")
             return tracks
 
-        # If client is missing and we have unfetched tracks, we can't proceed
-        if client is None:
-            logging.warning(
-                f"Retrieved {len(tracks)} tracks from cache/DB but {len(tracks_to_fetch)} "
-                f"are missing and no client was provided. Returning partial results."
-            )
-            return tracks
-
         logging.info(f"Retrieved {len(tracks)} tracks from cache/DB, fetching {len(tracks_to_fetch)} from API")
 
-        # Phase 2: Fetch missing tracks individually (Spotify removed batch endpoint)
-        # Note: get_track() re-checks cache/DB for each track (redundant since we already know
-        # they're missing). This is acceptable for correctness but could be optimized with a
-        # fast-path for known-missing IDs that fetches directly from API.
-        for i, track_id in enumerate(tracks_to_fetch):
+        # Phase 2: Fetch missing tracks in parallel with rate limiting
+        # Uses ThreadPoolExecutor to parallelize individual API calls while enforcing rate limits.
+        # Rate limiting is enforced by throttling task submission rate to maintain same ~10 req/s
+        # as sequential baseline. Parallel execution hides network latency while respecting API limits.
+        MAX_WORKERS = 5  # Conservative: 5 parallel workers allow ~5 req/s burst
+        SUBMIT_DELAY = 0.1  # 0.1s between submissions → ~10 req/s max rate (same as sequential baseline)
+
+        def fetch_track(track_id):
+            """Fetch single track's raw data from API."""
             try:
-                track = cls.get_track(track_id, client, refresh=refresh, sync_to_db=True)
-                if track.name is not None:
-                    tracks.append(track)
-            except (KeyError, ValueError) as e:
-                # Track not found, deleted, or unavailable on Spotify.
-                # Note: transient API errors (429, 5xx) are not auto-retried by the Spotify client
-                # (configured with retries=0) and will be handled by the generic Exception handler below.
-                logging.debug(f"Track {track_id} not found or unavailable: {e}")
+                return client.track(track_id, market=MARKET)
             except Exception as e:
-                # API/HTTP or other unexpected error - log but continue
-                logging.warning(f"Unexpected error fetching track {track_id}: {e}")
-            # Rate limiting: sleep between individual calls
-            if i < len(tracks_to_fetch) - 1:
-                sleep(0.1)
+                # Skip tracks that can't be fetched (deleted, unavailable, etc.)
+                logging.debug(f"Failed to fetch track {track_id}: {e}")
+                return None
+
+        # Parallel fetch phase: submit tasks with rate limiting
+        # Maintain order using indexed futures
+        futures_with_index = []
+        with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+            for i, track_id in enumerate(tracks_to_fetch):
+                future = executor.submit(fetch_track, track_id)
+                futures_with_index.append((i, future))
+                # Rate limiting: sleep between submissions (same as sequential baseline)
+                if i < len(tracks_to_fetch) - 1:
+                    sleep(SUBMIT_DELAY)
+
+            # Collect results in original order
+            results = [None] * len(futures_with_index)
+            for i, future in futures_with_index:
+                raw_track = future.result()
+                if raw_track is not None:
+                    results[i] = raw_track
+
+        # Filter out None results while maintaining order
+        raw_tracks = [track for track in results if track is not None]
+
+        # Sequential processing after parallel fetches
+        # Create track objects, fetch albums/artists, and sync to DB
+        album_ids = []
+        artist_ids = []
+
+        # Collect all album/artist IDs from raw tracks
+        for raw_track in raw_tracks:
+            album_ids.append(raw_track["album"]["id"])
+            artist_ids.extend([artist["id"] for artist in raw_track["artists"]])
+
+        # Batch fetch albums and artists
+        albums_dict = {}
+        if album_ids:
+            logging.info("Batch fetching albums (checking cache first)")
+            unique_album_ids = list(dict.fromkeys(album_ids))
+            albums = Album.get_albums(unique_album_ids, client, refresh=refresh)
+            albums_dict = {album.id: album for album in albums if album is not None}
+
+        artists_dict = {}
+        if artist_ids:
+            logging.info("Batch fetching artists (checking cache first)")
+            unique_artist_ids = list(dict.fromkeys(artist_ids))
+            artists = Artist.get_artists(unique_artist_ids, client, refresh=refresh)
+            artists_dict = {artist.id: artist for artist in artists if artist is not None}
+
+        # Populate album.artists
+        for album in albums_dict.values():
+            if album.artists_id:
+                album.artists = [artists_dict[aid] for aid in album.artists_id if aid in artists_dict]
+
+        # Create track objects from fetched data
+        for raw_track in raw_tracks:
+            try:
+                track = Track(raw_track["id"], client)
+                track.name = utils.sanitize_string(raw_track["name"])
+                track.album_id = raw_track["album"]["id"]
+                track.updated = str(date.today())
+
+                # Use pre-fetched album
+                album = albums_dict.get(track.album_id)
+                if album:
+                    track.album = album.name
+                    track.release_date = album.release_date
+
+                # Use pre-fetched artists
+                track.artists_id = [artist["id"] for artist in raw_track["artists"]]
+                track.artists = [artists_dict[aid] for aid in track.artists_id if aid in artists_dict]
+
+                track.sync_to_db(client)
+                cache_object(track)
+                tracks.append(track)
+
+            except (TypeError, KeyError) as e:
+                logging.info(f"Error processing track: {e}")
 
         return tracks
 
