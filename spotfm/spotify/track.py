@@ -1,5 +1,6 @@
 import logging
 import sqlite3
+from concurrent.futures import ThreadPoolExecutor
 from datetime import date
 from time import sleep
 
@@ -92,19 +93,97 @@ class Track:
 
         logging.info(f"Retrieved {len(tracks)} tracks from cache/DB, fetching {len(tracks_to_fetch)} from API")
 
-        # Phase 2: Fetch missing tracks individually (Spotify removed batch endpoint)
-        # Use get_track() for each missing track to leverage its cache hierarchy
-        for i, track_id in enumerate(tracks_to_fetch):
+        # Phase 2: Fetch missing tracks in parallel with rate limiting
+        # Uses ThreadPoolExecutor to parallelize individual API calls while enforcing rate limits.
+        # Rate limiting is enforced by throttling task submission rate to maintain same ~10 req/s
+        # as sequential baseline. Parallel execution hides network latency while respecting API limits.
+        MAX_WORKERS = 5  # Conservative: 5 parallel workers allow ~5 req/s burst
+        SUBMIT_DELAY = 0.1  # 0.1s between submissions → ~10 req/s max rate (same as sequential baseline)
+
+        def fetch_track(track_id):
+            """Fetch single track's raw data from API."""
             try:
-                track = cls.get_track(track_id, client, refresh=refresh, sync_to_db=True)
-                if track.name is not None:
-                    tracks.append(track)
+                return client.track(track_id, market=MARKET)
             except Exception as e:
                 # Skip tracks that can't be fetched (deleted, unavailable, etc.)
                 logging.debug(f"Failed to fetch track {track_id}: {e}")
-            # Rate limiting: sleep between individual calls
-            if i < len(tracks_to_fetch) - 1:
-                sleep(0.1)
+                return None
+
+        # Parallel fetch phase: submit tasks with rate limiting
+        # Maintain order using indexed futures
+        futures_with_index = []
+        with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+            for i, track_id in enumerate(tracks_to_fetch):
+                future = executor.submit(fetch_track, track_id)
+                futures_with_index.append((i, future))
+                # Rate limiting: sleep between submissions (same as sequential baseline)
+                if i < len(tracks_to_fetch) - 1:
+                    sleep(SUBMIT_DELAY)
+
+            # Collect results in original order
+            results = [None] * len(futures_with_index)
+            for i, future in futures_with_index:
+                raw_track = future.result()
+                if raw_track is not None:
+                    results[i] = raw_track
+
+        # Filter out None results while maintaining order
+        raw_tracks = [track for track in results if track is not None]
+
+        # Sequential processing after parallel fetches
+        # Create track objects, fetch albums/artists, and sync to DB
+        album_ids = []
+        artist_ids = []
+
+        # Collect all album/artist IDs from raw tracks
+        for raw_track in raw_tracks:
+            album_ids.append(raw_track["album"]["id"])
+            artist_ids.extend([artist["id"] for artist in raw_track["artists"]])
+
+        # Batch fetch albums and artists
+        albums_dict = {}
+        if album_ids:
+            logging.info("Batch fetching albums (checking cache first)")
+            unique_album_ids = list(dict.fromkeys(album_ids))
+            albums = Album.get_albums(unique_album_ids, client, refresh=refresh)
+            albums_dict = {album.id: album for album in albums if album is not None}
+
+        artists_dict = {}
+        if artist_ids:
+            logging.info("Batch fetching artists (checking cache first)")
+            unique_artist_ids = list(dict.fromkeys(artist_ids))
+            artists = Artist.get_artists(unique_artist_ids, client, refresh=refresh)
+            artists_dict = {artist.id: artist for artist in artists if artist is not None}
+
+        # Populate album.artists
+        for album in albums_dict.values():
+            if album.artists_id:
+                album.artists = [artists_dict[aid] for aid in album.artists_id if aid in artists_dict]
+
+        # Create track objects from fetched data
+        for raw_track in raw_tracks:
+            try:
+                track = Track(raw_track["id"], client)
+                track.name = utils.sanitize_string(raw_track["name"])
+                track.album_id = raw_track["album"]["id"]
+                track.updated = str(date.today())
+
+                # Use pre-fetched album
+                album = albums_dict.get(track.album_id)
+                if album:
+                    track.album = album.name
+                    track.release_date = album.release_date
+
+                # Use pre-fetched artists
+                track.artists_id = [artist["id"] for artist in raw_track["artists"]]
+                track.artists = [artists_dict[aid] for aid in track.artists_id if aid in artists_dict]
+
+                track.sync_to_db(client)
+                cache_object(track)
+                tracks.append(track)
+
+            except (TypeError, KeyError) as e:
+                logging.info(f"Error processing track: {e}")
 
         return tracks
 
