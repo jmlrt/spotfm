@@ -9,6 +9,9 @@ from spotfm.spotify.artist import Artist
 from spotfm.spotify.constants import BATCH_SIZE, MARKET
 from spotfm.utils import cache_object, retrieve_object_from_cache
 
+# Cache for lifecycle columns existence check (set once on first sync_to_db call)
+_has_lifecycle_columns = None
+
 
 class Track:
     kind = "track"
@@ -79,6 +82,7 @@ class Track:
             # Try DB
             track = Track(track_id, client)
             if not refresh and track.update_from_db(client):
+                cache_object(track)
                 tracks.append(track)
                 continue
 
@@ -250,17 +254,20 @@ class Track:
         self.updated = str(date.today())
 
     def sync_to_db(self, client):
+        global _has_lifecycle_columns
         logging.info("Syncing track %s to database", self.id)
         # Remove redundant Album.get_album() call
         # Album should already be synced by Track.get_tracks()
         queries = []
 
-        # Check if lifecycle columns exist
-        try:
-            sqlite.select_db(sqlite.DATABASE, "SELECT created_at FROM tracks LIMIT 1")
-            has_lifecycle = True
-        except sqlite3.OperationalError:
-            has_lifecycle = False
+        # Check if lifecycle columns exist (cached after first check)
+        if _has_lifecycle_columns is None:
+            try:
+                sqlite.select_db(sqlite.DATABASE, "SELECT created_at FROM tracks LIMIT 1")
+                _has_lifecycle_columns = True
+            except sqlite3.OperationalError:
+                _has_lifecycle_columns = False
+        has_lifecycle = _has_lifecycle_columns
 
         if has_lifecycle:
             # New schema with lifecycle tracking
