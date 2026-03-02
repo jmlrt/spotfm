@@ -63,9 +63,13 @@ class Artist:
         # Fetch missing artists individually (Spotify removed batch endpoint)
         if ids_to_fetch and client is not None:
             for i, artist_id in enumerate(ids_to_fetch):
-                artist = cls.get_artist(artist_id, client, refresh=refresh, sync_to_db=sync_to_db)
-                if artist.name is not None:
-                    artists_dict[artist_id] = artist
+                try:
+                    artist = cls.get_artist(artist_id, client, refresh=refresh, sync_to_db=sync_to_db)
+                    if artist.name is not None:
+                        artists_dict[artist_id] = artist
+                except Exception as e:
+                    # Skip artists that can't be fetched (deleted, unavailable, etc.)
+                    logging.debug(f"Failed to fetch artist {artist_id}: {e}")
                 # Rate limiting: sleep between individual calls
                 if i < len(ids_to_fetch) - 1:
                     sleep(0.05)
