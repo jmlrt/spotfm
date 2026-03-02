@@ -3,7 +3,8 @@ CREATE TABLE IF NOT EXISTS playlists(
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
   owner TEXT NOT NULL,
-  updated_at TEXT NOT NULL
+  updated_at TEXT NOT NULL,
+  snapshot_id TEXT          -- Spotify snapshot ID to detect unchanged playlists
 );
 
 -- DROP TABLE tracks;
