@@ -97,6 +97,10 @@ class Track:
         # Uses ThreadPoolExecutor to parallelize individual API calls while enforcing rate limits.
         # Rate limiting is enforced by throttling task submission rate to maintain same ~10 req/s
         # as sequential baseline. Parallel execution hides network latency while respecting API limits.
+        #
+        # NOTE: Thread safety - spotipy's requests.Session is assumed thread-safe for concurrent
+        # read-only operations. If threading issues occur, fall back to sequential fetch by setting
+        # MAX_WORKERS = 1 below.
         MAX_WORKERS = 5  # Conservative: 5 parallel workers allow ~5 req/s burst
         SUBMIT_DELAY = 0.1  # 0.1s between submissions → ~10 req/s max rate (same as sequential baseline)
 
@@ -123,9 +127,13 @@ class Track:
             # Collect results in original order
             results = [None] * len(futures_with_index)
             for i, future in futures_with_index:
-                raw_track = future.result()
-                if raw_track is not None:
-                    results[i] = raw_track
+                try:
+                    raw_track = future.result()
+                    if raw_track is not None:
+                        results[i] = raw_track
+                except Exception as e:
+                    # Thread raised an exception - log and skip this track
+                    logging.warning(f"Thread failed fetching track at index {i}: {e}")
 
         # Filter out None results while maintaining order
         raw_tracks = [track for track in results if track is not None]
