@@ -2,7 +2,6 @@ import atexit
 import logging
 import re
 import sqlite3
-import time
 from functools import lru_cache
 
 from spotfm import utils
@@ -209,8 +208,6 @@ def query_db(database, queries, script=False, results=False):
     if results:
         query_results = cur.fetchall()
     con.commit()
-    # spare CPU load
-    time.sleep(0.01)
     if results:
         return query_results
 

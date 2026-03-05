@@ -6,7 +6,7 @@ from unittest.mock import patch
 import pytest
 from freezegun import freeze_time
 
-from spotfm import utils
+from spotfm import sqlite, utils
 from spotfm.spotify.artist import Artist
 from spotfm.spotify.track import Track
 
@@ -578,6 +578,106 @@ class TestTrackGetTracks:
 
         # Should only return 2 valid tracks
         assert len(tracks) == 2
+
+    def test_get_tracks_caches_to_pickle_on_db_hit(
+        self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client
+    ):
+        """Test that get_tracks writes to pickle cache on DB hits."""
+        from pathlib import Path
+
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
+
+        # Insert a track into the database directly (simulating existing data)
+        track_id = "db_track123"
+        album_id = "album123"
+        artist_id = "artist123"
+
+        # Insert artist
+        sqlite.query_db(
+            temp_database,
+            [f"INSERT INTO artists (id, name, updated_at) VALUES ('{artist_id}', 'Test Artist', '2024-01-01')"],
+        )
+
+        # Insert album
+        sqlite.query_db(
+            temp_database,
+            [
+                f"INSERT INTO albums (id, name, release_date, updated_at) VALUES ('{album_id}', 'Test Album', '2024-01-01', '2024-01-01')"
+            ],
+        )
+
+        # Insert album-artist relationship
+        sqlite.query_db(
+            temp_database,
+            [f"INSERT INTO albums_artists (album_id, artist_id) VALUES ('{album_id}', '{artist_id}')"],
+        )
+
+        # Insert track
+        sqlite.query_db(
+            temp_database,
+            [f"INSERT INTO tracks (id, name, updated_at) VALUES ('{track_id}', 'Test Track', '2024-01-01')"],
+        )
+
+        # Insert album-track relationship
+        sqlite.query_db(
+            temp_database,
+            [f"INSERT INTO albums_tracks (album_id, track_id) VALUES ('{album_id}', '{track_id}')"],
+        )
+
+        # Insert track-artist relationship
+        sqlite.query_db(
+            temp_database,
+            [f"INSERT INTO tracks_artists (track_id, artist_id) VALUES ('{track_id}', '{artist_id}')"],
+        )
+
+        # Mock the Spotify API calls (for batches only if needed)
+        mock_spotify_client.albums.return_value = {
+            "albums": [
+                {
+                    "id": album_id,
+                    "name": "Test Album",
+                    "release_date": "2024-01-01",
+                    "artists": [{"id": artist_id, "name": "Test Artist"}],
+                }
+            ]
+        }
+        mock_spotify_client.artists.return_value = {"artists": [{"id": artist_id, "name": "Test Artist", "genres": []}]}
+
+        # Ensure pickle cache is empty
+        pickle_file = Path(temp_cache_dir) / "track" / f"{track_id}.pickle"
+        assert not pickle_file.exists(), "Pickle cache should be empty before test"
+
+        # Get track from DB (should populate pickle cache as a side effect)
+        with patch("spotfm.spotify.track.sleep"):
+            tracks = Track.get_tracks([track_id], mock_spotify_client, refresh=False)
+
+        # Verify track was retrieved
+        assert len(tracks) == 1
+        assert tracks[0].id == track_id
+        assert tracks[0].name == "Test Track"
+
+        # Verify pickle cache was created
+        assert pickle_file.exists(), "Pickle cache should be created after DB hit"
+
+        # Clear the mock call counts
+        mock_spotify_client.reset_mock()
+
+        # Second call should load from pickle cache, not make DB/API calls
+        with patch("spotfm.spotify.track.sleep"):
+            tracks2 = Track.get_tracks([track_id], mock_spotify_client, refresh=False)
+
+        # Verify track data matches
+        assert len(tracks2) == 1
+        assert tracks2[0].name == "Test Track"
+
+        # Verify albums/artists API wasn't called again (loaded from pickle cache)
+        assert mock_spotify_client.albums.call_count == 0, (
+            "Albums API should not be called when loading from pickle cache"
+        )
+        assert mock_spotify_client.artists.call_count == 0, (
+            "Artists API should not be called when loading from pickle cache"
+        )
 
 
 @pytest.mark.unit
