@@ -265,8 +265,11 @@ class Track:
             try:
                 sqlite.select_db(sqlite.DATABASE, "SELECT created_at FROM tracks LIMIT 1")
                 _has_lifecycle_columns = True
-            except sqlite3.OperationalError:
-                _has_lifecycle_columns = False
+            except sqlite3.OperationalError as e:
+                if "no such column" in str(e).lower() or "no such table" in str(e).lower():
+                    _has_lifecycle_columns = False
+                else:
+                    raise
         has_lifecycle = _has_lifecycle_columns
 
         if has_lifecycle:
