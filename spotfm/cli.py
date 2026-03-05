@@ -7,10 +7,27 @@ from spotfm.spotify import dupes as spotify_dupes
 from spotfm.spotify import misc as spotify_misc
 
 
-def recent_scrobbles(user, limit, scrobbles_minimum, period):
+def recent_scrobbles(user, limit, scrobbles_minimum, period, since_last_time=False):
+    if since_last_time:
+        state = utils.read_lastfm_state()
+        if state is None:
+            print("No previous state found. Run once without --since-last-time to initialize.")
+            return
+        current_count = user.get_playcount()
+        limit = current_count - state["last_scrobble_count"]
+        if limit <= 0:
+            print("No new scrobbles since last run.")
+            utils.save_lastfm_state(current_count)
+            return
+        print(f"Fetching {limit} new scrobbles (was {state['last_scrobble_count']}, now {current_count}).")
+    else:
+        current_count = user.get_playcount()
+
     scrobbles = user.get_recent_tracks_scrobbles(limit, scrobbles_minimum, period)
     for scrobble in scrobbles:
         print(scrobble)
+
+    utils.save_lastfm_state(current_count)
 
 
 def count_tracks(playlists_pattern=None):
@@ -39,7 +56,7 @@ def lastfm_cli(args, config):
 
     match args.command:
         case "recent-scrobbles":
-            recent_scrobbles(user, args.limit, args.scrobbles_minimum, args.period)
+            recent_scrobbles(user, args.limit, args.scrobbles_minimum, args.period, args.since_last_time)
 
 
 def spotify_cli(args, config):
@@ -119,6 +136,12 @@ def main():
     lastfm_parser.add_argument("-l", "--limit", default=50, type=int)
     lastfm_parser.add_argument("-s", "--scrobbles-minimum", default=4, type=int)
     lastfm_parser.add_argument("-p", "--period", default=90, type=int)
+    lastfm_parser.add_argument(
+        "--since-last-time",
+        action="store_true",
+        default=False,
+        help="Automatically fetch scrobbles added since the last run (reads/writes ~/.spotfm/lastfm_state.json)",
+    )
 
     spotify_parser = subparsers.add_parser("spotify")
     spotify_parser.add_argument(

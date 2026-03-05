@@ -1,3 +1,4 @@
+import json
 import logging
 import pickle
 import tomllib
@@ -10,6 +11,7 @@ WORK_DIR = HOME_DIR / ".spotfm"
 CACHE_DIR = HOME_DIR / ".cache" / "spotfm"
 CONFIG_FILE = WORK_DIR / "spotfm.toml"
 DATABASE = WORK_DIR / "spotify.db"
+LASTFM_STATE_FILE = WORK_DIR / "lastfm_state.json"
 DATABASE_LOG_LEVEL = logging.debug
 
 
@@ -53,6 +55,27 @@ def cache_object(object):
     with open(cache_file, "wb") as f:
         pickle.dump(object, f)
     logging.info(f"{object} has been cached to {cache_file}")
+
+
+def read_lastfm_state(state_file=None):
+    """Read Last.FM state from file. Returns dict with last_scrobble_count, or None if not found."""
+    path = Path(state_file) if state_file else LASTFM_STATE_FILE
+    if not path.exists():
+        return None
+    with open(path) as f:
+        return json.load(f)
+
+
+def save_lastfm_state(scrobble_count, state_file=None):
+    """Save current Last.FM scrobble count to state file."""
+    path = Path(state_file) if state_file else LASTFM_STATE_FILE
+    path.parent.mkdir(parents=True, exist_ok=True)
+    state = {
+        "last_scrobble_count": scrobble_count,
+        "last_run_date": datetime.today().strftime("%Y-%m-%d"),
+    }
+    with open(path, "w") as f:
+        json.dump(state, f, indent=2)
 
 
 def retrieve_object_from_cache(kind, id):

@@ -63,6 +63,10 @@ class User:
     def __init__(self, client):
         self.user = client.get_authenticated_user()
 
+    def get_playcount(self):
+        """Get total scrobble count for the authenticated user."""
+        return int(self.user.get_playcount())
+
     def get_recent_tracks_scrobbles(self, limit=10, scrobbles_minimum=0, period=90):
         """Get recent tracks with scrobble counts (optimized)."""
         if period not in PREDEFINED_PERIODS:
