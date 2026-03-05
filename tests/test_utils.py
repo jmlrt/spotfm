@@ -541,6 +541,23 @@ class TestLastfmState:
         result = utils.read_lastfm_state(state_file=state_file)
         assert result["last_scrobble_count"] == 9999
 
+    def test_read_state_corrupted_file_returns_none(self, tmp_path):
+        """Test read_lastfm_state returns None for corrupted JSON files."""
+        state_file = tmp_path / "lastfm_state.json"
+        state_file.write_text("this is not valid json {{{")
+        result = utils.read_lastfm_state(state_file=state_file)
+        assert result is None
+
+    def test_read_state_corrupted_file_logs_warning(self, tmp_path, caplog):
+        """Test read_lastfm_state logs a warning for corrupted JSON files."""
+        import logging
+
+        state_file = tmp_path / "lastfm_state.json"
+        state_file.write_text("{invalid}")
+        with caplog.at_level(logging.WARNING):
+            utils.read_lastfm_state(state_file=state_file)
+        assert "Corrupted" in caplog.text
+
 
 @pytest.mark.unit
 class TestConstants:
@@ -570,3 +587,8 @@ class TestConstants:
         db_path = Path(utils.DATABASE)
         assert db_path.name == "spotify.db"
         assert db_path.parent == utils.WORK_DIR
+
+    def test_lastfm_state_file_path(self):
+        """Test LASTFM_STATE_FILE path."""
+        assert utils.LASTFM_STATE_FILE.name == "lastfm_state.json"
+        assert utils.LASTFM_STATE_FILE.parent == utils.WORK_DIR

@@ -133,14 +133,20 @@ def main():
 
     lastfm_parser = subparsers.add_parser("lastfm")
     lastfm_parser.add_argument("command", choices=["recent-scrobbles"])
-    lastfm_parser.add_argument("-l", "--limit", default=50, type=int)
+    lastfm_parser.add_argument(
+        "-l",
+        "--limit",
+        default=50,
+        type=int,
+        help="Number of recent scrobbles to fetch (ignored when --since-last-time is set)",
+    )
     lastfm_parser.add_argument("-s", "--scrobbles-minimum", default=4, type=int)
     lastfm_parser.add_argument("-p", "--period", default=90, type=int)
     lastfm_parser.add_argument(
         "--since-last-time",
         action="store_true",
         default=False,
-        help="Automatically fetch scrobbles added since the last run (reads/writes ~/.spotfm/lastfm_state.json)",
+        help="Automatically fetch scrobbles added since the last run, overriding --limit (reads/writes ~/.spotfm/lastfm_state.json)",
     )
 
     spotify_parser = subparsers.add_parser("spotify")

@@ -63,7 +63,11 @@ def read_lastfm_state(state_file=None):
     if not path.exists():
         return None
     with open(path) as f:
-        return json.load(f)
+        try:
+            return json.load(f)
+        except json.JSONDecodeError as e:
+            logging.warning(f"Corrupted Last.FM state file at {path}, ignoring: {e}")
+            return None
 
 
 def save_lastfm_state(scrobble_count, state_file=None):
