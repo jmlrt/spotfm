@@ -9,8 +9,29 @@ from spotfm.spotify.artist import Artist
 from spotfm.spotify.constants import BATCH_SIZE, MARKET
 from spotfm.utils import cache_object, retrieve_object_from_cache
 
-# Cache for lifecycle columns existence check (set once on first sync_to_db call)
-_has_lifecycle_columns = None
+# Per-database cache for lifecycle columns existence check to handle database switching at runtime.
+# Tests that monkeypatch utils.DATABASE should call reset_lifecycle_columns_cache() to avoid stale entries.
+_lifecycle_columns_cache = {}
+
+
+def reset_lifecycle_columns_cache():
+    """Clear the lifecycle-columns cache for all databases.
+
+    Tests that monkeypatch utils.DATABASE should call this to avoid stale cache entries.
+    """
+    _lifecycle_columns_cache.clear()
+
+
+def _get_lifecycle_columns_flag():
+    """Return the cached lifecycle-columns flag for the current database, or None if unknown."""
+    db_key = str(sqlite.DATABASE)
+    return _lifecycle_columns_cache.get(db_key)
+
+
+def _set_lifecycle_columns_flag(value):
+    """Set the cached lifecycle-columns flag for the current database."""
+    db_key = str(sqlite.DATABASE)
+    _lifecycle_columns_cache[db_key] = value
 
 
 class Track:
@@ -254,23 +275,23 @@ class Track:
         self.updated = str(date.today())
 
     def sync_to_db(self, client):
-        global _has_lifecycle_columns
         logging.info("Syncing track %s to database", self.id)
         # Remove redundant Album.get_album() call
         # Album should already be synced by Track.get_tracks()
         queries = []
 
-        # Check if lifecycle columns exist (cached after first check)
-        if _has_lifecycle_columns is None:
+        # Check if lifecycle columns exist (cached per-database after first check)
+        has_lifecycle = _get_lifecycle_columns_flag()
+        if has_lifecycle is None:
             try:
                 sqlite.select_db(sqlite.DATABASE, "SELECT created_at FROM tracks LIMIT 1")
-                _has_lifecycle_columns = True
+                has_lifecycle = True
             except sqlite3.OperationalError as e:
                 if "no such column" in str(e).lower() or "no such table" in str(e).lower():
-                    _has_lifecycle_columns = False
+                    has_lifecycle = False
                 else:
                     raise
-        has_lifecycle = _has_lifecycle_columns
+            _set_lifecycle_columns_flag(has_lifecycle)
 
         if has_lifecycle:
             # New schema with lifecycle tracking
