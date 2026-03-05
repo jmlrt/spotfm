@@ -13,18 +13,48 @@ _snapshot_id_column_cache = {}
 
 
 def _check_snapshot_id_column():
-    """Check if snapshot_id column exists in playlists table (cached per database)."""
+    """Check if snapshot_id column exists in playlists table (cached per database).
+
+    If the column is missing, automatically add it via ALTER TABLE migration.
+    """
     db_key = sqlite.DATABASE
-    if db_key not in _snapshot_id_column_cache:
-        try:
-            sqlite.select_db(sqlite.DATABASE, "SELECT snapshot_id FROM playlists LIMIT 1")
-            _snapshot_id_column_cache[db_key] = True
-        except sqlite3.OperationalError as e:
-            msg = str(e).lower()
-            if "no such column" in msg or "duplicate column" in msg:
-                _snapshot_id_column_cache[db_key] = False
-            else:
-                raise
+    cached = _snapshot_id_column_cache.get(db_key)
+    if cached is not None:
+        return cached
+
+    # Initial existence check
+    try:
+        sqlite.select_db(sqlite.DATABASE, "SELECT snapshot_id FROM playlists LIMIT 1")
+        _snapshot_id_column_cache[db_key] = True
+        return True
+    except sqlite3.OperationalError as e:
+        msg = str(e).lower()
+        # Only attempt migration if the column is actually missing
+        if "no such column" not in msg:
+            raise
+
+    # Column is missing - attempt migration by adding it
+    logging.info("Adding snapshot_id column to playlists table")
+    try:
+        sqlite.query_db(sqlite.DATABASE, ["ALTER TABLE playlists ADD COLUMN snapshot_id TEXT"])
+    except sqlite3.OperationalError as alter_err:
+        alter_msg = str(alter_err).lower()
+        # Column might have been added concurrently or already exist
+        if "duplicate column" in alter_msg:
+            logging.debug("snapshot_id column already exists in playlists table")
+        else:
+            logging.warning("Failed to add snapshot_id column to playlists table: %s", alter_err)
+            _snapshot_id_column_cache[db_key] = False
+            return False
+
+    # Re-check after migration
+    try:
+        sqlite.select_db(sqlite.DATABASE, "SELECT snapshot_id FROM playlists LIMIT 1")
+        _snapshot_id_column_cache[db_key] = True
+        logging.debug("snapshot_id column is now available in playlists table")
+    except sqlite3.OperationalError as e:
+        logging.warning("snapshot_id column still missing after migration attempt: %s", e)
+        _snapshot_id_column_cache[db_key] = False
     return _snapshot_id_column_cache[db_key]
 
 
@@ -128,6 +158,18 @@ class Playlist:
         logging.info("Fetching playlist %s - %s from api", self.id, self.name)
         self.owner = utils.sanitize_string(playlist["owner"]["id"])
         new_snapshot = playlist.get("snapshot_id")
+
+        # If snapshot_id is not set but DB has it, load it for comparison
+        if not self.snapshot_id and _check_snapshot_id_column():
+            try:
+                result = sqlite.select_db(
+                    sqlite.DATABASE, f"SELECT snapshot_id FROM playlists WHERE id == '{self.id}'"
+                ).fetchone()
+                if result:
+                    self.snapshot_id = result[0]
+            except (sqlite3.OperationalError, TypeError):
+                # Column might not exist yet or playlist not in DB
+                pass
 
         # Skip re-fetching playlist items if snapshot hasn't changed
         if self.snapshot_id and self.snapshot_id == new_snapshot:
