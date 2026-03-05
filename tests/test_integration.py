@@ -237,26 +237,18 @@ class TestBatchOperations:
     """Test batch operations work correctly."""
 
     def test_get_tracks_batching(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
-        """Test Track.get_tracks properly batches requests."""
+        """Test Track.get_tracks makes individual API calls."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
 
         track_ids = [f"track{i}" for i in range(1, 101)]  # 100 tracks
 
-        def mock_tracks_call(ids, market):
-            return {
-                "tracks": [
-                    {
-                        "id": tid,
-                        "name": f"Track {tid}",
-                        "album": {"id": f"album{tid}", "name": f"Album {tid}"},
-                        "artists": [{"id": f"artist{tid}", "name": f"Artist {tid}"}],
-                    }
-                    for tid in ids
-                ]
-            }
-
-        mock_spotify_client.tracks.side_effect = mock_tracks_call
+        mock_spotify_client.track.side_effect = lambda id, market: {
+            "id": id,
+            "name": f"Track {id}",
+            "album": {"id": f"album{id}", "name": f"Album {id}"},
+            "artists": [{"id": f"artist{id}", "name": f"Artist {id}"}],
+        }
 
         mock_spotify_client.album.side_effect = lambda id, market: {
             "id": id,
@@ -274,8 +266,8 @@ class TestBatchOperations:
         with patch("spotfm.spotify.track.sleep"):
             tracks = Track.get_tracks(track_ids, mock_spotify_client, batch_size=50)
 
-        # Should make 2 API calls for 100 tracks with batch size 50
-        assert mock_spotify_client.tracks.call_count == 2
+        # Should make 100 individual API calls (batch_size param now ignored)
+        assert mock_spotify_client.track.call_count == 100
         assert len(tracks) == 100
 
 
@@ -338,49 +330,55 @@ class TestPlaylistWorkflow:
             "next": None,
         }
 
-        # Setup tracks mock
-        mock_spotify_client.tracks.return_value = {
-            "tracks": [
-                {
+        # Setup individual track mock
+        def mock_track_response(id, market):
+            tracks = {
+                "track1": {
                     "id": "track1",
                     "name": "Rock Song",
                     "album": {"id": "album1", "name": "Album 1"},
                     "artists": [{"id": "artist1", "name": "Rock Artist"}],
                 },
-                {
+                "track2": {
                     "id": "track2",
                     "name": "Pop Song",
                     "album": {"id": "album2", "name": "Album 2"},
                     "artists": [{"id": "artist2", "name": "Pop Artist"}],
                 },
-            ]
-        }
+            }
+            return tracks.get(id)
 
-        # Setup batch albums API
-        mock_spotify_client.albums.return_value = {
-            "albums": [
-                {
+        mock_spotify_client.track.side_effect = mock_track_response
+
+        # Setup individual albums API
+        def mock_album_response(id, market):
+            albums = {
+                "album1": {
                     "id": "album1",
                     "name": "Album 1",
                     "release_date": "2024-01-01",
                     "artists": [{"id": "artist1", "name": "Rock Artist"}],
                 },
-                {
+                "album2": {
                     "id": "album2",
                     "name": "Album 2",
                     "release_date": "2024-01-01",
                     "artists": [{"id": "artist2", "name": "Pop Artist"}],
                 },
-            ]
-        }
+            }
+            return albums.get(id)
 
-        # Setup batch artists API
-        mock_spotify_client.artists.return_value = {
-            "artists": [
-                {"id": "artist1", "name": "Rock Artist", "genres": ["rock", "alternative"]},
-                {"id": "artist2", "name": "Pop Artist", "genres": ["pop", "electronic"]},
-            ]
-        }
+        mock_spotify_client.album.side_effect = mock_album_response
+
+        # Setup individual artists API
+        def mock_artist_response(id):
+            artists = {
+                "artist1": {"id": "artist1", "name": "Rock Artist", "genres": ["rock", "alternative"]},
+                "artist2": {"id": "artist2", "name": "Pop Artist", "genres": ["pop", "electronic"]},
+            }
+            return artists.get(id)
+
+        mock_spotify_client.artist.side_effect = mock_artist_response
 
         # Fetch playlist
         with patch("spotfm.spotify.track.sleep"):
@@ -409,43 +407,57 @@ class TestErrorHandling:
 
         track_ids = ["valid1", "invalid", "valid2"]
 
-        mock_spotify_client.tracks.return_value = {
-            "tracks": [
-                {
+        # Setup individual track mock - invalid raises exception
+        def mock_track_response(id, market):
+            if id == "invalid":
+                raise Exception("Track not found")
+            tracks = {
+                "valid1": {
                     "id": "valid1",
                     "name": "Valid Track 1",
                     "album": {"id": "album1", "name": "Album 1"},
                     "artists": [{"id": "artist1", "name": "Artist 1"}],
                 },
-                None,  # Invalid/deleted track
-                {
+                "valid2": {
                     "id": "valid2",
                     "name": "Valid Track 2",
                     "album": {"id": "album2", "name": "Album 2"},
                     "artists": [{"id": "artist2", "name": "Artist 2"}],
                 },
-            ]
-        }
+            }
+            return tracks.get(id)
 
-        mock_spotify_client.album.side_effect = [
-            {
-                "id": "album1",
-                "name": "Album 1",
-                "release_date": "2024-01-01",
-                "artists": [{"id": "artist1", "name": "Artist 1"}],
-            },
-            {
-                "id": "album2",
-                "name": "Album 2",
-                "release_date": "2024-01-01",
-                "artists": [{"id": "artist2", "name": "Artist 2"}],
-            },
-        ]
+        mock_spotify_client.track.side_effect = mock_track_response
 
-        mock_spotify_client.artist.side_effect = [
-            {"id": "artist1", "name": "Artist 1", "genres": []},
-            {"id": "artist2", "name": "Artist 2", "genres": []},
-        ]
+        # Setup individual album mock
+        def mock_album_response(id, market):
+            albums = {
+                "album1": {
+                    "id": "album1",
+                    "name": "Album 1",
+                    "release_date": "2024-01-01",
+                    "artists": [{"id": "artist1", "name": "Artist 1"}],
+                },
+                "album2": {
+                    "id": "album2",
+                    "name": "Album 2",
+                    "release_date": "2024-01-01",
+                    "artists": [{"id": "artist2", "name": "Artist 2"}],
+                },
+            }
+            return albums.get(id)
+
+        mock_spotify_client.album.side_effect = mock_album_response
+
+        # Setup individual artist mock
+        def mock_artist_response(id):
+            artists = {
+                "artist1": {"id": "artist1", "name": "Artist 1", "genres": []},
+                "artist2": {"id": "artist2", "name": "Artist 2", "genres": []},
+            }
+            return artists.get(id)
+
+        mock_spotify_client.artist.side_effect = mock_artist_response
 
         with patch("spotfm.spotify.track.sleep"):
             tracks = Track.get_tracks(track_ids, mock_spotify_client)

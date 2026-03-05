@@ -1,5 +1,6 @@
 import logging
 from datetime import date
+from time import sleep
 
 from spotfm import sqlite, utils
 from spotfm.utils import cache_object, retrieve_object_from_cache
@@ -37,7 +38,7 @@ class Artist:
 
     @classmethod
     def get_artists(cls, artist_ids, client=None, refresh=False, sync_to_db=True):
-        """Fetch multiple artists efficiently using batch API calls."""
+        """Fetch multiple artists efficiently by calling individual API endpoints."""
         if not artist_ids:
             return []
 
@@ -59,27 +60,23 @@ class Artist:
                 else:
                     artists_dict[artist_id] = artist
 
-        # Batch fetch from API (50 per batch)
+        # Fetch missing artists individually (Spotify removed batch endpoint)
         if ids_to_fetch and client is not None:
-            for i in range(0, len(ids_to_fetch), 50):
-                batch_ids = ids_to_fetch[i : i + 50]
-                logging.info(f"Fetching artist batch {i // 50 + 1}/{(len(ids_to_fetch) + 49) // 50}")
-                raw_artists = client.artists(batch_ids)
-
-                for raw_artist in raw_artists["artists"]:
-                    if raw_artist is None:
-                        continue
-
-                    artist = Artist(raw_artist["id"], client)
-                    artist.name = utils.sanitize_string(raw_artist["name"])
-                    artist.genres = [utils.sanitize_string(genre) for genre in raw_artist["genres"]]
-                    artist.updated = str(date.today())
-
-                    artists_dict[raw_artist["id"]] = artist
-                    cache_object(artist)
-
-                    if sync_to_db:
-                        artist.sync_to_db()
+            for i, artist_id in enumerate(ids_to_fetch):
+                try:
+                    artist = cls.get_artist(artist_id, client, refresh=refresh, sync_to_db=sync_to_db)
+                    if artist.name is not None:
+                        artists_dict[artist_id] = artist
+                except (KeyError, ValueError) as e:
+                    # Artist not found, deleted, or unavailable on Spotify
+                    # (Transient errors like 429, 5xx are auto-retried by spotipy)
+                    logging.debug(f"Artist {artist_id} not found or unavailable: {e}")
+                except Exception as e:
+                    # Unexpected error - log but continue
+                    logging.warning(f"Unexpected error fetching artist {artist_id}: {e}")
+                # Rate limiting: sleep between individual calls
+                if i < len(ids_to_fetch) - 1:
+                    sleep(0.05)
 
         # Return in original order
         return [artists_dict.get(artist_id) for artist_id in artist_ids if artist_id in artists_dict]

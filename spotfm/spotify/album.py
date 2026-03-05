@@ -1,9 +1,10 @@
 import logging
 from datetime import date
+from time import sleep
 
 from spotfm import sqlite, utils
 from spotfm.spotify.artist import Artist
-from spotfm.spotify.constants import ALBUM_BATCH_SIZE, MARKET
+from spotfm.spotify.constants import MARKET
 from spotfm.utils import cache_object, retrieve_object_from_cache
 
 
@@ -42,7 +43,7 @@ class Album:
 
     @classmethod
     def get_albums(cls, album_ids, client=None, refresh=False, sync_to_db=True):
-        """Fetch multiple albums efficiently using batch API calls."""
+        """Fetch multiple albums efficiently by calling individual API endpoints."""
         if not album_ids:
             return []
 
@@ -59,36 +60,28 @@ class Album:
                 albums_dict[album_id] = album
             else:
                 album = Album(album_id, client)
-                if client is not None and (not album.update_from_db(client) or refresh):
+                if client is not None and (not album.update_from_db() or refresh):
                     ids_to_fetch.append(album_id)
                 else:
                     albums_dict[album_id] = album
 
-        # Batch fetch from API using ALBUM_BATCH_SIZE (Spotify API limit for albums)
+        # Fetch missing albums individually (Spotify removed batch endpoint)
         if ids_to_fetch and client is not None:
-            for i in range(0, len(ids_to_fetch), ALBUM_BATCH_SIZE):
-                batch_ids = ids_to_fetch[i : i + ALBUM_BATCH_SIZE]
-                batch_num = i // ALBUM_BATCH_SIZE + 1
-                total_batches = (len(ids_to_fetch) + ALBUM_BATCH_SIZE - 1) // ALBUM_BATCH_SIZE
-                logging.info(f"Fetching album batch {batch_num}/{total_batches}")
-                raw_albums = client.albums(batch_ids, market=MARKET)
-
-                for raw_album in raw_albums["albums"]:
-                    if raw_album is None:
-                        continue
-
-                    album = Album(raw_album["id"], client)
-                    album.name = utils.sanitize_string(raw_album["name"])
-                    album.release_date = raw_album["release_date"]
-                    album.artists_id = [artist["id"] for artist in raw_album["artists"]]
-                    album.artists = []  # Populated by caller
-                    album.updated = str(date.today())
-
-                    albums_dict[raw_album["id"]] = album
-                    cache_object(album)
-
-                    if sync_to_db:
-                        album.sync_to_db()
+            for i, album_id in enumerate(ids_to_fetch):
+                try:
+                    album = cls.get_album(album_id, client, refresh=refresh, sync_to_db=sync_to_db)
+                    if album.name is not None:
+                        albums_dict[album_id] = album
+                except (KeyError, ValueError) as e:
+                    # Album not found, deleted, or unavailable on Spotify
+                    # (Transient errors like 429, 5xx are auto-retried by spotipy)
+                    logging.debug(f"Album {album_id} not found or unavailable: {e}")
+                except Exception as e:
+                    # Unexpected error - log but continue
+                    logging.warning(f"Unexpected error fetching album {album_id}: {e}")
+                # Rate limiting: sleep between individual calls
+                if i < len(ids_to_fetch) - 1:
+                    sleep(0.05)
 
         # Return in original order
         return [albums_dict.get(album_id) for album_id in album_ids if album_id in albums_dict]
