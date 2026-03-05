@@ -8,20 +8,24 @@ from spotfm.spotify.constants import BATCH_SIZE, MARKET
 from spotfm.spotify.track import Track
 from spotfm.utils import cache_object, retrieve_object_from_cache
 
-# Cache for snapshot_id column existence check (set once on first check)
-_has_snapshot_id_column = None
+# Cache for snapshot_id column existence check, keyed by database path
+_snapshot_id_column_cache = {}
 
 
 def _check_snapshot_id_column():
-    """Check if snapshot_id column exists in playlists table (cached after first check)."""
-    global _has_snapshot_id_column
-    if _has_snapshot_id_column is None:
+    """Check if snapshot_id column exists in playlists table (cached per database)."""
+    db_key = sqlite.DATABASE
+    if db_key not in _snapshot_id_column_cache:
         try:
             sqlite.select_db(sqlite.DATABASE, "SELECT snapshot_id FROM playlists LIMIT 1")
-            _has_snapshot_id_column = True
-        except sqlite3.OperationalError:
-            _has_snapshot_id_column = False
-    return _has_snapshot_id_column
+            _snapshot_id_column_cache[db_key] = True
+        except sqlite3.OperationalError as e:
+            msg = str(e).lower()
+            if "no such column" in msg or "duplicate column" in msg:
+                _snapshot_id_column_cache[db_key] = False
+            else:
+                raise
+    return _snapshot_id_column_cache[db_key]
 
 
 class Playlist:
@@ -125,9 +129,27 @@ class Playlist:
         self.owner = utils.sanitize_string(playlist["owner"]["id"])
         new_snapshot = playlist.get("snapshot_id")
 
-        # Skip re-fetching if playlist hasn't changed (snapshot_id match)
+        # Skip re-fetching playlist items if snapshot hasn't changed
         if self.snapshot_id and self.snapshot_id == new_snapshot:
-            logging.info("Playlist %s unchanged (snapshot_id match), skipping", self.id)
+            logging.info("Playlist %s unchanged (snapshot_id match), skipping API item fetch", self.id)
+            # Ensure raw_tracks and tracks are populated for downstream operations (e.g., sync_to_db)
+            # If update_from_db() was called first, self.tracks will be list of (track_id, added_at) tuples
+            if not getattr(self, "raw_tracks", None) and getattr(self, "tracks", None):
+                # Convert tuples from DB to raw_tracks format
+                self.raw_tracks = list(self.tracks)
+                # Hydrate Track objects from the track IDs
+                track_ids = [track_id for track_id, _added_at in self.raw_tracks]
+                self.tracks = Track.get_tracks(track_ids, client)
+            elif not getattr(self, "raw_tracks", None):
+                # No data at all - fetch from DB
+                results = sqlite.select_db(
+                    sqlite.DATABASE,
+                    f"SELECT track_id, added_at FROM playlists_tracks WHERE playlist_id == '{self.id}'",
+                ).fetchall()
+                self.raw_tracks = [(col[0], col[1]) for col in results]
+                self.tracks = self.get_tracks(client)
+            # Update the last-updated marker to reflect a successful refresh
+            self.updated = str(date.today())
             return
 
         self.snapshot_id = new_snapshot
@@ -156,17 +178,17 @@ class Playlist:
 
         has_snapshot_id = _check_snapshot_id_column()
 
-        # Update or insert playlist metadata
+        # Update or insert playlist metadata with explicit column names for schema stability
         if has_snapshot_id:
             # New schema with snapshot_id
             snapshot_id_val = f"'{self.snapshot_id}'" if self.snapshot_id else "NULL"
             queries.append(
-                f"INSERT OR REPLACE INTO playlists VALUES ('{self.id}', '{self.name}', '{self.owner}', '{self.updated}', {snapshot_id_val})"
+                f"INSERT OR REPLACE INTO playlists (id, name, owner, updated_at, snapshot_id) VALUES ('{self.id}', '{self.name}', '{self.owner}', '{self.updated}', {snapshot_id_val})"
             )
         else:
             # Old schema without snapshot_id
             queries.append(
-                f"INSERT OR REPLACE INTO playlists VALUES ('{self.id}', '{self.name}', '{self.owner}', '{self.updated}')"
+                f"INSERT OR REPLACE INTO playlists (id, name, owner, updated_at) VALUES ('{self.id}', '{self.name}', '{self.owner}', '{self.updated}')"
             )
 
         # Delete all existing tracks for this playlist to handle removed tracks

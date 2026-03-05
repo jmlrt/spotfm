@@ -2,6 +2,7 @@
 
 import sqlite3
 from collections import Counter
+from datetime import date
 from unittest.mock import patch
 
 import pytest
@@ -403,6 +404,73 @@ class TestPlaylistUpdateFromApi:
 
         # Should only have 2 tracks (null track filtered out)
         assert len(playlist.raw_tracks) == 2
+
+    def test_update_from_api_skips_on_snapshot_id_match(
+        self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client
+    ):
+        """Test that update_from_api returns early when snapshot_id matches (unchanged playlist)."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
+
+        # Setup: Populate DB with existing playlist and tracks (without snapshot_id for schema compatibility)
+        conn = sqlite3.connect(temp_database)
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO playlists (id, name, owner, updated_at) VALUES ('playlist123', 'Test Playlist', 'user123', '2024-01-01')"
+        )
+        cursor.execute("INSERT INTO playlists_tracks VALUES ('playlist123', 'track1', '2024-01-01T00:00:00Z')")
+        cursor.execute("INSERT INTO playlists_tracks VALUES ('playlist123', 'track2', '2024-01-01T00:00:00Z')")
+        conn.commit()
+        conn.close()
+
+        # Create a playlist with snapshot_id already set (from previous DB read)
+        playlist = Playlist("playlist123")
+        playlist.name = "Test Playlist"
+        playlist.owner = "user123"
+        playlist.updated = "2024-01-01"
+        playlist.snapshot_id = "snapshot_abc"  # Set from hypothetical previous DB read
+        # Simulate state after update_from_db()
+        playlist.tracks = [("track1", "2024-01-01T00:00:00Z"), ("track2", "2024-01-01T00:00:00Z")]
+
+        # Mock API response - returns same snapshot_id (unchanged)
+        mock_spotify_client.playlist.return_value = {
+            "name": "Test Playlist",
+            "owner": {"id": "user123"},
+            "snapshot_id": "snapshot_abc",  # Same snapshot (no change)
+        }
+
+        # Mock track fetches for hydration when raw_tracks need to be populated
+        mock_spotify_client.track.return_value = {
+            "id": "track1",
+            "name": "Track 1",
+            "album": {"id": "album1", "artists": [{"id": "artist1"}]},
+            "artists": [{"id": "artist1", "name": "Artist 1"}],
+        }
+        mock_spotify_client.artist.return_value = {"id": "artist1", "name": "Artist 1", "genres": ["pop"]}
+        mock_spotify_client.album.return_value = {
+            "id": "album1",
+            "name": "Album 1",
+            "release_date": "2024-01-01",
+            "artists": [{"id": "artist1", "name": "Artist 1"}],
+        }
+
+        # Call update_from_api with unchanged snapshot_id
+        with patch("spotfm.spotify.track.sleep"):
+            playlist.update_from_api(mock_spotify_client)
+
+        # Verify that playlist_items was NOT called (optimization working)
+        # Only client.playlist() should have been called
+        mock_spotify_client.playlist.assert_called_once()
+        mock_spotify_client.playlist_items.assert_not_called()
+
+        # Verify state is correct for downstream sync_to_db
+        assert playlist.snapshot_id == "snapshot_abc"
+        assert playlist.updated == str(date.today())
+        assert playlist.raw_tracks is not None  # Should be populated for sync_to_db
+        assert len(playlist.raw_tracks) == 2
+        assert playlist.tracks is not None  # Should be Track objects for sync_to_db
+        # Tracks should be hydrated from DB
+        assert len(list(playlist.tracks)) > 0
 
 
 @pytest.mark.unit
