@@ -13,9 +13,8 @@ _snapshot_id_column_cache = {}
 
 
 def reset_snapshot_id_column_cache():
-    """Reset the cached snapshot_id column existence for the current database."""
-    db_key = str(sqlite.DATABASE)
-    _snapshot_id_column_cache.pop(db_key, None)
+    """Clear the snapshot_id column existence cache for all databases."""
+    _snapshot_id_column_cache.clear()
 
 
 def _check_snapshot_id_column():
@@ -73,6 +72,7 @@ class Playlist:
         self.name = None
         self.owner = None
         self.raw_tracks = None  # [tuple(id, added_at)]
+        self.tracks = None  # [Track] after hydration from API/DB
         self.updated = None
         self.snapshot_id = None  # Spotify snapshot ID to detect unchanged playlists
         # TODO: self._tracks_names
@@ -181,14 +181,15 @@ class Playlist:
         if self.snapshot_id and self.snapshot_id == new_snapshot:
             logging.info("Playlist %s unchanged (snapshot_id match), skipping API item fetch", self.id)
             # Ensure raw_tracks and tracks are populated for downstream operations (e.g., sync_to_db)
+            # raw_tracks and tracks are always initialized to None in __init__
             # If update_from_db() was called first, self.tracks will be list of (track_id, added_at) tuples
-            if getattr(self, "raw_tracks", None) is None and getattr(self, "tracks", None) is not None:
+            if self.raw_tracks is None and self.tracks is not None:
                 # Convert tuples from DB to raw_tracks format
                 self.raw_tracks = list(self.tracks)
                 # Hydrate Track objects from the track IDs
                 track_ids = [track_id for track_id, _added_at in self.raw_tracks]
                 self.tracks = Track.get_tracks(track_ids, client)
-            elif getattr(self, "raw_tracks", None) is None:
+            elif self.raw_tracks is None:
                 # No data at all - fetch from DB
                 results = sqlite.select_db(
                     sqlite.DATABASE,
@@ -228,10 +229,12 @@ class Playlist:
 
         # Update or insert playlist metadata with explicit column names for schema stability
         if has_snapshot_id:
-            # New schema with snapshot_id - escape quotes for SQL safety
-            snapshot_id_val = (
-                f"'{self.snapshot_id.replace(chr(39), chr(39) * 2)}'" if self.snapshot_id else "NULL"
-            )  # chr(39) = single quote, doubled = escaped
+            # New schema with snapshot_id - escape single quotes for SQL safety
+            if self.snapshot_id:
+                escaped = self.snapshot_id.replace("'", "''")
+                snapshot_id_val = f"'{escaped}'"
+            else:
+                snapshot_id_val = "NULL"
             queries.append(
                 f"INSERT OR REPLACE INTO playlists (id, name, owner, updated_at, snapshot_id) VALUES ('{self.id}', '{self.name}', '{self.owner}', '{self.updated}', {snapshot_id_val})"
             )
