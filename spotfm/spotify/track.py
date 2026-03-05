@@ -99,9 +99,13 @@ class Track:
                 track = cls.get_track(track_id, client, refresh=refresh, sync_to_db=True)
                 if track.name is not None:
                     tracks.append(track)
+            except (KeyError, ValueError) as e:
+                # Track not found, deleted, or unavailable on Spotify
+                # (Transient errors like 429, 5xx are auto-retried by spotipy)
+                logging.debug(f"Track {track_id} not found or unavailable: {e}")
             except Exception as e:
-                # Skip tracks that can't be fetched (deleted, unavailable, etc.)
-                logging.debug(f"Failed to fetch track {track_id}: {e}")
+                # Unexpected error - log but continue
+                logging.warning(f"Unexpected error fetching track {track_id}: {e}")
             # Rate limiting: sleep between individual calls
             if i < len(tracks_to_fetch) - 1:
                 sleep(0.1)

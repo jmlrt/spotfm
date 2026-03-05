@@ -13,7 +13,7 @@ authors = [{name = "Julien Mailleret", email = "julien@mailleret.fr"}]
 dependencies = [
     "pylast",
     "rapidfuzz",
-    "spotipy",
+    "spotipy>=2.26.0",
 ]
 
 [project.optional-dependencies]

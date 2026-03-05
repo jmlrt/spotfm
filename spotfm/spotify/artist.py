@@ -67,9 +67,13 @@ class Artist:
                     artist = cls.get_artist(artist_id, client, refresh=refresh, sync_to_db=sync_to_db)
                     if artist.name is not None:
                         artists_dict[artist_id] = artist
+                except (KeyError, ValueError) as e:
+                    # Artist not found, deleted, or unavailable on Spotify
+                    # (Transient errors like 429, 5xx are auto-retried by spotipy)
+                    logging.debug(f"Artist {artist_id} not found or unavailable: {e}")
                 except Exception as e:
-                    # Skip artists that can't be fetched (deleted, unavailable, etc.)
-                    logging.debug(f"Failed to fetch artist {artist_id}: {e}")
+                    # Unexpected error - log but continue
+                    logging.warning(f"Unexpected error fetching artist {artist_id}: {e}")
                 # Rate limiting: sleep between individual calls
                 if i < len(ids_to_fetch) - 1:
                     sleep(0.05)
