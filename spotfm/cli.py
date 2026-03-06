@@ -2,6 +2,7 @@ import argparse
 import logging
 
 from spotfm import lastfm, utils
+from spotfm.lastfm import read_lastfm_state, save_lastfm_state
 from spotfm.spotify import client as spotify_client
 from spotfm.spotify import dupes as spotify_dupes
 from spotfm.spotify import misc as spotify_misc
@@ -12,7 +13,7 @@ def recent_scrobbles(user, limit, scrobbles_minimum, period, since_last_time=Fal
     scrobble_count_to_save = current_count  # Track what state to save (may differ from current_count if capped)
 
     if since_last_time:
-        state = utils.read_lastfm_state()
+        state = read_lastfm_state()
         if state is None:
             print(
                 "No previous state found. Initializing state with current playcount; "
@@ -20,19 +21,19 @@ def recent_scrobbles(user, limit, scrobbles_minimum, period, since_last_time=Fal
                 "fetch existing scrobbles, then rerun with --since-last-time to get "
                 "only new ones."
             )
-            utils.save_lastfm_state(current_count)
+            save_lastfm_state(current_count)
             return
         last_scrobble_count = None
         if isinstance(state, dict):
             last_scrobble_count = state.get("last_scrobble_count")
         if not isinstance(last_scrobble_count, int):
             print("No valid previous state found. Run once without --since-last-time to initialize.")
-            utils.save_lastfm_state(current_count)
+            save_lastfm_state(current_count)
             return
         computed_limit = current_count - last_scrobble_count
         if computed_limit <= 0:
             print("No new scrobbles since last run.")
-            utils.save_lastfm_state(current_count)
+            save_lastfm_state(current_count)
             return
         # Cap the computed limit to the --limit parameter to prevent unexpectedly large fetches
         limit = min(computed_limit, limit)
@@ -49,7 +50,7 @@ def recent_scrobbles(user, limit, scrobbles_minimum, period, since_last_time=Fal
     for scrobble in scrobbles:
         print(scrobble)
 
-    utils.save_lastfm_state(scrobble_count_to_save)
+    save_lastfm_state(scrobble_count_to_save)
 
 
 def count_tracks(playlists_pattern=None):

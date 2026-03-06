@@ -1,9 +1,14 @@
+import json
+import logging
+import tempfile
 from datetime import datetime
+from pathlib import Path
 
 import pylast
 
 LASTFM_BASE_URL = "https://www.last.fm"
 PREDEFINED_PERIODS = [7, 30, 90, 180, 365]
+LASTFM_STATE_FILE = Path.home() / ".spotfm" / "lastfm_state.json"
 
 
 class UnknownPeriodError(Exception):
@@ -114,3 +119,38 @@ class User:
         # Yield results (same format as before - backward compatible)
         for track, period_scrobbles, total_scrobbles, url in tracks_data:
             yield f"{track} - {period_scrobbles} - {total_scrobbles} - {url}"
+
+
+def read_lastfm_state(state_file=None):
+    """Read Last.FM state from file. Returns dict with last_scrobble_count, or None if not found/unreadable."""
+    path = Path(state_file) if state_file else LASTFM_STATE_FILE
+    if not path.exists():
+        return None
+    try:
+        with open(path) as f:
+            try:
+                return json.load(f)
+            except json.JSONDecodeError as e:
+                logging.warning(f"Corrupted Last.FM state file at {path}, ignoring: {e}")
+                return None
+    except OSError as e:
+        logging.warning(f"Could not read Last.FM state file at {path}, ignoring: {e}")
+        return None
+
+
+def save_lastfm_state(scrobble_count, state_file=None):
+    """Save current Last.FM scrobble count to state file using atomic writes."""
+    path = Path(state_file) if state_file else LASTFM_STATE_FILE
+    path.parent.mkdir(parents=True, exist_ok=True)
+    state = {
+        "last_scrobble_count": scrobble_count,
+        "last_run_date": datetime.today().strftime("%Y-%m-%d"),
+    }
+    try:
+        # Write to temporary file in same directory, then atomically replace destination
+        with tempfile.NamedTemporaryFile(mode="w", dir=path.parent, delete=False, suffix=".tmp") as tmp_file:
+            json.dump(state, tmp_file, indent=2)
+            tmp_path = Path(tmp_file.name)
+        tmp_path.replace(path)
+    except OSError as e:
+        logging.error(f"Failed to save Last.FM state file at {path}: {e}")
