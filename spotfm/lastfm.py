@@ -1,3 +1,4 @@
+import contextlib
 import json
 import logging
 import tempfile
@@ -6,9 +7,11 @@ from pathlib import Path
 
 import pylast
 
+from spotfm import utils
+
 LASTFM_BASE_URL = "https://www.last.fm"
 PREDEFINED_PERIODS = [7, 30, 90, 180, 365]
-LASTFM_STATE_FILE = Path.home() / ".spotfm" / "lastfm_state.json"
+LASTFM_STATE_FILE = utils.WORK_DIR / "lastfm_state.json"
 
 
 class UnknownPeriodError(Exception):
@@ -127,13 +130,13 @@ def read_lastfm_state(state_file=None):
     if not path.exists():
         return None
     try:
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             try:
                 return json.load(f)
             except json.JSONDecodeError as e:
                 logging.warning(f"Corrupted Last.FM state file at {path}, ignoring: {e}")
                 return None
-    except OSError as e:
+    except (OSError, UnicodeDecodeError) as e:
         logging.warning(f"Could not read Last.FM state file at {path}, ignoring: {e}")
         return None
 
@@ -146,6 +149,7 @@ def save_lastfm_state(scrobble_count, state_file=None):
         "last_scrobble_count": scrobble_count,
         "last_run_date": datetime.today().strftime("%Y-%m-%d"),
     }
+    tmp_path = None
     try:
         # Write to temporary file in same directory, then atomically replace destination
         with tempfile.NamedTemporaryFile(mode="w", dir=path.parent, delete=False, suffix=".tmp") as tmp_file:
@@ -153,4 +157,8 @@ def save_lastfm_state(scrobble_count, state_file=None):
             tmp_path = Path(tmp_file.name)
         tmp_path.replace(path)
     except OSError as e:
+        # Clean up orphaned temp file if replace failed
+        if tmp_path and tmp_path.exists():
+            with contextlib.suppress(OSError):
+                tmp_path.unlink()
         logging.error(f"Failed to save Last.FM state file at {path}: {e}")
