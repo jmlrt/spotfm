@@ -3,7 +3,6 @@
 import contextlib
 import sqlite3
 from collections import Counter
-from datetime import date
 from unittest.mock import patch
 
 import pytest
@@ -82,7 +81,8 @@ class TestPlaylistUpdateFromDb:
         assert playlist.name == "Test Playlist"
         assert playlist.owner == "user123"
         assert playlist.updated == "2024-01-01"
-        assert len(playlist.tracks) == 2
+        assert len(playlist.raw_tracks) == 2
+        assert playlist.tracks is None  # tracks are not hydrated by update_from_db()
 
     def test_update_from_db_not_found(self, temp_database, monkeypatch):
         """Test update from database when playlist not found."""
@@ -426,6 +426,7 @@ class TestPlaylistUpdateFromApi:
         # Should only have 2 tracks (null track filtered out)
         assert len(playlist.raw_tracks) == 2
 
+    @freeze_time("2024-03-15")
     def test_update_from_api_skips_on_snapshot_id_match(
         self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client
     ):
@@ -450,8 +451,8 @@ class TestPlaylistUpdateFromApi:
         playlist.owner = "user123"
         playlist.updated = "2024-01-01"
         playlist.snapshot_id = "snapshot_abc"  # Set from hypothetical previous DB read
-        # Simulate state after update_from_db()
-        playlist.tracks = [("track1", "2024-01-01T00:00:00Z"), ("track2", "2024-01-01T00:00:00Z")]
+        # Simulate state after update_from_db() — raw_tracks are tuples, tracks stay None
+        playlist.raw_tracks = [("track1", "2024-01-01T00:00:00Z"), ("track2", "2024-01-01T00:00:00Z")]
 
         # Mock API response - returns same snapshot_id (unchanged)
         mock_spotify_client.playlist.return_value = {
@@ -486,7 +487,7 @@ class TestPlaylistUpdateFromApi:
 
         # Verify state is correct for downstream sync_to_db
         assert playlist.snapshot_id == "snapshot_abc"
-        assert playlist.updated == str(date.today())
+        assert playlist.updated == "2024-03-15"
         assert playlist.raw_tracks is not None  # Should be populated for sync_to_db
         assert len(playlist.raw_tracks) == 2
         assert playlist.tracks is not None  # Should be Track objects for sync_to_db

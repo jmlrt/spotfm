@@ -48,8 +48,8 @@ def _check_snapshot_id_column():
         if "duplicate column" in alter_msg:
             logging.debug("snapshot_id column already exists in playlists table")
         else:
+            # Transient failure (e.g. database locked) — don't cache so the next call can retry
             logging.warning("Failed to add snapshot_id column to playlists table: %s", alter_err)
-            _snapshot_id_column_cache[db_key] = False
             return False
 
     # Re-check after migration
@@ -71,8 +71,8 @@ class Playlist:
         logging.info("Initializing Playlist %s", self.id)
         self.name = None
         self.owner = None
-        self.raw_tracks = None  # [tuple(id, added_at)]
-        self.tracks = None  # [Track] after hydration from API/DB
+        self.raw_tracks = None  # [(track_id, added_at)] loaded from DB or API
+        self.tracks = None  # [Track] after hydration; None until update_from_api() is called
         self.updated = None
         self.snapshot_id = None  # Spotify snapshot ID to detect unchanged playlists
         # TODO: self._tracks_names
@@ -154,7 +154,7 @@ class Playlist:
         results = sqlite.select_db(
             sqlite.DATABASE, f"SELECT track_id, added_at FROM playlists_tracks WHERE playlist_id == '{self.id}'"
         ).fetchall()
-        self.tracks = [(col[0], col[1]) for col in results]
+        self.raw_tracks = [(col[0], col[1]) for col in results]
         logging.info("Playlist ID %s retrieved from database", self.id)
         return True
 
@@ -181,21 +181,15 @@ class Playlist:
         if self.snapshot_id and self.snapshot_id == new_snapshot:
             logging.info("Playlist %s unchanged (snapshot_id match), skipping API item fetch", self.id)
             # Ensure raw_tracks and tracks are populated for downstream operations (e.g., sync_to_db)
-            # raw_tracks and tracks are always initialized to None in __init__
-            # If update_from_db() was called first, self.tracks will be list of (track_id, added_at) tuples
-            if self.raw_tracks is None and self.tracks is not None:
-                # Convert tuples from DB to raw_tracks format
-                self.raw_tracks = list(self.tracks)
-                # Hydrate Track objects from the track IDs
-                track_ids = [track_id for track_id, _added_at in self.raw_tracks]
-                self.tracks = Track.get_tracks(track_ids, client)
-            elif self.raw_tracks is None:
-                # No data at all - fetch from DB
+            if self.raw_tracks is None:
+                # update_from_db() was not called — fetch track IDs from DB
                 results = sqlite.select_db(
                     sqlite.DATABASE,
                     f"SELECT track_id, added_at FROM playlists_tracks WHERE playlist_id == '{self.id}'",
                 ).fetchall()
                 self.raw_tracks = [(col[0], col[1]) for col in results]
+            if self.tracks is None:
+                # Hydrate Track objects from raw_tracks (set by update_from_db or just above)
                 self.tracks = self.get_tracks(client)
             # Update the last-updated marker to reflect a successful refresh
             self.updated = str(date.today())
