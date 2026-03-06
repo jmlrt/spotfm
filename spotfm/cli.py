@@ -16,6 +16,14 @@ def _positive_int(value):
     return ivalue
 
 
+def _non_negative_int(value):
+    """Validate that a value is a non-negative integer."""
+    ivalue = int(value)
+    if ivalue < 0:
+        raise argparse.ArgumentTypeError(f"{value} is not a non-negative integer")
+    return ivalue
+
+
 def recent_scrobbles(user, limit, scrobbles_minimum, period, since_last_time=False):
     current_count = user.get_playcount()
     scrobble_count_to_save = current_count  # Track what state to save (may differ from current_count if capped)
@@ -171,7 +179,7 @@ def main():
         type=_positive_int,
         help="Number of recent scrobbles to fetch (when --since-last-time is set, caps the computed diff to prevent unexpectedly large fetches)",
     )
-    lastfm_parser.add_argument("-s", "--scrobbles-minimum", default=4, type=_positive_int)
+    lastfm_parser.add_argument("-s", "--scrobbles-minimum", default=4, type=_non_negative_int)
     lastfm_parser.add_argument("-p", "--period", default=90, type=_positive_int)
     lastfm_parser.add_argument(
         "--since-last-time",

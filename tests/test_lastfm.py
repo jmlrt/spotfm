@@ -1,9 +1,10 @@
+import argparse
 from unittest.mock import MagicMock, patch
 
 import pytest
 from freezegun import freeze_time
 
-from spotfm.cli import recent_scrobbles
+from spotfm.cli import _non_negative_int, _positive_int, recent_scrobbles
 from spotfm.lastfm import (
     PREDEFINED_PERIODS,
     Track,
@@ -601,3 +602,62 @@ class TestGetRecentTracksScrobbles:
         assert parts[3] == "2"  # 2 total scrobbles
         assert "last.fm/user/testuser/library" in parts[4]
         assert "date_preset=LAST_7_DAYS" in parts[4]
+
+
+@pytest.mark.unit
+class TestPositiveIntValidator:
+    """Tests for _positive_int validator function."""
+
+    def test_positive_int_accepts_positive_integers(self):
+        """_positive_int accepts positive integers."""
+        assert _positive_int("1") == 1
+        assert _positive_int("10") == 10
+        assert _positive_int("999") == 999
+
+    def test_positive_int_rejects_zero(self):
+        """_positive_int rejects zero."""
+        with pytest.raises(argparse.ArgumentTypeError):
+            _positive_int("0")
+
+    def test_positive_int_rejects_negative(self):
+        """_positive_int rejects negative integers."""
+        with pytest.raises(argparse.ArgumentTypeError):
+            _positive_int("-1")
+        with pytest.raises(argparse.ArgumentTypeError):
+            _positive_int("-100")
+
+    def test_positive_int_rejects_non_integer(self):
+        """_positive_int rejects non-integer strings."""
+        with pytest.raises(ValueError):
+            _positive_int("abc")
+        with pytest.raises(ValueError):
+            _positive_int("1.5")
+
+
+@pytest.mark.unit
+class TestNonNegativeIntValidator:
+    """Tests for _non_negative_int validator function."""
+
+    def test_non_negative_int_accepts_zero(self):
+        """_non_negative_int accepts zero."""
+        assert _non_negative_int("0") == 0
+
+    def test_non_negative_int_accepts_positive_integers(self):
+        """_non_negative_int accepts positive integers."""
+        assert _non_negative_int("1") == 1
+        assert _non_negative_int("10") == 10
+        assert _non_negative_int("999") == 999
+
+    def test_non_negative_int_rejects_negative(self):
+        """_non_negative_int rejects negative integers."""
+        with pytest.raises(argparse.ArgumentTypeError):
+            _non_negative_int("-1")
+        with pytest.raises(argparse.ArgumentTypeError):
+            _non_negative_int("-100")
+
+    def test_non_negative_int_rejects_non_integer(self):
+        """_non_negative_int rejects non-integer strings."""
+        with pytest.raises(ValueError):
+            _non_negative_int("abc")
+        with pytest.raises(ValueError):
+            _non_negative_int("1.5")
