@@ -58,8 +58,8 @@ def recent_scrobbles(user, limit, scrobbles_minimum, period, since_last_time=Fal
                 f"Computed {computed_limit} new scrobbles but capping to --limit {limit}. "
                 "Rerun with a higher --limit if you want to fetch all new scrobbles in one go."
             )
-            # When capped, only advance state by what we actually fetched to preserve unfetched scrobbles
-            scrobble_count_to_save = last_scrobble_count + limit
+            # When capped, do not advance state so that remaining unfetched scrobbles are not skipped
+            scrobble_count_to_save = last_scrobble_count
         print(f"Fetching {limit} new scrobbles (was {last_scrobble_count}, now {current_count}).")
 
     scrobbles = user.get_recent_tracks_scrobbles(limit, scrobbles_minimum, period)
