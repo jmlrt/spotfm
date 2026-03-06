@@ -136,8 +136,8 @@ class TestRecentScrobblesCli:
             recent_scrobbles(user, limit=10, scrobbles_minimum=0, period=90, since_last_time=True)
 
         state = read_lastfm_state(state_file=state_file)
-        # When capped, state should only advance by what was fetched (135 + 10 = 145)
-        assert state["last_scrobble_count"] == 145
+        # When capped, state should not advance to avoid skipping older scrobbles
+        assert state["last_scrobble_count"] == 135
 
     def test_since_last_time_prints_diff_info(self, tmp_path, capsys):
         """Test --since-last-time prints informational message with counts."""
