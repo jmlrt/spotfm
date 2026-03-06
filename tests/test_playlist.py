@@ -434,7 +434,7 @@ class TestPlaylistUpdateFromApi:
         monkeypatch.setattr(utils, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
 
-        # Setup: Populate DB with existing playlist and tracks (without snapshot_id for schema compatibility)
+        # Setup: Populate DB with playlist, tracks, albums, artists (all needed for DB hydration)
         conn = sqlite3.connect(str(temp_database))
         cursor = conn.cursor()
         cursor.execute(
@@ -442,16 +442,25 @@ class TestPlaylistUpdateFromApi:
         )
         cursor.execute("INSERT INTO playlists_tracks VALUES ('playlist123', 'track1', '2024-01-01T00:00:00Z')")
         cursor.execute("INSERT INTO playlists_tracks VALUES ('playlist123', 'track2', '2024-01-01T00:00:00Z')")
+        # Insert full track/album/artist data so Track.get_tracks() loads from DB without API calls
+        cursor.execute("INSERT INTO artists VALUES ('artist1', 'Artist 1', '2024-01-01')")
+        cursor.execute("INSERT INTO artists_genres VALUES ('artist1', 'pop')")
+        cursor.execute("INSERT INTO albums VALUES ('album1', 'Album 1', '2024-01-01', '2024-01-01')")
+        cursor.execute("INSERT INTO tracks VALUES ('track1', 'Track 1', '2024-01-01', '2024-01-01', '2024-01-01')")
+        cursor.execute("INSERT INTO tracks VALUES ('track2', 'Track 2', '2024-01-01', '2024-01-01', '2024-01-01')")
+        cursor.execute("INSERT INTO tracks_artists VALUES ('track1', 'artist1')")
+        cursor.execute("INSERT INTO tracks_artists VALUES ('track2', 'artist1')")
+        cursor.execute("INSERT INTO albums_tracks VALUES ('album1', 'track1')")
+        cursor.execute("INSERT INTO albums_tracks VALUES ('album1', 'track2')")
         conn.commit()
         conn.close()
 
-        # Create a playlist with snapshot_id already set (from previous DB read)
+        # Create a playlist with snapshot_id already set (simulating post-update_from_db state)
         playlist = Playlist("playlist123")
         playlist.name = "Test Playlist"
         playlist.owner = "user123"
         playlist.updated = "2024-01-01"
-        playlist.snapshot_id = "snapshot_abc"  # Set from hypothetical previous DB read
-        # Simulate state after update_from_db() — raw_tracks are tuples, tracks stay None
+        playlist.snapshot_id = "snapshot_abc"
         playlist.raw_tracks = [("track1", "2024-01-01T00:00:00Z"), ("track2", "2024-01-01T00:00:00Z")]
 
         # Mock API response - returns same snapshot_id (unchanged)
@@ -461,38 +470,22 @@ class TestPlaylistUpdateFromApi:
             "snapshot_id": "snapshot_abc",  # Same snapshot (no change)
         }
 
-        # Mock track fetches for hydration when raw_tracks need to be populated
-        mock_spotify_client.track.return_value = {
-            "id": "track1",
-            "name": "Track 1",
-            "album": {"id": "album1", "artists": [{"id": "artist1"}]},
-            "artists": [{"id": "artist1", "name": "Artist 1"}],
-        }
-        mock_spotify_client.artist.return_value = {"id": "artist1", "name": "Artist 1", "genres": ["pop"]}
-        mock_spotify_client.album.return_value = {
-            "id": "album1",
-            "name": "Album 1",
-            "release_date": "2024-01-01",
-            "artists": [{"id": "artist1", "name": "Artist 1"}],
-        }
-
         # Call update_from_api with unchanged snapshot_id
         with patch("spotfm.spotify.track.sleep"):
             playlist.update_from_api(mock_spotify_client)
 
-        # Verify that playlist_items was NOT called (optimization working)
-        # Only client.playlist() should have been called
+        # Verify that neither playlist_items nor track batch API was called (optimization working)
         mock_spotify_client.playlist.assert_called_once()
         mock_spotify_client.playlist_items.assert_not_called()
+        mock_spotify_client.tracks.assert_not_called()  # Tracks loaded from DB, not API
 
         # Verify state is correct for downstream sync_to_db
         assert playlist.snapshot_id == "snapshot_abc"
         assert playlist.updated == "2024-03-15"
-        assert playlist.raw_tracks is not None  # Should be populated for sync_to_db
+        assert playlist.raw_tracks is not None
         assert len(playlist.raw_tracks) == 2
-        assert playlist.tracks is not None  # Should be Track objects for sync_to_db
-        # Tracks should be hydrated from DB
-        assert len(list(playlist.tracks)) > 0
+        assert playlist.tracks is not None  # Should be hydrated Track objects
+        assert len(playlist.tracks) == 2
 
     def test_update_from_api_with_snapshot_id_column_in_db(
         self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client
@@ -501,16 +494,22 @@ class TestPlaylistUpdateFromApi:
         monkeypatch.setattr(utils, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
 
-        # Setup: Add snapshot_id column if it doesn't exist and populate DB
+        # Setup: Add snapshot_id column and populate DB including full track/album/artist data
         conn = sqlite3.connect(str(temp_database))
         cursor = conn.cursor()
         with contextlib.suppress(sqlite3.OperationalError):
-            # Column might already exist (OperationalError expected if so)
             cursor.execute("ALTER TABLE playlists ADD COLUMN snapshot_id TEXT")
         cursor.execute(
             "INSERT INTO playlists (id, name, owner, updated_at, snapshot_id) VALUES ('playlist456', 'Old Playlist', 'user456', '2024-01-01', 'snapshot_xyz')"
         )
         cursor.execute("INSERT INTO playlists_tracks VALUES ('playlist456', 'track1', '2024-01-01T00:00:00Z')")
+        # Insert full track/album/artist data so Track.get_tracks() loads from DB without API calls
+        cursor.execute("INSERT INTO artists VALUES ('artist1', 'Artist 1', '2024-01-01')")
+        cursor.execute("INSERT INTO artists_genres VALUES ('artist1', 'pop')")
+        cursor.execute("INSERT INTO albums VALUES ('album1', 'Album 1', '2024-01-01', '2024-01-01')")
+        cursor.execute("INSERT INTO tracks VALUES ('track1', 'Track 1', '2024-01-01', '2024-01-01', '2024-01-01')")
+        cursor.execute("INSERT INTO tracks_artists VALUES ('track1', 'artist1')")
+        cursor.execute("INSERT INTO albums_tracks VALUES ('album1', 'track1')")
         conn.commit()
         conn.close()
 
@@ -524,28 +523,16 @@ class TestPlaylistUpdateFromApi:
             "snapshot_id": "snapshot_xyz",  # Same snapshot
         }
 
-        # Mock track fetches
-        mock_spotify_client.track.return_value = {
-            "id": "track1",
-            "name": "Track 1",
-            "album": {"id": "album1", "artists": [{"id": "artist1"}]},
-            "artists": [{"id": "artist1", "name": "Artist 1"}],
-        }
-        mock_spotify_client.artist.return_value = {"id": "artist1", "name": "Artist 1", "genres": ["pop"]}
-        mock_spotify_client.album.return_value = {
-            "id": "album1",
-            "name": "Album 1",
-            "release_date": "2024-01-01",
-            "artists": [{"id": "artist1", "name": "Artist 1"}],
-        }
-
         # Call update_from_api - should load snapshot_id from DB and skip playlist_items
         with patch("spotfm.spotify.track.sleep"):
             playlist.update_from_api(mock_spotify_client)
 
-        # Verify optimization worked: snapshot_id was loaded from DB and playlist_items was skipped
+        # Verify optimization worked: snapshot_id loaded from DB, no item or track API calls
         assert playlist.snapshot_id == "snapshot_xyz"
         mock_spotify_client.playlist_items.assert_not_called()
+        mock_spotify_client.tracks.assert_not_called()  # Tracks loaded from DB, not API
+        assert playlist.tracks is not None
+        assert len(playlist.tracks) == 1
 
 
 @pytest.mark.unit

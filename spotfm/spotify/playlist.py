@@ -155,6 +155,7 @@ class Playlist:
             sqlite.DATABASE, f"SELECT track_id, added_at FROM playlists_tracks WHERE playlist_id == '{self.id}'"
         ).fetchall()
         self.raw_tracks = [(col[0], col[1]) for col in results]
+        self.tracks = None  # Invalidate stale hydrated tracks to keep state consistent with raw_tracks
         logging.info("Playlist ID %s retrieved from database", self.id)
         return True
 
