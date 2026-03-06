@@ -74,6 +74,14 @@ def migrate_database_schema(database=None):
             if "duplicate column" not in str(e).lower():
                 raise
 
+        # Add snapshot_id column to playlists table
+        try:
+            cursor.execute("ALTER TABLE playlists ADD COLUMN snapshot_id TEXT")
+            logging.info("Added snapshot_id column to playlists table")
+        except sqlite3.OperationalError as e:
+            if "duplicate column" not in str(e).lower():
+                raise
+
         # Backfill data for existing tracks
         logging.info("Backfilling lifecycle data for existing tracks...")
 

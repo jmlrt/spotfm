@@ -20,52 +20,25 @@ def reset_snapshot_id_column_cache():
 def _check_snapshot_id_column():
     """Check if snapshot_id column exists in playlists table (cached per database).
 
-    If the column is missing, automatically add it via ALTER TABLE migration.
+    This is a pure existence check — schema migration is handled centrally by
+    sqlite.migrate_database_schema(), which runs automatically on first DB connection.
     """
     db_key = str(sqlite.DATABASE)
     cached = _snapshot_id_column_cache.get(db_key)
     if cached is not None:
         return cached
 
-    # Initial existence check
     try:
         sqlite.select_db(sqlite.DATABASE, "SELECT snapshot_id FROM playlists LIMIT 1")
         _snapshot_id_column_cache[db_key] = True
-        return True
-    except sqlite3.OperationalError as e:
-        msg = str(e).lower()
-        # Only attempt migration if the column is actually missing
-        if "no such column" not in msg:
-            raise
-
-    # Column is missing - attempt migration by adding it
-    logging.info("Adding snapshot_id column to playlists table")
-    try:
-        sqlite.query_db(sqlite.DATABASE, ["ALTER TABLE playlists ADD COLUMN snapshot_id TEXT"])
-    except sqlite3.OperationalError as alter_err:
-        alter_msg = str(alter_err).lower()
-        # Column might have been added concurrently or already exist
-        if "duplicate column" in alter_msg:
-            logging.debug("snapshot_id column already exists in playlists table")
-        else:
-            # Transient failure (e.g. database locked) — don't cache so the next call can retry
-            logging.warning("Failed to add snapshot_id column to playlists table: %s", alter_err)
-            return False
-
-    # Re-check after migration
-    try:
-        sqlite.select_db(sqlite.DATABASE, "SELECT snapshot_id FROM playlists LIMIT 1")
-        _snapshot_id_column_cache[db_key] = True
-        logging.debug("snapshot_id column is now available in playlists table")
     except sqlite3.OperationalError as e:
         msg = str(e).lower()
         if "no such column" in msg:
-            # Column is confirmed still missing — cache negative result
-            logging.warning("snapshot_id column still missing after migration attempt: %s", e)
+            logging.warning("snapshot_id column missing from playlists table; run database migration.")
             _snapshot_id_column_cache[db_key] = False
         else:
             # Transient error (e.g. database is locked) — don't cache so next call can retry
-            logging.warning("Transient error verifying snapshot_id column after migration: %s", e)
+            logging.warning("Transient error checking snapshot_id column: %s", e)
             return False
     return _snapshot_id_column_cache[db_key]
 
