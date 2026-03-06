@@ -106,16 +106,31 @@ class TestRecentScrobblesCli:
         assert call_args[0][0] == 38  # limit = 173 - 135
 
     def test_since_last_time_updates_state(self, tmp_path):
-        """Test --since-last-time updates the state file after fetching."""
+        """Test --since-last-time updates the state file after fetching when not capped."""
         state_file = tmp_path / "lastfm_state.json"
         utils.save_lastfm_state(135, state_file=state_file)
         user = self._make_user(playcount=173)
 
+        # limit is greater than the diff (38), so all new scrobbles are fetched
+        with patch.object(utils, "LASTFM_STATE_FILE", state_file):
+            recent_scrobbles(user, limit=100, scrobbles_minimum=0, period=90, since_last_time=True)
+
+        state = utils.read_lastfm_state(state_file=state_file)
+        assert state["last_scrobble_count"] == 173
+
+    def test_since_last_time_does_not_advance_state_when_capped(self, tmp_path):
+        """Test --since-last-time does not advance state when diff exceeds limit."""
+        state_file = tmp_path / "lastfm_state.json"
+        utils.save_lastfm_state(135, state_file=state_file)
+        user = self._make_user(playcount=173)
+
+        # limit (10) is less than the diff (38), so we are capped
         with patch.object(utils, "LASTFM_STATE_FILE", state_file):
             recent_scrobbles(user, limit=10, scrobbles_minimum=0, period=90, since_last_time=True)
 
         state = utils.read_lastfm_state(state_file=state_file)
-        assert state["last_scrobble_count"] == 173
+        # When capped, state should only advance by what was fetched (135 + 10 = 145)
+        assert state["last_scrobble_count"] == 145
 
     def test_since_last_time_prints_diff_info(self, tmp_path, capsys):
         """Test --since-last-time prints informational message with counts."""

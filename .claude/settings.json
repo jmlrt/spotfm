@@ -20,7 +20,8 @@
       "Bash(time uv run:*)",
       "Bash(tree:*)",
       "Bash(uv:*)",
-      "Skill(create-pr:*)"
+      "Skill(create-pr:*)",
+      "Skill(review-pr)"
     ]
   }
 }

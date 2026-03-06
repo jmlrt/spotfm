@@ -9,6 +9,7 @@ from spotfm.spotify import misc as spotify_misc
 
 def recent_scrobbles(user, limit, scrobbles_minimum, period, since_last_time=False):
     current_count = user.get_playcount()
+    scrobble_count_to_save = current_count  # Track what state to save (may differ from current_count if capped)
 
     if since_last_time:
         state = utils.read_lastfm_state()
@@ -40,13 +41,15 @@ def recent_scrobbles(user, limit, scrobbles_minimum, period, since_last_time=Fal
                 f"Computed {computed_limit} new scrobbles but capping to --limit {limit}. "
                 "Run again to fetch remaining scrobbles."
             )
+            # When capped, only advance state by what we actually fetched to preserve unfetched scrobbles
+            scrobble_count_to_save = last_scrobble_count + limit
         print(f"Fetching {limit} new scrobbles (was {last_scrobble_count}, now {current_count}).")
 
     scrobbles = user.get_recent_tracks_scrobbles(limit, scrobbles_minimum, period)
     for scrobble in scrobbles:
         print(scrobble)
 
-    utils.save_lastfm_state(current_count)
+    utils.save_lastfm_state(scrobble_count_to_save)
 
 
 def count_tracks(playlists_pattern=None):
@@ -157,7 +160,7 @@ def main():
         "--limit",
         default=50,
         type=int,
-        help="Number of recent scrobbles to fetch (ignored when --since-last-time is set)",
+        help="Number of recent scrobbles to fetch (when --since-last-time is set, caps the computed diff to prevent unexpectedly large fetches)",
     )
     lastfm_parser.add_argument("-s", "--scrobbles-minimum", default=4, type=int)
     lastfm_parser.add_argument("-p", "--period", default=90, type=int)
@@ -165,7 +168,7 @@ def main():
         "--since-last-time",
         action="store_true",
         default=False,
-        help="Automatically fetch scrobbles added since the last run, overriding --limit (reads/writes ~/.spotfm/lastfm_state.json)",
+        help="Automatically fetch scrobbles added since the last run (reads/writes ~/.spotfm/lastfm_state.json)",
     )
 
     spotify_parser = subparsers.add_parser("spotify")
