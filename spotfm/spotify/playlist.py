@@ -33,7 +33,8 @@ def _check_snapshot_id_column():
         _snapshot_id_column_cache[db_key] = True
     except sqlite3.OperationalError as e:
         msg = str(e).lower()
-        if "no such column" in msg:
+        if "no such column" in msg or "no such table" in msg:
+            # Column or table is definitively missing — cache negative result
             logging.warning("snapshot_id column missing from playlists table; run database migration.")
             _snapshot_id_column_cache[db_key] = False
         else:

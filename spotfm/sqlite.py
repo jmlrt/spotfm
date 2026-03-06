@@ -49,15 +49,16 @@ def migrate_database_schema(database=None):
         conn = sqlite3.connect(str(database))
         cursor = conn.cursor()
 
-        # Check if lifecycle columns exist
+        # Check if all expected columns exist; if any are missing, run migrations
         try:
             cursor.execute("SELECT created_at FROM tracks LIMIT 1")
+            cursor.execute("SELECT snapshot_id FROM playlists LIMIT 1")
             logging.info("Database schema is up-to-date")
             conn.close()
             _migrated_databases.add(database_str)
             return
         except sqlite3.OperationalError:
-            logging.info("Migrating database schema to add lifecycle tracking...")
+            logging.info("Migrating database schema...")
 
         # Add lifecycle columns
         try:
