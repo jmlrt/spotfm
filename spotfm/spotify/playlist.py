@@ -58,8 +58,15 @@ def _check_snapshot_id_column():
         _snapshot_id_column_cache[db_key] = True
         logging.debug("snapshot_id column is now available in playlists table")
     except sqlite3.OperationalError as e:
-        logging.warning("snapshot_id column still missing after migration attempt: %s", e)
-        _snapshot_id_column_cache[db_key] = False
+        msg = str(e).lower()
+        if "no such column" in msg:
+            # Column is confirmed still missing — cache negative result
+            logging.warning("snapshot_id column still missing after migration attempt: %s", e)
+            _snapshot_id_column_cache[db_key] = False
+        else:
+            # Transient error (e.g. database is locked) — don't cache so next call can retry
+            logging.warning("Transient error verifying snapshot_id column after migration: %s", e)
+            return False
     return _snapshot_id_column_cache[db_key]
 
 
