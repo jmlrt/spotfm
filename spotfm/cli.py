@@ -56,7 +56,7 @@ def recent_scrobbles(user, limit, scrobbles_minimum, period, since_last_time=Fal
         if limit < computed_limit:
             logging.warning(
                 f"Computed {computed_limit} new scrobbles but capping to --limit {limit}. "
-                "Run again to fetch remaining scrobbles."
+                "Rerun with a higher --limit if you want to fetch all new scrobbles in one go."
             )
             # When capped, only advance state by what we actually fetched to preserve unfetched scrobbles
             scrobble_count_to_save = last_scrobble_count + limit
