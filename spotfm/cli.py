@@ -8,20 +8,27 @@ from spotfm.spotify import misc as spotify_misc
 
 
 def recent_scrobbles(user, limit, scrobbles_minimum, period, since_last_time=False):
+    current_count = user.get_playcount()
+
     if since_last_time:
         state = utils.read_lastfm_state()
         if state is None:
-            print("No previous state found. Run once without --since-last-time to initialize.")
+            print("No previous state found. Initializing state with current playcount.")
+            utils.save_lastfm_state(current_count)
             return
-        current_count = user.get_playcount()
-        limit = current_count - state["last_scrobble_count"]
+        last_scrobble_count = None
+        if isinstance(state, dict):
+            last_scrobble_count = state.get("last_scrobble_count")
+        if not isinstance(last_scrobble_count, int):
+            print("No valid previous state found. Run once without --since-last-time to initialize.")
+            utils.save_lastfm_state(current_count)
+            return
+        limit = current_count - last_scrobble_count
         if limit <= 0:
             print("No new scrobbles since last run.")
             utils.save_lastfm_state(current_count)
             return
-        print(f"Fetching {limit} new scrobbles (was {state['last_scrobble_count']}, now {current_count}).")
-    else:
-        current_count = user.get_playcount()
+        print(f"Fetching {limit} new scrobbles (was {last_scrobble_count}, now {current_count}).")
 
     scrobbles = user.get_recent_tracks_scrobbles(limit, scrobbles_minimum, period)
     for scrobble in scrobbles:
