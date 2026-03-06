@@ -99,7 +99,7 @@ class TestRecentScrobblesCli:
         user = self._make_user(playcount=173)
 
         with patch.object(utils, "LASTFM_STATE_FILE", state_file):
-            recent_scrobbles(user, limit=10, scrobbles_minimum=0, period=90, since_last_time=True)
+            recent_scrobbles(user, limit=100, scrobbles_minimum=0, period=90, since_last_time=True)
 
         user.get_recent_tracks_scrobbles.assert_called_once()
         call_args = user.get_recent_tracks_scrobbles.call_args
@@ -124,7 +124,7 @@ class TestRecentScrobblesCli:
         user = self._make_user(playcount=173)
 
         with patch.object(utils, "LASTFM_STATE_FILE", state_file):
-            recent_scrobbles(user, limit=10, scrobbles_minimum=0, period=90, since_last_time=True)
+            recent_scrobbles(user, limit=100, scrobbles_minimum=0, period=90, since_last_time=True)
 
         captured = capsys.readouterr()
         assert "38" in captured.out

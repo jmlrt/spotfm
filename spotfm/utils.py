@@ -1,6 +1,7 @@
 import json
 import logging
 import pickle
+import tempfile
 import tomllib
 from datetime import datetime
 from pathlib import Path
@@ -58,28 +59,38 @@ def cache_object(object):
 
 
 def read_lastfm_state(state_file=None):
-    """Read Last.FM state from file. Returns dict with last_scrobble_count, or None if not found."""
+    """Read Last.FM state from file. Returns dict with last_scrobble_count, or None if not found/unreadable."""
     path = Path(state_file) if state_file else LASTFM_STATE_FILE
     if not path.exists():
         return None
-    with open(path) as f:
-        try:
-            return json.load(f)
-        except json.JSONDecodeError as e:
-            logging.warning(f"Corrupted Last.FM state file at {path}, ignoring: {e}")
-            return None
+    try:
+        with open(path) as f:
+            try:
+                return json.load(f)
+            except json.JSONDecodeError as e:
+                logging.warning(f"Corrupted Last.FM state file at {path}, ignoring: {e}")
+                return None
+    except OSError as e:
+        logging.warning(f"Could not read Last.FM state file at {path}, ignoring: {e}")
+        return None
 
 
 def save_lastfm_state(scrobble_count, state_file=None):
-    """Save current Last.FM scrobble count to state file."""
+    """Save current Last.FM scrobble count to state file using atomic writes."""
     path = Path(state_file) if state_file else LASTFM_STATE_FILE
     path.parent.mkdir(parents=True, exist_ok=True)
     state = {
         "last_scrobble_count": scrobble_count,
         "last_run_date": datetime.today().strftime("%Y-%m-%d"),
     }
-    with open(path, "w") as f:
-        json.dump(state, f, indent=2)
+    try:
+        # Write to temporary file in same directory, then atomically replace destination
+        with tempfile.NamedTemporaryFile(mode="w", dir=path.parent, delete=False, suffix=".tmp") as tmp_file:
+            json.dump(state, tmp_file, indent=2)
+            tmp_path = Path(tmp_file.name)
+        tmp_path.replace(path)
+    except OSError as e:
+        logging.error(f"Failed to save Last.FM state file at {path}: {e}")
 
 
 def retrieve_object_from_cache(kind, id):

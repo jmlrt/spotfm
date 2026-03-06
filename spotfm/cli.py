@@ -13,7 +13,12 @@ def recent_scrobbles(user, limit, scrobbles_minimum, period, since_last_time=Fal
     if since_last_time:
         state = utils.read_lastfm_state()
         if state is None:
-            print("No previous state found. Initializing state with current playcount.")
+            print(
+                "No previous state found. Initializing state with current playcount; "
+                "no scrobbles fetched this run. Run once without --since-last-time to "
+                "fetch existing scrobbles, then rerun with --since-last-time to get "
+                "only new ones."
+            )
             utils.save_lastfm_state(current_count)
             return
         last_scrobble_count = None
@@ -23,11 +28,18 @@ def recent_scrobbles(user, limit, scrobbles_minimum, period, since_last_time=Fal
             print("No valid previous state found. Run once without --since-last-time to initialize.")
             utils.save_lastfm_state(current_count)
             return
-        limit = current_count - last_scrobble_count
-        if limit <= 0:
+        computed_limit = current_count - last_scrobble_count
+        if computed_limit <= 0:
             print("No new scrobbles since last run.")
             utils.save_lastfm_state(current_count)
             return
+        # Cap the computed limit to the --limit parameter to prevent unexpectedly large fetches
+        limit = min(computed_limit, limit)
+        if limit < computed_limit:
+            logging.warning(
+                f"Computed {computed_limit} new scrobbles but capping to --limit {limit}. "
+                "Run again to fetch remaining scrobbles."
+            )
         print(f"Fetching {limit} new scrobbles (was {last_scrobble_count}, now {current_count}).")
 
     scrobbles = user.get_recent_tracks_scrobbles(limit, scrobbles_minimum, period)
