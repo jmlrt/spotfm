@@ -2,15 +2,71 @@ import argparse
 import logging
 
 from spotfm import lastfm, utils
+from spotfm.lastfm import read_lastfm_state, save_lastfm_state
 from spotfm.spotify import client as spotify_client
 from spotfm.spotify import dupes as spotify_dupes
 from spotfm.spotify import misc as spotify_misc
 
 
-def recent_scrobbles(user, limit, scrobbles_minimum, period):
+def _positive_int(value):
+    """Validate that a value is a positive integer."""
+    ivalue = int(value)
+    if ivalue <= 0:
+        raise argparse.ArgumentTypeError(f"{value} is not a positive integer")
+    return ivalue
+
+
+def _non_negative_int(value):
+    """Validate that a value is a non-negative integer."""
+    ivalue = int(value)
+    if ivalue < 0:
+        raise argparse.ArgumentTypeError(f"{value} is not a non-negative integer")
+    return ivalue
+
+
+def recent_scrobbles(user, limit, scrobbles_minimum, period, since_last_time=False):
+    current_count = user.get_playcount()
+    scrobble_count_to_save = current_count  # Track what state to save (may differ from current_count if capped)
+
+    if since_last_time:
+        state = read_lastfm_state()
+        if state is None:
+            print(
+                "No previous state found. Initializing state with current playcount; "
+                "no scrobbles fetched this run. Run once without --since-last-time to "
+                "fetch existing scrobbles, then rerun with --since-last-time to get "
+                "only new ones."
+            )
+            save_lastfm_state(current_count)
+            return
+        last_scrobble_count = None
+        if isinstance(state, dict):
+            last_scrobble_count = state.get("last_scrobble_count")
+        if not isinstance(last_scrobble_count, int):
+            print("No valid previous state found. Run once without --since-last-time to initialize.")
+            save_lastfm_state(current_count)
+            return
+        computed_limit = current_count - last_scrobble_count
+        if computed_limit <= 0:
+            print("No new scrobbles since last run.")
+            save_lastfm_state(current_count)
+            return
+        # Cap the computed limit to the --limit parameter to prevent unexpectedly large fetches
+        limit = min(computed_limit, limit)
+        if limit < computed_limit:
+            logging.warning(
+                f"Computed {computed_limit} new scrobbles but capping to --limit {limit}. "
+                "Rerun with a higher --limit if you want to fetch all new scrobbles in one go."
+            )
+            # When capped, do not advance state so that remaining unfetched scrobbles are not skipped
+            scrobble_count_to_save = last_scrobble_count
+        print(f"Fetching {limit} new scrobbles (was {last_scrobble_count}, now {current_count}).")
+
     scrobbles = user.get_recent_tracks_scrobbles(limit, scrobbles_minimum, period)
     for scrobble in scrobbles:
         print(scrobble)
+
+    save_lastfm_state(scrobble_count_to_save)
 
 
 def count_tracks(playlists_pattern=None):
@@ -39,7 +95,7 @@ def lastfm_cli(args, config):
 
     match args.command:
         case "recent-scrobbles":
-            recent_scrobbles(user, args.limit, args.scrobbles_minimum, args.period)
+            recent_scrobbles(user, args.limit, args.scrobbles_minimum, args.period, args.since_last_time)
 
 
 def spotify_cli(args, config):
@@ -116,9 +172,21 @@ def main():
 
     lastfm_parser = subparsers.add_parser("lastfm")
     lastfm_parser.add_argument("command", choices=["recent-scrobbles"])
-    lastfm_parser.add_argument("-l", "--limit", default=50, type=int)
-    lastfm_parser.add_argument("-s", "--scrobbles-minimum", default=4, type=int)
-    lastfm_parser.add_argument("-p", "--period", default=90, type=int)
+    lastfm_parser.add_argument(
+        "-l",
+        "--limit",
+        default=50,
+        type=_positive_int,
+        help="Number of recent scrobbles to fetch (when --since-last-time is set, caps the computed diff to prevent unexpectedly large fetches)",
+    )
+    lastfm_parser.add_argument("-s", "--scrobbles-minimum", default=4, type=_non_negative_int)
+    lastfm_parser.add_argument("-p", "--period", default=90, type=_positive_int)
+    lastfm_parser.add_argument(
+        "--since-last-time",
+        action="store_true",
+        default=False,
+        help="Automatically fetch scrobbles added since the last run (reads/writes ~/.spotfm/lastfm_state.json)",
+    )
 
     spotify_parser = subparsers.add_parser("spotify")
     spotify_parser.add_argument(

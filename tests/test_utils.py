@@ -9,6 +9,11 @@ from freezegun import freeze_time
 
 from spotfm import sqlite as db_module
 from spotfm import utils
+from spotfm.lastfm import (
+    LASTFM_STATE_FILE,
+    read_lastfm_state,
+    save_lastfm_state,
+)
 
 
 @pytest.mark.unit
@@ -480,6 +485,86 @@ class TestRetrieveObjectFromCache:
 
 
 @pytest.mark.unit
+class TestLastfmState:
+    """Tests for read_lastfm_state and save_lastfm_state functions."""
+
+    def test_read_state_missing_file(self, tmp_path, monkeypatch):
+        """Test read_lastfm_state returns None when file does not exist."""
+        monkeypatch.setattr("spotfm.lastfm.LASTFM_STATE_FILE", tmp_path / "nonexistent.json")
+        result = read_lastfm_state()
+        assert result is None
+
+    def test_read_state_from_default_path(self, tmp_path, monkeypatch):
+        """Test read_lastfm_state reads from LASTFM_STATE_FILE by default."""
+        state_file = tmp_path / "lastfm_state.json"
+        state_file.write_text('{"last_scrobble_count": 42, "last_run_date": "2026-03-06"}')
+        monkeypatch.setattr("spotfm.lastfm.LASTFM_STATE_FILE", state_file)
+        result = read_lastfm_state()
+        assert result == {"last_scrobble_count": 42, "last_run_date": "2026-03-06"}
+
+    def test_read_state_from_custom_path(self, tmp_path):
+        """Test read_lastfm_state reads from a custom path."""
+        state_file = tmp_path / "custom_state.json"
+        state_file.write_text('{"last_scrobble_count": 100, "last_run_date": "2026-01-01"}')
+        result = read_lastfm_state(state_file=state_file)
+        assert result["last_scrobble_count"] == 100
+
+    @freeze_time("2026-03-06")
+    def test_save_state_creates_file(self, tmp_path, monkeypatch):
+        """Test save_lastfm_state creates the state file with correct content."""
+        state_file = tmp_path / "lastfm_state.json"
+        monkeypatch.setattr("spotfm.lastfm.LASTFM_STATE_FILE", state_file)
+        save_lastfm_state(135)
+        assert state_file.exists()
+        result = read_lastfm_state()
+        assert result["last_scrobble_count"] == 135
+        assert result["last_run_date"] == "2026-03-06"
+
+    @freeze_time("2026-03-06")
+    def test_save_state_to_custom_path(self, tmp_path):
+        """Test save_lastfm_state writes to a custom path."""
+        state_file = tmp_path / "subdir" / "state.json"
+        save_lastfm_state(200, state_file=state_file)
+        assert state_file.exists()
+        result = read_lastfm_state(state_file=state_file)
+        assert result["last_scrobble_count"] == 200
+
+    @freeze_time("2026-03-06")
+    def test_save_state_overwrites_existing(self, tmp_path, monkeypatch):
+        """Test save_lastfm_state overwrites an existing state file."""
+        state_file = tmp_path / "lastfm_state.json"
+        monkeypatch.setattr("spotfm.lastfm.LASTFM_STATE_FILE", state_file)
+        save_lastfm_state(100)
+        save_lastfm_state(200)
+        result = read_lastfm_state()
+        assert result["last_scrobble_count"] == 200
+
+    def test_roundtrip_save_and_read(self, tmp_path):
+        """Test that saving and reading state preserves the count."""
+        state_file = tmp_path / "state.json"
+        save_lastfm_state(9999, state_file=state_file)
+        result = read_lastfm_state(state_file=state_file)
+        assert result["last_scrobble_count"] == 9999
+
+    def test_read_state_corrupted_file_returns_none(self, tmp_path):
+        """Test read_lastfm_state returns None for corrupted JSON files."""
+        state_file = tmp_path / "lastfm_state.json"
+        state_file.write_text("this is not valid json {{{")
+        result = read_lastfm_state(state_file=state_file)
+        assert result is None
+
+    def test_read_state_corrupted_file_logs_warning(self, tmp_path, caplog):
+        """Test read_lastfm_state logs a warning for corrupted JSON files."""
+        import logging
+
+        state_file = tmp_path / "lastfm_state.json"
+        state_file.write_text("{invalid}")
+        with caplog.at_level(logging.WARNING):
+            read_lastfm_state(state_file=state_file)
+        assert "Corrupted" in caplog.text
+
+
+@pytest.mark.unit
 class TestConstants:
     """Tests for module constants."""
 
@@ -507,3 +592,8 @@ class TestConstants:
         db_path = Path(utils.DATABASE)
         assert db_path.name == "spotify.db"
         assert db_path.parent == utils.WORK_DIR
+
+    def test_lastfm_state_file_path(self):
+        """Test LASTFM_STATE_FILE path."""
+        assert LASTFM_STATE_FILE.name == "lastfm_state.json"
+        assert LASTFM_STATE_FILE.parent == utils.WORK_DIR

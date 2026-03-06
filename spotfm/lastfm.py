@@ -1,9 +1,17 @@
+import contextlib
+import json
+import logging
+import tempfile
 from datetime import datetime
+from pathlib import Path
 
 import pylast
 
+from spotfm import utils
+
 LASTFM_BASE_URL = "https://www.last.fm"
 PREDEFINED_PERIODS = [7, 30, 90, 180, 365]
+LASTFM_STATE_FILE = utils.WORK_DIR / "lastfm_state.json"
 
 
 class UnknownPeriodError(Exception):
@@ -63,6 +71,10 @@ class User:
     def __init__(self, client):
         self.user = client.get_authenticated_user()
 
+    def get_playcount(self):
+        """Get total scrobble count for the authenticated user."""
+        return int(self.user.get_playcount())
+
     def get_recent_tracks_scrobbles(self, limit=10, scrobbles_minimum=0, period=90):
         """Get recent tracks with scrobble counts (optimized)."""
         if period not in PREDEFINED_PERIODS:
@@ -110,3 +122,43 @@ class User:
         # Yield results (same format as before - backward compatible)
         for track, period_scrobbles, total_scrobbles, url in tracks_data:
             yield f"{track} - {period_scrobbles} - {total_scrobbles} - {url}"
+
+
+def read_lastfm_state(state_file=None):
+    """Read Last.FM state from file. Returns dict with last_scrobble_count, or None if not found/unreadable."""
+    path = Path(state_file) if state_file else LASTFM_STATE_FILE
+    if not path.exists():
+        return None
+    try:
+        with open(path, encoding="utf-8") as f:
+            try:
+                return json.load(f)
+            except json.JSONDecodeError as e:
+                logging.warning(f"Corrupted Last.FM state file at {path}, ignoring: {e}")
+                return None
+    except (OSError, UnicodeDecodeError) as e:
+        logging.warning(f"Could not read Last.FM state file at {path}, ignoring: {e}")
+        return None
+
+
+def save_lastfm_state(scrobble_count, state_file=None):
+    """Save current Last.FM scrobble count to state file using atomic writes."""
+    path = Path(state_file) if state_file else LASTFM_STATE_FILE
+    path.parent.mkdir(parents=True, exist_ok=True)
+    state = {
+        "last_scrobble_count": scrobble_count,
+        "last_run_date": datetime.today().strftime("%Y-%m-%d"),
+    }
+    tmp_path = None
+    try:
+        # Write to temporary file in same directory, then atomically replace destination
+        with tempfile.NamedTemporaryFile(mode="w", dir=path.parent, delete=False, suffix=".tmp") as tmp_file:
+            json.dump(state, tmp_file, indent=2)
+            tmp_path = Path(tmp_file.name)
+        tmp_path.replace(path)
+    except OSError as e:
+        # Clean up orphaned temp file if replace failed
+        if tmp_path and tmp_path.exists():
+            with contextlib.suppress(OSError):
+                tmp_path.unlink()
+        logging.error(f"Failed to save Last.FM state file at {path}: {e}")
