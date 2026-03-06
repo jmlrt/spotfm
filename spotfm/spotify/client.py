@@ -68,29 +68,31 @@ class Client:
         if playlists_patterns:
             # Resolve patterns to playlist IDs (supports both exact IDs and LIKE patterns)
             playlist_ids = resolve_playlist_patterns_to_ids(playlists_patterns)
-
-            # Only delete data for matching playlists (if they exist in DB)
-            if playlist_ids:
-                placeholders = ",".join(["?"] * len(playlist_ids))
-                con = sqlite.get_db_connection(sqlite.DATABASE)
-                cur = con.cursor()
-                cur.execute(f"DELETE FROM playlists WHERE id IN ({placeholders})", playlist_ids)
-                cur.execute(f"DELETE FROM playlists_tracks WHERE playlist_id IN ({placeholders})", playlist_ids)
-                con.commit()
         else:
             # Update all playlists
             playlist_ids = self.get_playlists_id(excluded_playlists)
 
-            # Delete playlist metadata and playlist-track relationships
-            # Keeps tracks/albums/artists tables intact (metadata rarely changes)
-            sqlite.query_db(sqlite.DATABASE, ["DELETE FROM playlists", "DELETE FROM playlists_tracks"])
-
         for playlist_id in playlist_ids:
-            # refresh=True fetches latest playlist metadata and track IDs
-            # Track.get_tracks() is called with refresh=False (default) to respect cache
-            playlist = Playlist.get_playlist(playlist_id, self.client, refresh=True)
-
-            # Remove redundant call - already done by get_playlist(refresh=True)
-            # playlist.update_from_api(self.client)
-
+            # sync_to_db=False avoids a redundant sync inside get_playlist; we sync explicitly below.
+            # refresh=True fetches latest playlist metadata and track IDs.
+            # update_from_db() loads the existing snapshot_id so update_from_api() can skip
+            # re-fetching playlist items when the playlist hasn't changed.
+            # Track.get_tracks() is called with refresh=False (default) to respect cache.
+            playlist = Playlist.get_playlist(playlist_id, self.client, refresh=True, sync_to_db=False)
             playlist.sync_to_db(self.client)
+
+        # For full updates, remove playlists that are no longer in the user's Spotify library
+        # (e.g. playlists deleted since the last sync). Targeted pattern updates leave other
+        # playlists intact intentionally, so cleanup is skipped in that case.
+        if not playlists_patterns:
+            con = sqlite.get_db_connection(sqlite.DATABASE)
+            cur = con.cursor()
+            if playlist_ids:
+                placeholders = ",".join(["?"] * len(playlist_ids))
+                cur.execute(f"DELETE FROM playlists_tracks WHERE playlist_id NOT IN ({placeholders})", playlist_ids)
+                cur.execute(f"DELETE FROM playlists WHERE id NOT IN ({placeholders})", playlist_ids)
+            else:
+                # Full update with zero playlists: remove all previously stored playlists
+                cur.execute("DELETE FROM playlists_tracks")
+                cur.execute("DELETE FROM playlists")
+            con.commit()

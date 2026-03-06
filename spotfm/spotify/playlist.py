@@ -1,4 +1,5 @@
 import logging
+import sqlite3
 from collections import Counter
 from datetime import date
 
@@ -6,6 +7,41 @@ from spotfm import sqlite, utils
 from spotfm.spotify.constants import BATCH_SIZE, MARKET
 from spotfm.spotify.track import Track
 from spotfm.utils import cache_object, retrieve_object_from_cache
+
+# Cache for snapshot_id column existence check, keyed by database path (as string for consistency)
+_snapshot_id_column_cache = {}
+
+
+def reset_snapshot_id_column_cache():
+    """Clear the snapshot_id column existence cache for all databases."""
+    _snapshot_id_column_cache.clear()
+
+
+def _check_snapshot_id_column():
+    """Check if snapshot_id column exists in playlists table (cached per database).
+
+    This is a pure existence check — schema migration is handled centrally by
+    sqlite.migrate_database_schema(), which runs automatically on first DB connection.
+    """
+    db_key = str(sqlite.DATABASE)
+    cached = _snapshot_id_column_cache.get(db_key)
+    if cached is not None:
+        return cached
+
+    try:
+        sqlite.select_db(sqlite.DATABASE, "SELECT snapshot_id FROM playlists LIMIT 1")
+        _snapshot_id_column_cache[db_key] = True
+    except sqlite3.OperationalError as e:
+        msg = str(e).lower()
+        if "no such column" in msg or "no such table" in msg:
+            # Column or table is definitively missing — cache negative result
+            logging.warning("snapshot_id column missing from playlists table; run database migration.")
+            _snapshot_id_column_cache[db_key] = False
+        else:
+            # Transient error (e.g. database is locked) — don't cache so next call can retry
+            logging.warning("Transient error checking snapshot_id column: %s", e)
+            return False
+    return _snapshot_id_column_cache[db_key]
 
 
 class Playlist:
@@ -16,8 +52,10 @@ class Playlist:
         logging.info("Initializing Playlist %s", self.id)
         self.name = None
         self.owner = None
-        self.raw_tracks = None  # [tuple(id, added_at)]
+        self.raw_tracks = None  # [(track_id, added_at)] loaded from DB or API
+        self.tracks = None  # [Track] after hydration; None until update_from_api() is called
         self.updated = None
+        self.snapshot_id = None  # Spotify snapshot ID to detect unchanged playlists
         # TODO: self._tracks_names
         # TODO: self._sorted_tracks
 
@@ -74,25 +112,72 @@ class Playlist:
         return Track.get_tracks(raw_tracks_id, client)
 
     def update_from_db(self):
+        has_snapshot_id = _check_snapshot_id_column()
+
         try:
-            self.name, self.owner, self.updated = sqlite.select_db(
-                sqlite.DATABASE, f"SELECT name, owner, updated_at FROM playlists WHERE id == '{self.id}'"
-            ).fetchone()
+            if has_snapshot_id:
+                # New schema with snapshot_id
+                result = sqlite.select_db(
+                    sqlite.DATABASE,
+                    f"SELECT name, owner, updated_at, snapshot_id FROM playlists WHERE id == '{self.id}'",
+                ).fetchone()
+                self.name, self.owner, self.updated, self.snapshot_id = result
+            else:
+                # Old schema without snapshot_id
+                result = sqlite.select_db(
+                    sqlite.DATABASE, f"SELECT name, owner, updated_at FROM playlists WHERE id == '{self.id}'"
+                ).fetchone()
+                self.name, self.owner, self.updated = result
+                self.snapshot_id = None
         except TypeError:
             logging.info("Playlist ID %s not found in database", self.id)
             return False
         results = sqlite.select_db(
             sqlite.DATABASE, f"SELECT track_id, added_at FROM playlists_tracks WHERE playlist_id == '{self.id}'"
         ).fetchall()
-        self.tracks = [(col[0], col[1]) for col in results]
+        self.raw_tracks = [(col[0], col[1]) for col in results]
+        self.tracks = None  # Invalidate stale hydrated tracks to keep state consistent with raw_tracks
         logging.info("Playlist ID %s retrieved from database", self.id)
         return True
 
     def update_from_api(self, client):
-        playlist = client.playlist(self.id, fields="name,owner.id", market=MARKET)
+        playlist = client.playlist(self.id, fields="name,owner.id,snapshot_id", market=MARKET)
         self.name = utils.sanitize_string(playlist["name"])
         logging.info("Fetching playlist %s - %s from api", self.id, self.name)
         self.owner = utils.sanitize_string(playlist["owner"]["id"])
+        new_snapshot = playlist.get("snapshot_id")
+
+        # If snapshot_id is not set but DB has it, load it for comparison
+        if not self.snapshot_id and _check_snapshot_id_column():
+            try:
+                result = sqlite.select_db(
+                    sqlite.DATABASE, f"SELECT snapshot_id FROM playlists WHERE id == '{self.id}'"
+                ).fetchone()
+                if result:
+                    self.snapshot_id = result[0]
+            except (sqlite3.OperationalError, TypeError):
+                # Column might not exist yet or playlist not in DB
+                pass
+
+        # Skip re-fetching playlist items if snapshot hasn't changed
+        if self.snapshot_id and self.snapshot_id == new_snapshot:
+            logging.info("Playlist %s unchanged (snapshot_id match), skipping API item fetch", self.id)
+            # Ensure raw_tracks and tracks are populated for downstream operations (e.g., sync_to_db)
+            if self.raw_tracks is None:
+                # update_from_db() was not called — fetch track IDs from DB
+                results = sqlite.select_db(
+                    sqlite.DATABASE,
+                    f"SELECT track_id, added_at FROM playlists_tracks WHERE playlist_id == '{self.id}'",
+                ).fetchall()
+                self.raw_tracks = [(col[0], col[1]) for col in results]
+            if self.tracks is None:
+                # Hydrate Track objects from raw_tracks (set by update_from_db or just above)
+                self.tracks = self.get_tracks(client)
+            # Update the last-updated marker to reflect a successful refresh
+            self.updated = str(date.today())
+            return
+
+        self.snapshot_id = new_snapshot
         results = client.playlist_items(
             self.id, fields="items(added_at,track(id,linked_from)),next", market=MARKET, additional_types=["track"]
         )
@@ -115,10 +200,26 @@ class Playlist:
     def sync_to_db(self, client):
         logging.info("Syncing playlist %s - %s to database", self.id, self.name)
         queries = []
-        # Update or insert playlist metadata
-        queries.append(
-            f"INSERT OR REPLACE INTO playlists VALUES ('{self.id}', '{self.name}', '{self.owner}', '{self.updated}')"
-        )
+
+        has_snapshot_id = _check_snapshot_id_column()
+
+        # Update or insert playlist metadata with explicit column names for schema stability
+        if has_snapshot_id:
+            # New schema with snapshot_id - escape single quotes for SQL safety
+            if self.snapshot_id:
+                escaped = self.snapshot_id.replace("'", "''")
+                snapshot_id_val = f"'{escaped}'"
+            else:
+                snapshot_id_val = "NULL"
+            queries.append(
+                f"INSERT OR REPLACE INTO playlists (id, name, owner, updated_at, snapshot_id) VALUES ('{self.id}', '{self.name}', '{self.owner}', '{self.updated}', {snapshot_id_val})"
+            )
+        else:
+            # Old schema without snapshot_id
+            queries.append(
+                f"INSERT OR REPLACE INTO playlists (id, name, owner, updated_at) VALUES ('{self.id}', '{self.name}', '{self.owner}', '{self.updated}')"
+            )
+
         # Delete all existing tracks for this playlist to handle removed tracks
         queries.append(f"DELETE FROM playlists_tracks WHERE playlist_id = '{self.id}'")
         # Sync all unique tracks first

@@ -253,6 +253,7 @@ def reset_module_state():
     # This fixture runs automatically before each test
     # Clean up any module-level caches or connections
     from spotfm import sqlite as db_module
+    from spotfm.spotify.playlist import reset_snapshot_id_column_cache
     from spotfm.spotify.track import reset_lifecycle_columns_cache
 
     # Close connection before and after each test to ensure clean state
@@ -261,6 +262,8 @@ def reset_module_state():
     db_module._reset_migration_state_for_tests()
     # Reset lifecycle columns cache to avoid stale values when DATABASE is monkeypatched
     reset_lifecycle_columns_cache()
+    # Reset snapshot_id column cache to avoid stale values when DATABASE is monkeypatched
+    reset_snapshot_id_column_cache()
     yield
     # Cleanup after test runs - close the global database connection
     db_module.close_db_connection()
@@ -268,6 +271,8 @@ def reset_module_state():
     db_module._reset_migration_state_for_tests()
     # Reset lifecycle columns cache after test
     reset_lifecycle_columns_cache()
+    # Reset snapshot_id column cache after test
+    reset_snapshot_id_column_cache()
 
 
 @pytest.fixture
