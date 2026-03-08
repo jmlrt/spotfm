@@ -64,7 +64,7 @@ def recent_scrobbles(user, limit, scrobbles_minimum, period, period_minimum, int
             save_lastfm_state(scrobble_count_to_save)
             return
 
-        editor = os.environ.get("EDITOR", "vim")
+        editor = os.environ.get("VISUAL") or os.environ.get("EDITOR", "vim")
         with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
             f.write("\n".join(lines))
             tmp = f.name
@@ -197,7 +197,7 @@ def main():
         "--limit",
         default=50,
         type=_positive_int,
-        help="Number of recent scrobbles to fetch (default: 50 on first run; on subsequent runs, fetches all new scrobbles unless capped with --limit)",
+        help="First run: fetch up to this many recent scrobbles (default: 50). Subsequent runs: fetch all new scrobbles since last run",
     )
     lastfm_parser.add_argument(
         "-s",

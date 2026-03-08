@@ -4,6 +4,7 @@ import logging
 import tempfile
 from datetime import datetime
 from pathlib import Path
+from time import sleep
 
 import pylast
 
@@ -122,8 +123,6 @@ class User:
                 tracks_data.append((track, period_count, total_count, url))
 
             # Rate limiting: 0.2s between API calls (5 req/sec = Last.FM limit)
-            from time import sleep
-
             sleep(0.2)
 
         # Yield results (same format as before - backward compatible)

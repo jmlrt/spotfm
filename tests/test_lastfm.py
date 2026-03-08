@@ -401,7 +401,7 @@ class TestGetRecentTracksScrobbles:
     """Test User.get_recent_tracks_scrobbles method."""
 
     @freeze_time("2024-01-15 12:00:00")
-    @patch("time.sleep")  # Mock sleep to speed up tests
+    @patch("spotfm.lastfm.sleep")  # Mock sleep to speed up tests
     def test_get_recent_tracks_scrobbles_basic(self, mock_sleep):
         """Test basic functionality of get_recent_tracks_scrobbles."""
         # Setup mock user
@@ -451,7 +451,7 @@ class TestGetRecentTracksScrobbles:
         assert mock_pylast_user.get_track_scrobbles.call_count == 2
 
     @freeze_time("2024-01-15 12:00:00")
-    @patch("time.sleep")
+    @patch("spotfm.lastfm.sleep")
     def test_get_recent_tracks_scrobbles_no_now_playing_check(self, mock_sleep):
         """Verify get_recent_tracks_scrobbles does not check now playing."""
         mock_client = MagicMock()
@@ -467,7 +467,7 @@ class TestGetRecentTracksScrobbles:
         assert not mock_pylast_user.get_now_playing.called
 
     @freeze_time("2024-01-15 12:00:00")
-    @patch("time.sleep")
+    @patch("spotfm.lastfm.sleep")
     def test_get_recent_tracks_scrobbles_deduplicates_tracks(self, mock_sleep):
         """get_recent_tracks_scrobbles deduplicates duplicate tracks."""
         mock_client = MagicMock()
@@ -499,7 +499,7 @@ class TestGetRecentTracksScrobbles:
         assert mock_pylast_user.get_track_scrobbles.call_count == 1
 
     @freeze_time("2024-01-15 12:00:00")
-    @patch("time.sleep")
+    @patch("spotfm.lastfm.sleep")
     def test_get_recent_tracks_scrobbles_filters_by_minimum(self, mock_sleep):
         """get_recent_tracks_scrobbles filters tracks by minimum scrobble count."""
         mock_client = MagicMock()
@@ -537,7 +537,7 @@ class TestGetRecentTracksScrobbles:
         assert "Artist 1 - Track 1" in results[0]
 
     @freeze_time("2024-01-15 12:00:00")
-    @patch("time.sleep")
+    @patch("spotfm.lastfm.sleep")
     def test_get_recent_tracks_scrobbles_calculates_period_counts_correctly(self, mock_sleep):
         """get_recent_tracks_scrobbles calculates period scrobble counts correctly."""
         mock_client = MagicMock()
@@ -567,7 +567,7 @@ class TestGetRecentTracksScrobbles:
         assert len(results) == 1
         assert "2 - 3" in results[0]  # period_count=2, total_count=3
 
-    @patch("time.sleep")
+    @patch("spotfm.lastfm.sleep")
     def test_get_recent_tracks_scrobbles_invalid_period_raises_error(self, mock_sleep):
         """get_recent_tracks_scrobbles raises error for invalid period."""
         mock_client = MagicMock()
@@ -583,7 +583,7 @@ class TestGetRecentTracksScrobbles:
         assert str(PREDEFINED_PERIODS) in str(exc_info.value)
 
     @freeze_time("2024-01-15 12:00:00")
-    @patch("time.sleep")
+    @patch("spotfm.lastfm.sleep")
     def test_get_recent_tracks_scrobbles_rate_limiting(self, mock_sleep):
         """get_recent_tracks_scrobbles calls sleep for rate limiting."""
         mock_client = MagicMock()
@@ -611,7 +611,7 @@ class TestGetRecentTracksScrobbles:
             assert call[0][0] == 0.2  # First positional argument should be 0.2
 
     @freeze_time("2024-01-15 12:00:00")
-    @patch("time.sleep")
+    @patch("spotfm.lastfm.sleep")
     def test_get_recent_tracks_scrobbles_filters_by_period_minimum(self, mock_sleep):
         """get_recent_tracks_scrobbles filters tracks by period_minimum."""
         mock_client = MagicMock()
@@ -654,7 +654,7 @@ class TestGetRecentTracksScrobbles:
         assert "Artist 1 - Track 1" in results[0]
 
     @freeze_time("2024-01-15 12:00:00")
-    @patch("time.sleep")
+    @patch("spotfm.lastfm.sleep")
     def test_get_recent_tracks_scrobbles_period_minimum_with_scrobbles_minimum(self, mock_sleep):
         """get_recent_tracks_scrobbles applies both scrobbles_minimum and period_minimum."""
         mock_client = MagicMock()
@@ -703,7 +703,7 @@ class TestGetRecentTracksScrobbles:
         assert "Artist 1 - Track 1" in results[0]
 
     @freeze_time("2024-01-15 12:00:00")
-    @patch("time.sleep")
+    @patch("spotfm.lastfm.sleep")
     def test_get_recent_tracks_scrobbles_output_format(self, mock_sleep):
         """get_recent_tracks_scrobbles maintains backward-compatible output format."""
         mock_client = MagicMock()
