@@ -197,6 +197,7 @@ class Track:
         # Results are collected via as_completed() to avoid head-of-line blocking,
         # then written back into a pre-allocated list by index to preserve input order.
         future_map = {}  # future → (i, normalized_id)
+        results = [None] * len(normalized_to_fetch)
         with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
             for i, normalized_id in enumerate(normalized_to_fetch):
                 future = executor.submit(fetch_track, normalized_id)
@@ -205,17 +206,17 @@ class Track:
                 if i < len(normalized_to_fetch) - 1:
                     sleep(SUBMIT_DELAY)
 
-        # Collect results as futures complete (avoids blocking on slow early requests)
-        results = [None] * len(normalized_to_fetch)
-        for future in as_completed(future_map):
-            i, track_id = future_map[future]
-            try:
-                raw_track = future.result()
-                if raw_track is not None:
-                    results[i] = raw_track
-            except Exception as e:
-                # Thread raised an exception - log and skip this track
-                logging.warning(f"Thread failed fetching track {track_id} at index {i}: {e}")
+            # Collect results as futures complete (avoids blocking on slow early requests)
+            # as_completed() must be called inside the executor context for incremental processing
+            for future in as_completed(future_map):
+                i, track_id = future_map[future]
+                try:
+                    raw_track = future.result()
+                    if raw_track is not None:
+                        results[i] = raw_track
+                except Exception as e:
+                    # Thread raised an exception - log and skip this track
+                    logging.warning(f"Thread failed fetching track {track_id} at index {i}: {e}")
 
         # Filter out None results while maintaining order
         raw_tracks = [track for track in results if track is not None]
@@ -292,7 +293,8 @@ class Track:
                 fetched_tracks[track.id] = track
 
             except (TypeError, KeyError) as e:
-                logging.info(f"Error processing track: {e}")
+                track_id = raw_track.get("id", "unknown") if raw_track else "unknown"
+                logging.warning(f"Error processing track {track_id}: {e}", exc_info=True)
 
         # Rebuild tracks list in original input order (combining cached + fetched)
         # Use normalized IDs for lookups, iterate in normalized_ids order to preserve input order
