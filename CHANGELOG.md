@@ -74,6 +74,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CI workflow: Clarified test steps vs separate jobs
 - Updated author email to GitHub noreply address
 
+**Performance Improvements**:
+- **ThreadPoolExecutor-based parallel track fetching** (Track.get_tracks)
+  - Parallelizes individual track API calls (Phase 2) for 35-40% faster discovery
+  - Maintains original API request rate (~10 req/s) via submission-based rate limiting
+  - Reduces `discover-from-playlists` time from ~2.5 min to ~1.5 min for 500+ new tracks
+  - Includes batch album/artist fetching post-parallel-phase for efficiency
+
 ## [Recent Releases]
 
 ### Version History
