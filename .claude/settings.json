@@ -6,6 +6,7 @@
       "Bash(make:*)",
       "Bash(pre-commit:*)",
       "Bash(ruff:*)",
+      "Bash(python3 -m py_compile:*)",
       "Bash(spfm:*)",
       "Bash(time uv run:*)",
       "Bash(uv:*)",
