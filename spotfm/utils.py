@@ -22,6 +22,19 @@ def sanitize_string(string):
 
 
 def parse_url(url):
+    """Extract track/album/artist ID from Spotify URL or URI.
+
+    Handles both formats:
+    - URL: https://open.spotify.com/track/123abc → 123abc
+    - URI: spotify:track:123abc → 123abc
+    """
+    # Check if it's a Spotify URI (spotify:entity_type:id)
+    if url.startswith("spotify:"):
+        # Extract the ID (last component after splitting by ':')
+        parts = url.split(":")
+        return parts[-1] if len(parts) >= 3 else url
+
+    # Otherwise treat it as a URL and extract the last path component
     return urlparse(url).path.split("/")[-1]
 
 
