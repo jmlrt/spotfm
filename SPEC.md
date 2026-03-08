@@ -333,7 +333,6 @@ spfm spotify find-duplicate-names -o similar.csv
 ```toml
 [lastfm]
 scrobbles_minimum = 2   # Minimum total scrobbles (default: 4)
-period_minimum = 1      # Minimum in period window (default: unset/no filter)
 ```
 
 **Output**: Deduplicated list of tracks with format: `Artist - Title - period_scrobbles - total_scrobbles - url`
