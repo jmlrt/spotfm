@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `SPEC.md` (8K) - Architecture, design decisions, features, data model
 - `CONTRIBUTING.md` (5.5K) - Development workflow, testing, code style
 - `CHANGELOG.md` - Version history and release notes (this file)
+- `TODO.md` - Feature roadmap prioritized by effort (HIGH/MEDIUM/LOW)
 - Module-level docstrings explaining architecture (track.py, sqlite.py, misc.py)
 - Enhanced conftest.py with testing patterns documentation
 - Tool priority strategy to CLAUDE.md (Read/Grep/Glob/Edit/Write before bash)
@@ -28,7 +29,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 **Configuration & Tooling**:
 - Deny list in .claude/settings.json to prevent dangerous operations
 - Consolidated git/gh subcommands into Bash(git:*) and Bash(gh:*)
-- Reorganized TODO.md by priority (HIGH/MEDIUM/LOW) with effort estimates
 
 ### Changed
 
