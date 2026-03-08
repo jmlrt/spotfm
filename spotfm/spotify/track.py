@@ -126,41 +126,46 @@ class Track:
         if not tracks_id:
             return []
 
-        cached_tracks = {}  # Map of track_id → Track for maintaining order
-        tracks_to_fetch = []
+        # Normalize all track IDs upfront (handles URLs/URIs)
+        normalized_ids = [utils.parse_url(tid) for tid in tracks_id]
+
+        cached_tracks = {}  # Map of normalized_track_id → Track
+        normalized_to_fetch = []  # Normalized IDs that need API fetch
 
         # Phase 1: Check cache/DB for all tracks (CRITICAL for performance)
-        for track_id in tracks_id:
+        for normalized_id in normalized_ids:
             # Try pickle cache first
-            track = retrieve_object_from_cache(cls.kind, track_id)
+            track = retrieve_object_from_cache(cls.kind, normalized_id)
             if track is not None and not refresh:
-                cached_tracks[track_id] = track
+                cached_tracks[normalized_id] = track
                 continue
 
             # Try DB
-            track = Track(track_id, client)
+            track = Track(normalized_id, client)
             if not refresh and track.update_from_db(client):
                 cache_object(track)
-                cached_tracks[track_id] = track
+                cached_tracks[normalized_id] = track
                 continue
 
             # Track not in cache/DB, need to fetch from API
-            tracks_to_fetch.append(track_id)
+            normalized_to_fetch.append(normalized_id)
 
         # If all tracks cached, return early (typical case for update_playlists)
-        if not tracks_to_fetch:
+        if not normalized_to_fetch:
             logging.info(f"All {len(cached_tracks)} tracks retrieved from cache/DB")
-            return [cached_tracks[tid] for tid in tracks_id]
+            return [cached_tracks[nid] for nid in normalized_ids]
 
         # If client is missing and we have unfetched tracks, we can't proceed
         if client is None:
             logging.warning(
-                f"Retrieved {len(cached_tracks)} tracks from cache/DB but {len(tracks_to_fetch)} "
+                f"Retrieved {len(cached_tracks)} tracks from cache/DB but {len(normalized_to_fetch)} "
                 f"are missing and no client was provided. Returning partial results."
             )
-            return [cached_tracks[tid] for tid in tracks_id if tid in cached_tracks]
+            return [cached_tracks[nid] for nid in normalized_ids if nid in cached_tracks]
 
-        logging.info(f"Retrieved {len(cached_tracks)} tracks from cache/DB, fetching {len(tracks_to_fetch)} from API")
+        logging.info(
+            f"Retrieved {len(cached_tracks)} tracks from cache/DB, fetching {len(normalized_to_fetch)} from API"
+        )
 
         # Phase 2: Fetch missing tracks in parallel with rate limiting
         # Uses ThreadPoolExecutor to parallelize individual API calls while enforcing rate limits.
@@ -170,34 +175,32 @@ class Track:
         # NOTE: Thread safety - spotipy's requests.Session is assumed thread-safe for concurrent
         # read-only operations. If threading issues occur, fall back to sequential fetch by setting
         # MAX_WORKERS = 1 below.
-        MAX_WORKERS = 5  # Conservative: 5 parallel workers allow ~5 req/s burst
-        SUBMIT_DELAY = 0.1  # 0.1s between submissions → ~10 req/s max rate (same as sequential baseline)
+        MAX_WORKERS = 5  # Up to 5 concurrent in-flight requests (parallelism degree)
+        SUBMIT_DELAY = 0.1  # 0.1s between submissions → ~10 req/s max request-start rate (same as sequential baseline)
 
-        def fetch_track(track_id):
-            """Fetch single track's raw data from API."""
-            # Normalize track_id (handle URLs/URIs like other entry points)
-            normalized_id = utils.parse_url(track_id)
+        def fetch_track(normalized_id):
+            """Fetch single track's raw data from API (normalized_id already parsed)."""
             try:
                 return client.track(normalized_id, market=MARKET)
             except (KeyError, ValueError) as e:
                 # Track not found, deleted, or unavailable on Spotify
-                logging.debug(f"Track {track_id} not found or unavailable: {e}")
+                logging.debug(f"Track {normalized_id} not found or unavailable: {e}")
                 return None
             except Exception as e:
                 # Unexpected API/HTTP errors (429, 5xx, timeouts, etc.)
                 # Log at WARNING to surface transient failures that reduce result set
-                logging.warning(f"Unexpected error fetching track {track_id}: {e}")
+                logging.warning(f"Unexpected error fetching track {normalized_id}: {e}")
                 return None
 
         # Parallel fetch phase: submit tasks with rate limiting
         # Maintain order using indexed futures
         futures_with_index = []
         with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-            for i, track_id in enumerate(tracks_to_fetch):
-                future = executor.submit(fetch_track, track_id)
-                futures_with_index.append((i, track_id, future))
+            for i, normalized_id in enumerate(normalized_to_fetch):
+                future = executor.submit(fetch_track, normalized_id)
+                futures_with_index.append((i, normalized_id, future))
                 # Rate limiting: sleep between submissions (same as sequential baseline)
-                if i < len(tracks_to_fetch) - 1:
+                if i < len(normalized_to_fetch) - 1:
                     sleep(SUBMIT_DELAY)
 
             # Collect results in original order
@@ -271,12 +274,13 @@ class Track:
                 logging.info(f"Error processing track: {e}")
 
         # Rebuild tracks list in original input order (combining cached + fetched)
+        # Use normalized IDs for lookups, iterate in normalized_ids order to preserve input order
         tracks = []
-        for track_id in tracks_id:
-            if track_id in cached_tracks:
-                tracks.append(cached_tracks[track_id])
-            elif track_id in fetched_tracks:
-                tracks.append(fetched_tracks[track_id])
+        for normalized_id in normalized_ids:
+            if normalized_id in cached_tracks:
+                tracks.append(cached_tracks[normalized_id])
+            elif normalized_id in fetched_tracks:
+                tracks.append(fetched_tracks[normalized_id])
             # Skip if track not found (deleted/unavailable)
 
         return tracks

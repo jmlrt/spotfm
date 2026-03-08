@@ -442,19 +442,19 @@ playlist_name = sanitize_string(user_input)  # Removes single quotes
 **Locations & Implementation**:
 
 **Track Fetching (Phase 2) - Parallelized**:
-- ThreadPoolExecutor with 5 workers, 0.1s submission delay (track.py lines 185-204)
+- ThreadPoolExecutor with 5 workers, 0.1s submission delay (implemented in Track.get_tracks parallel fetch phase)
 - Parallelizes individual `client.track()` API calls while maintaining ~10 Spotify req/s effective rate
 - 35-40% performance improvement (2.5 min → 1.5 min for 500+ new tracks)
 - Rate limiting via submission delay (0.1s between task submissions) maintains same total API load as sequential
 
 **Album/Artist Batch Fetches**:
-- Individual API calls: 0.05s sleep between album/artist API calls (~20 req/s) (album.py:85, artist.py:80)
-- Sequential after parallel track phase (track.py lines 220-234)
+- Individual API calls: 0.05s sleep between album/artist API calls (~20 req/s) (Album.get_albums and Artist.get_artists methods)
+- Sequential after parallel track phase (sequential post-processing step in Track.get_tracks)
 - Faster rate acceptable since these are already-discovered metadata (lower priority than new tracks)
 
 **Other Operations**:
-- Playlist track additions: 0.1s between each track addition (misc.py:138, 314)
-- Last.FM API calls: 0.2s between requests (~5 req/s) (lastfm.py:126)
+- Playlist track additions: 0.1s between each track addition (playlist modification helpers in misc.py)
+- Last.FM API calls: 0.2s between requests (~5 req/s) (Last.FM client methods in lastfm.py)
 
 **Implementation Details**:
 - ThreadPoolExecutor hides 200ms network latency across 5 concurrent workers
