@@ -48,12 +48,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CI workflow: Clarified test steps vs separate jobs
 - Updated author email to GitHub noreply address
 
-### Removed
-
-- SPOTIPY_2.26.0_ANALYSIS.md (temporary analysis artifact)
-- SPOTIPY_2.26.0_PR25_IMPROVEMENTS.md (temporary analysis artifact)
-- Unnecessary Bash permissions (cat:*, grep:*, jq:*, chmod:*, etc.)
-
 ## [Recent Releases]
 
 ### Version History
