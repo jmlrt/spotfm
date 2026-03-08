@@ -7,10 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-(No unreleased changes)
-
-## [0.1.0] - 2026-03-08
-
 ### ⚠️ BREAKING CHANGES
 
 - **Minimum Python version upgraded from 3.11 to 3.14**
