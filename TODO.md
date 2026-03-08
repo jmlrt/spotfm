@@ -1,8 +1,10 @@
 # TODO
 
-## Enhancements
+## Enhancements (Ordered by Priority)
 
-### Logging Improvements (High Priority)
+### 🔴 HIGH PRIORITY
+
+#### Logging Improvements
 - Add progress & summary logging to spotify commands by default
   - Desired output examples:
     - `fetching playlist <name> 12/122` (progress during fetch)
@@ -12,11 +14,24 @@
   - Goal: High-level progress & results without debug details
   - Files: `spotfm/cli.py`, `spotfm/spotify/client.py`, `spotfm/spotify/misc.py`
   - Note: Some logging already exists but buried in debug/verbose output
+  - **Effort**: Medium (~4-6 hours)
 
-### Random Playlist Generator (Low Priority)
+### 🟡 MEDIUM PRIORITY
+
+#### Improve Duplicate Detection
+- Enhance `dupes-names` to ignore suffix-only matches
+  - Current: matches tracks where only part after "-" is similar
+  - Example issue: Groups "- Nouvelle Ecole" or "- 2011 remastered" as duplicates
+  - Target: Smart parsing to compare only title core, ignore common suffixes
+  - Files: `spotfm/spotify/dupes.py`, `tests/test_dupes.py`
+  - **Effort**: Medium (~3-4 hours)
+
+### 🟢 LOW PRIORITY
+
+#### Random Playlist Generator
 - Generate randomized playlist with N tracks from user's library
 - Reference implementation: `toolbox/python/spotify_random_playlist.py`
-- Migration effort: LOW (~1-2 hours)
+- **Effort**: LOW (~1-2 hours)
 
 **Expected behavior:**
 ```bash
@@ -24,6 +39,7 @@ spfm spotify random-playlist <size> [--target-playlist <id>] [--exclude <id1,id2
 ```
 
 **Implementation details:**
+
 1. **Seed data collection:**
    - Fetch all user playlists (excluding specified list)
    - Aggregate all tracks from seed playlists using Track.get_tracks()
@@ -65,10 +81,3 @@ spfm spotify random-playlist <size> [--target-playlist <id>] [--exclude <id1,id2
    - Test selection without replacement
    - Test history filtering
    - All tests should use `temp_database` fixture
-
-### Improve Duplicate Detection (Medium Priority)
-- Enhance `dupes-names` to ignore suffix-only matches
-  - Current: matches tracks where only part after "-" is similar
-  - Example issue: Groups "- Nouvelle Ecole" or "- 2011 remastered" as duplicates
-  - Target: Smart parsing to compare only title core, ignore common suffixes
-  - Files: `spotfm/spotify/dupes.py`, `tests/test_dupes.py`
