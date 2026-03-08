@@ -13,13 +13,6 @@
   - Files: `spotfm/cli.py`, `spotfm/spotify/client.py`, `spotfm/spotify/misc.py`
   - Note: Some logging already exists but buried in debug/verbose output
 
-### Documentation: CLI Commands (Low Priority)
-- Add comprehensive README section or docs covering:
-  - Common command examples with descriptions
-  - Setup instructions (uv tool install workflow)
-  - Config file options (spotfm.toml settings)
-  - Example outputs for each command
-
 ### Random Playlist Generator (Low Priority)
 - Generate randomized playlist with N tracks from user's library
 - Reference implementation: `toolbox/python/spotify_random_playlist.py`
@@ -79,11 +72,3 @@ spfm spotify random-playlist <size> [--target-playlist <id>] [--exclude <id1,id2
   - Example issue: Groups "- Nouvelle Ecole" or "- 2011 remastered" as duplicates
   - Target: Smart parsing to compare only title core, ignore common suffixes
   - Files: `spotfm/spotify/dupes.py`, `tests/test_dupes.py`
-
-### Add CHANGELOG File (Low Priority)
-- Create `CHANGELOG.md` documenting all releases and features
-  - Format: Keep a Changelog (https://keepachangelog.com)
-  - Sections: Unreleased, Released versions with dates
-  - Categories: Added, Changed, Fixed, Removed, Security
-  - Link from README.md
-  - Update before each version bump/release
