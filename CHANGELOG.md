@@ -16,10 +16,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Spotify API Migration (February 2026)**
   - Spotify removed batch endpoints (`GET /albums`, `GET /artists`, `GET /tracks`)
+  - Upgraded spotipy from 2.25.2 to >=2.26.0 (released 2026-03-03)
   - spotfm now uses individual endpoints with proactive rate limiting
   - No user-visible changes; internal API calls adapted automatically
   - Improved error handling for deleted/unavailable tracks, albums, artists
   - Rate limiting: 0.1s between track calls, 0.05s between album/artist calls
+  - Removed deprecated `BATCH_SIZE` constant (no longer needed)
 
 ### Added
 
