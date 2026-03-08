@@ -1,5 +1,8 @@
 import argparse
 import logging
+import os
+import subprocess
+import tempfile
 
 from spotfm import lastfm, utils
 from spotfm.lastfm import read_lastfm_state, save_lastfm_state
@@ -24,7 +27,7 @@ def _non_negative_int(value):
     return ivalue
 
 
-def recent_scrobbles(user, limit, scrobbles_minimum, period):
+def recent_scrobbles(user, limit, scrobbles_minimum, period, period_minimum, interactive):
     current_count = user.get_playcount()
     scrobble_count_to_save = current_count  # Track what state to save
 
@@ -51,9 +54,27 @@ def recent_scrobbles(user, limit, scrobbles_minimum, period):
         limit = computed_limit
         print(f"Fetching {limit} new scrobbles (was {last_scrobble_count}, now {current_count}).")
 
-    scrobbles = user.get_recent_tracks_scrobbles(limit, scrobbles_minimum, period)
-    for scrobble in scrobbles:
-        print(scrobble)
+    # Collect all results first so exceptions/logs surface before editor opens
+    scrobbles = list(user.get_recent_tracks_scrobbles(limit, scrobbles_minimum, period, period_minimum))
+
+    if interactive:
+        lines = sorted(set(scrobbles))
+        if not lines:
+            print("No results to open in editor.")
+            save_lastfm_state(scrobble_count_to_save)
+            return
+
+        editor = os.environ.get("EDITOR", "vim")
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+            f.write("\n".join(lines))
+            tmp = f.name
+        try:
+            subprocess.run([editor, tmp])
+        finally:
+            os.unlink(tmp)
+    else:
+        for scrobble in scrobbles:
+            print(scrobble)
 
     save_lastfm_state(scrobble_count_to_save)
 
@@ -84,7 +105,17 @@ def lastfm_cli(args, config):
 
     match args.command:
         case "recent-scrobbles":
-            recent_scrobbles(user, args.limit, args.scrobbles_minimum, args.period)
+            # Use config default for scrobbles_minimum if not explicitly passed
+            scrobbles_minimum = args.scrobbles_minimum
+            if scrobbles_minimum is None:
+                scrobbles_minimum = config.get("lastfm", {}).get("scrobbles_minimum", 4)
+
+            # Use config default for period_minimum if not explicitly passed
+            period_minimum = args.period_minimum
+            if period_minimum is None:
+                period_minimum = config.get("lastfm", {}).get("period_minimum")
+
+            recent_scrobbles(user, args.limit, scrobbles_minimum, args.period, period_minimum, args.interactive)
 
 
 def spotify_cli(args, config):
@@ -155,7 +186,7 @@ def main():
     parser = argparse.ArgumentParser(
         prog="spotfm",
     )
-    parser.add_argument("-i", "--info", action="store_true")
+    parser.add_argument("--info", action="store_true")
     parser.add_argument("-v", "--verbose", action="store_true")
     subparsers = parser.add_subparsers(required=True, dest="group")
 
@@ -168,8 +199,32 @@ def main():
         type=_positive_int,
         help="Number of recent scrobbles to fetch (default: 50 on first run; on subsequent runs, fetches all new scrobbles unless capped with --limit)",
     )
-    lastfm_parser.add_argument("-s", "--scrobbles-minimum", default=4, type=_non_negative_int)
-    lastfm_parser.add_argument("-p", "--period", default=90, type=_positive_int)
+    lastfm_parser.add_argument(
+        "-s",
+        "--scrobbles-minimum",
+        default=None,
+        type=_non_negative_int,
+        help="Minimum total scrobbles to include in results (uses config value or 4 if not specified)",
+    )
+    lastfm_parser.add_argument(
+        "-p",
+        "--period",
+        default=90,
+        type=_positive_int,
+        help="Period in days to count scrobbles within (default: 90)",
+    )
+    lastfm_parser.add_argument(
+        "--period-minimum",
+        default=None,
+        type=_non_negative_int,
+        help="Minimum scrobbles in the period window (default: 1, i.e. no filter)",
+    )
+    lastfm_parser.add_argument(
+        "-i",
+        "--interactive",
+        action="store_true",
+        help="Open results in $EDITOR (or vim) with deduplication",
+    )
 
     spotify_parser = subparsers.add_parser("spotify")
     spotify_parser.add_argument(

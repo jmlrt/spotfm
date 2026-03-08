@@ -3,6 +3,8 @@ api_key = ""
 api_secret = ""
 username = ""
 password_hash = ""
+# scrobbles_minimum = 4  # Minimum total scrobbles to include in recent-scrobbles results (default: 4)
+# period_minimum = 2     # Minimum scrobbles in the period window (default: 1, no filter)
 
 [spotify]
 client_id = ""

@@ -75,8 +75,15 @@ class User:
         """Get total scrobble count for the authenticated user."""
         return int(self.user.get_playcount())
 
-    def get_recent_tracks_scrobbles(self, limit=10, scrobbles_minimum=0, period=90):
-        """Get recent tracks with scrobble counts (optimized)."""
+    def get_recent_tracks_scrobbles(self, limit=10, scrobbles_minimum=0, period=90, period_minimum=None):
+        """Get recent tracks with scrobble counts (optimized).
+
+        Args:
+            limit: Number of recent tracks to fetch
+            scrobbles_minimum: Minimum total scrobbles to include in results
+            period: Period in days to count scrobbles within
+            period_minimum: Minimum scrobbles in the period window (None = no filter)
+        """
         if period not in PREDEFINED_PERIODS:
             raise UnknownPeriodError(f"period shoud be part of {PREDEFINED_PERIODS}")
 
@@ -109,8 +116,8 @@ class User:
             total_count = len(scrobbles)
             period_count = sum(1 for s in scrobbles if (now - datetime.fromtimestamp(int(s.timestamp))).days < period)
 
-            # Apply minimum threshold filter
-            if total_count >= scrobbles_minimum:
+            # Apply minimum threshold filters
+            if total_count >= scrobbles_minimum and (period_minimum is None or period_count >= period_minimum):
                 url = track.get_scrobbles_url(f"LAST_{period}_DAYS")
                 tracks_data.append((track, period_count, total_count, url))
 

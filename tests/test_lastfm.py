@@ -69,7 +69,7 @@ class TestRecentScrobblesCli:
         user = self._make_user(playcount=150)
 
         with patch("spotfm.lastfm.LASTFM_STATE_FILE", state_file):
-            recent_scrobbles(user, limit=10, scrobbles_minimum=0, period=90)
+            recent_scrobbles(user, limit=10, scrobbles_minimum=0, period=90, period_minimum=None, interactive=False)
 
         state = read_lastfm_state(state_file=state_file)
         assert state["last_scrobble_count"] == 150
@@ -80,12 +80,12 @@ class TestRecentScrobblesCli:
         user = self._make_user()
 
         with patch("spotfm.lastfm.LASTFM_STATE_FILE", state_file):
-            recent_scrobbles(user, limit=10, scrobbles_minimum=0, period=90)
+            recent_scrobbles(user, limit=10, scrobbles_minimum=0, period=90, period_minimum=None, interactive=False)
 
         captured = capsys.readouterr()
         assert "Initializing scrobble tracking" in captured.out
         # Should fetch the limit amount on first run
-        user.get_recent_tracks_scrobbles.assert_called_once_with(10, 0, 90)
+        user.get_recent_tracks_scrobbles.assert_called_once_with(10, 0, 90, None)
 
     def test_since_last_time_no_new_scrobbles(self, tmp_path, capsys):
         """Test --since-last-time when count has not changed."""
@@ -94,7 +94,7 @@ class TestRecentScrobblesCli:
         user = self._make_user(playcount=150)
 
         with patch("spotfm.lastfm.LASTFM_STATE_FILE", state_file):
-            recent_scrobbles(user, limit=10, scrobbles_minimum=0, period=90)
+            recent_scrobbles(user, limit=10, scrobbles_minimum=0, period=90, period_minimum=None, interactive=False)
 
         captured = capsys.readouterr()
         assert "No new scrobbles" in captured.out
@@ -107,7 +107,7 @@ class TestRecentScrobblesCli:
         user = self._make_user(playcount=173)
 
         with patch("spotfm.lastfm.LASTFM_STATE_FILE", state_file):
-            recent_scrobbles(user, limit=100, scrobbles_minimum=0, period=90)
+            recent_scrobbles(user, limit=100, scrobbles_minimum=0, period=90, period_minimum=None, interactive=False)
 
         user.get_recent_tracks_scrobbles.assert_called_once()
         call_args = user.get_recent_tracks_scrobbles.call_args
@@ -121,7 +121,7 @@ class TestRecentScrobblesCli:
 
         # limit is greater than the diff (38), so all new scrobbles are fetched
         with patch("spotfm.lastfm.LASTFM_STATE_FILE", state_file):
-            recent_scrobbles(user, limit=100, scrobbles_minimum=0, period=90)
+            recent_scrobbles(user, limit=100, scrobbles_minimum=0, period=90, period_minimum=None, interactive=False)
 
         state = read_lastfm_state(state_file=state_file)
         assert state["last_scrobble_count"] == 173
@@ -134,7 +134,7 @@ class TestRecentScrobblesCli:
 
         # Even though limit is 10 and diff is 38, --since-last-time fetches all 38
         with patch("spotfm.lastfm.LASTFM_STATE_FILE", state_file):
-            recent_scrobbles(user, limit=10, scrobbles_minimum=0, period=90)
+            recent_scrobbles(user, limit=10, scrobbles_minimum=0, period=90, period_minimum=None, interactive=False)
 
         state = read_lastfm_state(state_file=state_file)
         # State should advance to current count since we fetch all scrobbles
@@ -147,7 +147,7 @@ class TestRecentScrobblesCli:
         user = self._make_user(playcount=173)
 
         with patch("spotfm.lastfm.LASTFM_STATE_FILE", state_file):
-            recent_scrobbles(user, limit=100, scrobbles_minimum=0, period=90)
+            recent_scrobbles(user, limit=100, scrobbles_minimum=0, period=90, period_minimum=None, interactive=False)
 
         captured = capsys.readouterr()
         assert "38" in captured.out
@@ -160,10 +160,51 @@ class TestRecentScrobblesCli:
         user = self._make_user(playcount=200)
 
         with patch("spotfm.lastfm.LASTFM_STATE_FILE", state_file):
-            recent_scrobbles(user, limit=42, scrobbles_minimum=0, period=90)
+            recent_scrobbles(user, limit=42, scrobbles_minimum=0, period=90, period_minimum=None, interactive=False)
 
         call_args = user.get_recent_tracks_scrobbles.call_args
         assert call_args[0][0] == 42
+
+    def test_interactive_mode_opens_editor(self, tmp_path):
+        """Test that --interactive mode opens editor with deduplicated results."""
+        state_file = tmp_path / "lastfm_state.json"
+        user = self._make_user(playcount=150)
+        user.get_recent_tracks_scrobbles.return_value = iter(
+            [
+                "Artist 1 - Track 1 - 5 - 10 - http://last.fm/track1",
+                "Artist 2 - Track 2 - 3 - 5 - http://last.fm/track2",
+                "Artist 1 - Track 1 - 5 - 10 - http://last.fm/track1",  # duplicate
+            ]
+        )
+
+        with (
+            patch("spotfm.lastfm.LASTFM_STATE_FILE", state_file),
+            patch("subprocess.run") as mock_run,
+            patch("os.unlink") as mock_unlink,
+        ):
+            recent_scrobbles(user, limit=10, scrobbles_minimum=0, period=90, period_minimum=None, interactive=True)
+
+        # Verify subprocess.run was called with an editor (vim, vi, or nvim)
+        assert mock_run.called
+        call_args = mock_run.call_args[0][0]
+        assert call_args[0] in ["vim", "vi", "nvim"]  # Should be an editor
+
+        # Verify temp file was created and cleaned up
+        assert mock_unlink.called
+
+    def test_interactive_mode_empty_results(self, tmp_path, capsys):
+        """Test that --interactive mode with no results prints message and doesn't open editor."""
+        state_file = tmp_path / "lastfm_state.json"
+        user = self._make_user(playcount=150)
+        user.get_recent_tracks_scrobbles.return_value = iter([])
+
+        with patch("spotfm.lastfm.LASTFM_STATE_FILE", state_file), patch("subprocess.run") as mock_run:
+            recent_scrobbles(user, limit=10, scrobbles_minimum=0, period=90, period_minimum=None, interactive=True)
+
+        captured = capsys.readouterr()
+        assert "No results to open in editor" in captured.out
+        # Editor should not be opened
+        mock_run.assert_not_called()
 
 
 @pytest.mark.unit
@@ -396,7 +437,7 @@ class TestGetRecentTracksScrobbles:
 
         # Create user and call method
         user = User(mock_client)
-        results = list(user.get_recent_tracks_scrobbles(limit=2, scrobbles_minimum=0, period=90))
+        results = list(user.get_recent_tracks_scrobbles(limit=2, scrobbles_minimum=0, period=90, period_minimum=None))
 
         # Verify results
         assert len(results) == 2
@@ -420,7 +461,7 @@ class TestGetRecentTracksScrobbles:
         mock_pylast_user.get_recent_tracks.return_value = []
 
         user = User(mock_client)
-        list(user.get_recent_tracks_scrobbles())
+        list(user.get_recent_tracks_scrobbles(period_minimum=None))
 
         # Verify get_now_playing is NEVER called
         assert not mock_pylast_user.get_now_playing.called
@@ -450,7 +491,7 @@ class TestGetRecentTracksScrobbles:
         mock_pylast_user.get_track_scrobbles.return_value = scrobbles
 
         user = User(mock_client)
-        results = list(user.get_recent_tracks_scrobbles(limit=2))
+        results = list(user.get_recent_tracks_scrobbles(limit=2, period_minimum=None))
 
         # Should only return one track
         assert len(results) == 1
@@ -490,7 +531,7 @@ class TestGetRecentTracksScrobbles:
 
         user = User(mock_client)
         # Set minimum to 3 - should only get Track 1
-        results = list(user.get_recent_tracks_scrobbles(limit=2, scrobbles_minimum=3))
+        results = list(user.get_recent_tracks_scrobbles(limit=2, scrobbles_minimum=3, period_minimum=None))
 
         assert len(results) == 1
         assert "Artist 1 - Track 1" in results[0]
@@ -520,7 +561,7 @@ class TestGetRecentTracksScrobbles:
         mock_pylast_user.get_track_scrobbles.return_value = scrobbles
 
         user = User(mock_client)
-        results = list(user.get_recent_tracks_scrobbles(limit=1, period=7))
+        results = list(user.get_recent_tracks_scrobbles(limit=1, period=7, period_minimum=None))
 
         # Should show 2 scrobbles in last 7 days, 3 total
         assert len(results) == 1
@@ -536,7 +577,7 @@ class TestGetRecentTracksScrobbles:
         user = User(mock_client)
 
         with pytest.raises(UnknownPeriodError) as exc_info:
-            list(user.get_recent_tracks_scrobbles(period=999))
+            list(user.get_recent_tracks_scrobbles(period=999, period_minimum=None))
 
         assert "period shoud be part of" in str(exc_info.value)
         assert str(PREDEFINED_PERIODS) in str(exc_info.value)
@@ -562,12 +603,104 @@ class TestGetRecentTracksScrobbles:
         mock_pylast_user.get_track_scrobbles.return_value = [MagicMock(timestamp="1704067200")]
 
         user = User(mock_client)
-        list(user.get_recent_tracks_scrobbles(limit=3))
+        list(user.get_recent_tracks_scrobbles(limit=3, period_minimum=None))
 
         # Should call sleep 3 times (once per track) with 0.2 seconds
         assert mock_sleep.call_count == 3
         for call in mock_sleep.call_args_list:
             assert call[0][0] == 0.2  # First positional argument should be 0.2
+
+    @freeze_time("2024-01-15 12:00:00")
+    @patch("time.sleep")
+    def test_get_recent_tracks_scrobbles_filters_by_period_minimum(self, mock_sleep):
+        """get_recent_tracks_scrobbles filters tracks by period_minimum."""
+        mock_client = MagicMock()
+        mock_pylast_user = MagicMock()
+        mock_client.get_authenticated_user.return_value = mock_pylast_user
+
+        # Two tracks with different period scrobble counts
+        mock_track1 = MagicMock()
+        mock_track1.track.artist.name = "Artist 1"
+        mock_track1.track.title = "Track 1"
+        mock_track1.track.get_url.return_value = "http://last.fm/track1"
+
+        mock_track2 = MagicMock()
+        mock_track2.track.artist.name = "Artist 2"
+        mock_track2.track.title = "Track 2"
+        mock_track2.track.get_url.return_value = "http://last.fm/track2"
+
+        mock_pylast_user.get_recent_tracks.return_value = [mock_track1, mock_track2]
+
+        # Track 1 has 3 scrobbles in period (past 7 days), Track 2 has 1
+        # Current time: 2024-01-15
+        def mock_get_scrobbles(artist, title):
+            if artist == "Artist 1":
+                return [
+                    MagicMock(timestamp="1704931200"),  # 2024-01-11 (4 days ago)
+                    MagicMock(timestamp="1705017600"),  # 2024-01-12 (3 days ago)
+                    MagicMock(timestamp="1705276800"),  # 2024-01-15 (today)
+                ]
+            elif artist == "Artist 2":
+                return [MagicMock(timestamp="1704067200")]  # 2024-01-01 (14 days ago)
+            return []
+
+        mock_pylast_user.get_track_scrobbles.side_effect = mock_get_scrobbles
+
+        user = User(mock_client)
+        # Set period_minimum to 2 - should only get Track 1
+        results = list(user.get_recent_tracks_scrobbles(limit=2, period=7, period_minimum=2))
+
+        assert len(results) == 1
+        assert "Artist 1 - Track 1" in results[0]
+
+    @freeze_time("2024-01-15 12:00:00")
+    @patch("time.sleep")
+    def test_get_recent_tracks_scrobbles_period_minimum_with_scrobbles_minimum(self, mock_sleep):
+        """get_recent_tracks_scrobbles applies both scrobbles_minimum and period_minimum."""
+        mock_client = MagicMock()
+        mock_pylast_user = MagicMock()
+        mock_client.get_authenticated_user.return_value = mock_pylast_user
+
+        mock_track1 = MagicMock()
+        mock_track1.track.artist.name = "Artist 1"
+        mock_track1.track.title = "Track 1"
+        mock_track1.track.get_url.return_value = "http://last.fm/track1"
+
+        mock_track2 = MagicMock()
+        mock_track2.track.artist.name = "Artist 2"
+        mock_track2.track.title = "Track 2"
+        mock_track2.track.get_url.return_value = "http://last.fm/track2"
+
+        mock_pylast_user.get_recent_tracks.return_value = [mock_track1, mock_track2]
+
+        # Track 1: 2 total, 2 in period
+        # Track 2: 5 total, 1 in period
+        def mock_get_scrobbles(artist, title):
+            if artist == "Artist 1":
+                return [
+                    MagicMock(timestamp="1704931200"),  # 2024-01-11 (4 days ago)
+                    MagicMock(timestamp="1705276800"),  # 2024-01-15 (today)
+                ]
+            elif artist == "Artist 2":
+                return [
+                    MagicMock(timestamp="1704067200"),  # 2024-01-01 (old)
+                    MagicMock(timestamp="1704153600"),  # 2024-01-02 (old)
+                    MagicMock(timestamp="1704240000"),  # 2024-01-03 (old)
+                    MagicMock(timestamp="1704326400"),  # 2024-01-04 (old)
+                    MagicMock(timestamp="1705276800"),  # 2024-01-15 (today)
+                ]
+            return []
+
+        mock_pylast_user.get_track_scrobbles.side_effect = mock_get_scrobbles
+
+        user = User(mock_client)
+        # scrobbles_minimum=2, period_minimum=2
+        # Track 1: 2 total (pass) but 2 in period (pass) -> INCLUDED
+        # Track 2: 5 total (pass) but 1 in period (fail) -> EXCLUDED
+        results = list(user.get_recent_tracks_scrobbles(limit=2, scrobbles_minimum=2, period=7, period_minimum=2))
+
+        assert len(results) == 1
+        assert "Artist 1 - Track 1" in results[0]
 
     @freeze_time("2024-01-15 12:00:00")
     @patch("time.sleep")
@@ -592,7 +725,7 @@ class TestGetRecentTracksScrobbles:
         mock_pylast_user.get_track_scrobbles.return_value = scrobbles
 
         user = User(mock_client)
-        results = list(user.get_recent_tracks_scrobbles(limit=1, period=7))
+        results = list(user.get_recent_tracks_scrobbles(limit=1, period=7, period_minimum=None))
 
         # Format: "Artist - Title - period_scrobbles - total_scrobbles - url"
         assert len(results) == 1
