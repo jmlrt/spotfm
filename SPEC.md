@@ -145,7 +145,9 @@ spotfm implements **three-tier caching** to minimize API calls:
 ### Tier 3: Spotify API
 - **Speed**: Slow (network latency + rate limiting)
 - **Rate limit**: ~10 requests/second
-- **Sleep pattern**: 0.1s between individual requests; 1s between track batches; 0.5s between album/artist batches
+- **Sleep pattern**: 0.1s between individual track API calls; 0.05s between album/artist API calls
+  - Note: Spotify removed batch endpoints (Feb 2026); all fetches now use individual endpoints
+  - Proactive rate limiting prevents 429 Too Many Requests errors
 - **Fallback**: Used when data not in Tier 1 or 2, or `refresh=True`
 
 ### Cache Hit Order
@@ -248,7 +250,7 @@ c. **`update_from_api(client)`**: Fetch from Spotify API
 4. Update `playlists_tracks` relationships with `added_at` timestamps
 5. Log progress and summary
 
-**Rate limiting**: 0.1s between track API calls, 1s between batch operations
+**Rate limiting**: 0.1s between individual track API calls (Spotify batch endpoints removed Feb 2026)
 
 **Example**:
 ```bash
@@ -429,14 +431,14 @@ playlist_name = sanitize_string(user_input)  # Removes single quotes
 **Decision**: Strategic sleep() calls to prevent Spotify 429 errors
 
 **Locations**:
-- 0.1s between individual track API calls (misc.py)
-- 1s between track batches in Track.get_tracks() (track.py line 170)
-- 0.5s between album/artist batch fetches (track.py lines 188, 198)
+- 0.1s between individual track API calls (track.py)
+- 0.05s between individual album/artist API calls (album.py, artist.py)
 
 **Rationale**:
 - Spotify rate limit: ~10 requests/second
-- Sleep ensures we stay under limit
-- Batch size 50 matches API limits
+- Proactive sleep prevents 429 Too Many Requests errors
+- Individual endpoints (Spotify removed batch endpoints Feb 2026)
+- No retries configured (client uses retries=0); sleep is the primary strategy
 
 **Do not remove** without understanding impact.
 

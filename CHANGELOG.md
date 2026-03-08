@@ -14,6 +14,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - CI/CD now tests only Python 3.14 (dropped 3.11, 3.12, 3.13 support)
   - Projects requiring older Python versions must pin to spotfm 0.0.4
 
+- **Spotify API Migration (February 2026)**
+  - Spotify removed batch endpoints (`GET /albums`, `GET /artists`, `GET /tracks`)
+  - spotfm now uses individual endpoints with proactive rate limiting
+  - No user-visible changes; internal API calls adapted automatically
+  - Improved error handling for deleted/unavailable tracks, albums, artists
+  - Rate limiting: 0.1s between track calls, 0.05s between album/artist calls
+
 ### Added
 
 **Last.FM Recent Scrobbles Enhancements**:
