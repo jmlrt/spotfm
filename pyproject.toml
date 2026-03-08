@@ -9,7 +9,7 @@ description = "Simple Python lib to interact with Spotify and Last.FM APIs"
 readme = "README.md"
 requires-python = ">=3.14"
 license = {file = "LICENSE"}
-authors = [{name = "Julien Mailleret", email = "julien@mailleret.fr"}]
+authors = [{name = "Julien Mailleret", email = "8582351+jmlrt@users.noreply.github.com"}]
 dependencies = [
     "pylast",
     "rapidfuzz",
