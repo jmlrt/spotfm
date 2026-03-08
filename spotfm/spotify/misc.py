@@ -34,9 +34,9 @@ This allows config to reference playlists by name, ID, or URL pattern.
 RATE LIMITING:
 ==============
 
-Sleep calls are strategically placed:
-- 0.1s between individual track API calls (prevent 429 errors)
-- 1s between batch operations (respect API rate limits)
+Sleep calls are strategically placed across the Spotify integration:
+- In this module: 0.1s between individual track API calls (prevent 429 errors)
+- In track.py: ~1s between track batches and 0.5s between album/artist batch fetches
 
 Timing should not be removed without understanding Spotify API limits.
 """

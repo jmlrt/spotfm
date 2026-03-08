@@ -15,7 +15,8 @@ cd spotfm
 make install
 
 # Verify setup
-make check  # Runs lint, typecheck, and tests
+make test   # Run all tests
+make lint   # Check code style
 ```
 
 ### Understand the Project

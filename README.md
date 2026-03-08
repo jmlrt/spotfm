@@ -108,8 +108,8 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for comprehensive development documentati
 
 ```bash
 make install            # Install dependencies
-make check              # Run lint + typecheck + tests (full validation)
 make test               # Run all tests
+make lint               # Check code style
 make lint-fix           # Auto-fix code style
 make pre-commit         # Run all pre-commit hooks
 ```
@@ -133,7 +133,7 @@ See `hacks/create-tables.sql` for full schema.
 ## Architecture
 
 spotfm uses a **three-tier caching strategy** for performance:
-1. Pickle cache (`~/.cache/spotfm/`) - Fastest (in-memory files)
+1. Pickle cache (`~/.cache/spotfm/`) - Fastest (local file cache)
 2. SQLite database (`~/.spotfm/spotify.db`) - Persistent (offline querying)
 3. Spotify API - Source of truth (fallback)
 

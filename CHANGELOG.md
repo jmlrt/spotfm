@@ -21,9 +21,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Architecture documentation moved to code docstrings (track.py, sqlite.py, misc.py)
 - Testing patterns documented in conftest.py docstrings
 
-### Fixed
+### Changed
 - SQL injection risk documentation (TODO: migrate to parameterized queries)
-- Rate limiting documentation clarified (no specific file locations)
+- Rate limiting documentation clarified with actual sleep pattern locations
 
 ## [Recent Releases]
 

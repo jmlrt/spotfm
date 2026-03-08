@@ -145,7 +145,7 @@ spotfm implements **three-tier caching** to minimize API calls:
 ### Tier 3: Spotify API
 - **Speed**: Slow (network latency + rate limiting)
 - **Rate limit**: ~10 requests/second
-- **Sleep pattern**: 0.05-0.1s between requests
+- **Sleep pattern**: 0.1s between individual requests; 1s between track batches; 0.5s between album/artist batches
 - **Fallback**: Used when data not in Tier 1 or 2, or `refresh=True`
 
 ### Cache Hit Order
@@ -397,9 +397,9 @@ playlist_name = sanitize_string(user_input)  # Removes single quotes
 **Decision**: Strategic sleep() calls to prevent Spotify 429 errors
 
 **Locations**:
-- 0.1s between individual track API calls
-- 1s between batch playlist operations
-- 0.05s-0.1s in Track.get_tracks()
+- 0.1s between individual track API calls (misc.py)
+- 1s between track batches in Track.get_tracks() (track.py line 170)
+- 0.5s between album/artist batch fetches (track.py lines 188, 198)
 
 **Rationale**:
 - Spotify rate limit: ~10 requests/second
