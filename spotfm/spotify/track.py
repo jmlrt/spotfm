@@ -42,7 +42,7 @@ from time import sleep
 from spotfm import sqlite, utils
 from spotfm.spotify.album import Album
 from spotfm.spotify.artist import Artist
-from spotfm.spotify.constants import BATCH_SIZE, MARKET
+from spotfm.spotify.constants import MARKET
 from spotfm.utils import cache_object, retrieve_object_from_cache
 
 # Per-database cache for lifecycle columns existence check to handle database switching at runtime.
@@ -111,16 +111,25 @@ class Track:
         return track
 
     @classmethod
-    def get_tracks(cls, tracks_id, client=None, refresh=False, batch_size=BATCH_SIZE):
+    def get_tracks(cls, tracks_id, client=None, refresh=False):
         """
         Fetch multiple tracks efficiently, leveraging cache/DB.
 
+        Args:
+            tracks_id: List of track IDs to fetch
+            client: Spotify client (optional)
+            refresh: Force refresh from API instead of using cache/DB
+
         Strategy:
         1. Check cache/DB for all tracks first (respects 3-tier cache)
-        2. Only batch fetch missing tracks from API
-        3. Collect album/artist IDs from missing tracks
-        4. Batch fetch only missing albums and artists
-        5. Return all tracks (cached + newly fetched)
+        2. Fetch missing tracks individually from API using get_track()
+           - Each get_track() call fetches its own track, album, and artists
+           - Caching is leveraged at each level for efficiency
+        3. Return all tracks (cached + newly fetched)
+
+        Note: Previously this method batch-fetched albums/artists, but Spotify
+        removed batch endpoints (Feb 2026). Now each get_track() handles its own
+        dependencies. Consider optimizing this for better performance.
         """
         if not tracks_id:
             return []
@@ -151,80 +160,36 @@ class Track:
             logging.info(f"All {len(tracks)} tracks retrieved from cache/DB")
             return tracks
 
+        # If client is missing and we have unfetched tracks, we can't proceed
+        if client is None:
+            logging.warning(
+                f"Retrieved {len(tracks)} tracks from cache/DB but {len(tracks_to_fetch)} "
+                f"are missing and no client was provided. Returning partial results."
+            )
+            return tracks
+
         logging.info(f"Retrieved {len(tracks)} tracks from cache/DB, fetching {len(tracks_to_fetch)} from API")
 
-        # Phase 2: Batch fetch missing tracks from API
-        tracks_id_batches = [tracks_to_fetch[i : i + batch_size] for i in range(0, len(tracks_to_fetch), batch_size)]
-        all_raw_tracks = []
-
-        for i, batch in enumerate(tracks_id_batches):
-            logging.info(f"Fetching track batch {i + 1}/{len(tracks_id_batches)}")
-            raw_tracks = client.tracks(batch, market=MARKET)
-
-            for raw_track in raw_tracks["tracks"]:
-                if raw_track is not None:
-                    all_raw_tracks.append(raw_track)
-
-            # Rate limiting: sleep between batches only
-            if i < len(tracks_id_batches) - 1:
-                sleep(1)
-
-        # Phase 3: Collect album/artist IDs from fetched tracks
-        album_ids = []
-        artist_ids = []
-
-        for raw_track in all_raw_tracks:
-            album_ids.append(raw_track["album"]["id"])
-            artist_ids.extend([artist["id"] for artist in raw_track["artists"]])
-
-        # Phase 4: Batch fetch albums (respects cache/DB in get_albums)
-        albums_dict = {}
-        if album_ids:
-            logging.info("Batch fetching albums (checking cache first)")
-            unique_album_ids = list(dict.fromkeys(album_ids))
-            albums = Album.get_albums(unique_album_ids, client, refresh=refresh)
-            albums_dict = {album.id: album for album in albums if album is not None}
-            if albums:
-                sleep(0.5)
-
-        # Phase 5: Batch fetch artists (respects cache/DB in get_artists)
-        artists_dict = {}
-        if artist_ids:
-            logging.info("Batch fetching artists (checking cache first)")
-            unique_artist_ids = list(dict.fromkeys(artist_ids))
-            artists = Artist.get_artists(unique_artist_ids, client, refresh=refresh)
-            artists_dict = {artist.id: artist for artist in artists if artist is not None}
-            if artists:
-                sleep(0.5)
-
-        # Phase 6: Populate album.artists
-        for album in albums_dict.values():
-            if album.artists_id:
-                album.artists = [artists_dict[aid] for aid in album.artists_id if aid in artists_dict]
-
-        # Phase 7: Create track objects from fetched data
-        for raw_track in all_raw_tracks:
+        # Phase 2: Fetch missing tracks individually (Spotify removed batch endpoint)
+        # Note: get_track() re-checks cache/DB for each track (redundant since we already know
+        # they're missing). This is acceptable for correctness but could be optimized with a
+        # fast-path for known-missing IDs that fetches directly from API.
+        for i, track_id in enumerate(tracks_to_fetch):
             try:
-                track = Track(raw_track["id"], client)
-                track.name = utils.sanitize_string(raw_track["name"])
-                track.album_id = raw_track["album"]["id"]
-                track.updated = str(date.today())
-
-                # Use pre-fetched album
-                album = albums_dict.get(track.album_id)
-                if album:
-                    track.album = album.name
-                    track.release_date = album.release_date
-
-                # Use pre-fetched artists
-                track.artists_id = [artist["id"] for artist in raw_track["artists"]]
-                track.artists = [artists_dict[aid] for aid in track.artists_id if aid in artists_dict]
-
-                cache_object(track)
-                tracks.append(track)
-
-            except (TypeError, KeyError) as e:
-                logging.info(f"Error processing track: {e}")
+                track = cls.get_track(track_id, client, refresh=refresh, sync_to_db=True)
+                if track.name is not None:
+                    tracks.append(track)
+            except (KeyError, ValueError) as e:
+                # Track not found, deleted, or unavailable on Spotify.
+                # Note: transient API errors (429, 5xx) are not auto-retried by the Spotify client
+                # (configured with retries=0) and will be handled by the generic Exception handler below.
+                logging.debug(f"Track {track_id} not found or unavailable: {e}")
+            except Exception as e:
+                # API/HTTP or other unexpected error - log but continue
+                logging.warning(f"Unexpected error fetching track {track_id}: {e}")
+            # Rate limiting: sleep between individual calls
+            if i < len(tracks_to_fetch) - 1:
+                sleep(0.1)
 
         return tracks
 

@@ -14,6 +14,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - CI/CD now tests only Python 3.14 (dropped 3.11, 3.12, 3.13 support)
   - Projects requiring older Python versions must pin to spotfm 0.0.4
 
+- **Spotify API Migration (February 2026)**
+  - Spotify removed batch endpoints (`GET /albums`, `GET /artists`, `GET /tracks`)
+  - Upgraded spotipy from 2.25.2 to >=2.26.0 (released 2026-03-03)
+  - spotfm now uses individual endpoints with proactive rate limiting
+  - **User-visible API changes:**
+    - `BATCH_SIZE` constant removed from `spotfm.spotify.constants`
+    - `Track.get_tracks()` no longer accepts `batch_size` parameter
+    - `Playlist.add_tracks()` no longer accepts `batch_size` parameter (always uses Spotify's limit of 50)
+  - Improved error handling for deleted/unavailable tracks, albums, artists
+  - Rate limiting: 0.1s between track calls, 0.05s between album/artist calls (on multi-fetch paths)
+
 ### Added
 
 **Last.FM Recent Scrobbles Enhancements**:

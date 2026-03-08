@@ -18,6 +18,14 @@
 
 ### 🟡 MEDIUM PRIORITY
 
+#### Migrate SQL Queries to Parameterized Statements
+- Replace f-string SQL queries with parameterized queries
+  - Current: `SELECT * FROM tracks WHERE id = '{track_id}'` (SQL injection risk)
+  - Target: `SELECT * FROM tracks WHERE id = ?` with parameters
+  - Impact: Improves security, prevents injection via user input
+  - Files: `spotfm/sqlite.py`, `spotfm/spotify/*.py`, tests
+  - **Effort**: Medium (~3-5 hours)
+
 #### Improve Duplicate Detection
 - Enhance `dupes-names` to ignore suffix-only matches
   - Current: matches tracks where only part after "-" is similar

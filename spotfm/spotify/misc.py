@@ -47,7 +47,7 @@ from pathlib import Path
 from time import sleep
 
 from spotfm import sqlite, utils
-from spotfm.spotify.constants import BATCH_SIZE, MARKET
+from spotfm.spotify.constants import MARKET
 from spotfm.spotify.playlist import Playlist
 from spotfm.spotify.track import Track
 
@@ -138,12 +138,12 @@ def add_tracks_from_file(client, file_path):
         sleep(0.1)
 
 
-def add_tracks_from_file_batch(client, file_path, batch_size=BATCH_SIZE):
+def add_tracks_from_file_batch(client, file_path):
     """Add tracks from file using optimized batch processing."""
     tracks_ids = utils.manage_tracks_ids_file(file_path)
 
-    # Track.get_tracks() handles all batching and syncing
-    tracks = Track.get_tracks(tracks_ids, client.client, refresh=False, batch_size=batch_size)
+    # Track.get_tracks() handles all fetching and syncing
+    tracks = Track.get_tracks(tracks_ids, client.client, refresh=False)
 
     # Sync tracks to DB
     for track in tracks:
@@ -154,7 +154,7 @@ def add_tracks_from_file_batch(client, file_path, batch_size=BATCH_SIZE):
             logging.info(f"Error adding track to db: {e}")
 
 
-def discover_from_playlists(client, discover_playlist_id, sources_playlists_ids, batch_size=BATCH_SIZE):
+def discover_from_playlists(client, discover_playlist_id, sources_playlists_ids):
     """Discover new tracks from source playlists and add them to a discover playlist.
 
     This function uses lifecycle tracking to distinguish between:
@@ -180,7 +180,6 @@ def discover_from_playlists(client, discover_playlist_id, sources_playlists_ids,
         client: Spotify client instance
         discover_playlist_id: Playlist to add discovered tracks to
         sources_playlists_ids: List of playlist IDs to discover from
-        batch_size: Batch size for API operations
 
     See Also:
         - Track.is_orphaned(): Check if track is in zero playlists

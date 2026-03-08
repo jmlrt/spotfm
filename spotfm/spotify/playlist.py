@@ -4,7 +4,7 @@ from collections import Counter
 from datetime import date
 
 from spotfm import sqlite, utils
-from spotfm.spotify.constants import BATCH_SIZE, MARKET
+from spotfm.spotify.constants import MARKET
 from spotfm.spotify.track import Track
 from spotfm.utils import cache_object, retrieve_object_from_cache
 
@@ -243,8 +243,9 @@ class Playlist:
     # def remove_track(self, track_id):
     #     self.client.playlist_remove_all_occurrences_of_items(self.id, [track_id])
 
-    def add_tracks(self, tracks, client, batch_size=BATCH_SIZE):
+    def add_tracks(self, tracks, client):
         tracks_id = [track.id for track in tracks]
+        batch_size = 50  # Spotify API limit for playlist add items
         tracks_id_batches = [tracks_id[i : i + batch_size] for i in range(0, len(tracks_id), batch_size)]
 
         for i, batch in enumerate(tracks_id_batches):

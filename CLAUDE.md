@@ -60,11 +60,19 @@ A Python library and CLI tool for Spotify and Last.FM API interaction. Focuses o
 
 ## Key Implementation Notes
 
-1. **Rate Limiting**: `sleep()` calls prevent Spotify 429 errors - do not remove without understanding impact
-2. **SQL Injection Risk**: F-strings used in queries (TODO: migrate to parameterized)
-3. **Batch Operations**: Default batch sizes: 50 for tracks (`BATCH_SIZE`), 20 for albums (`ALBUM_BATCH_SIZE`)
-4. **Global DB Connection**: `spotfm/sqlite.py` uses module-level singleton with atexit cleanup
-5. **Duplicate Detection**: Operates on SQLite only, no API calls (optimization)
+1. **Rate Limiting**: `sleep()` calls prevent Spotify 429 errors
+   - 0.1s between track API calls in `Track.get_tracks()`
+   - 0.05s between album API calls in `Album.get_albums()` (multi-fetch helper)
+   - 0.05s between artist API calls in `Artist.get_artists()` (multi-fetch helper)
+   - Note: Single-entity fetches via `Album.get_album()` / `Artist.get_artist()` are not rate-limited
+   - Client configured with `retries=0` (no auto-retry)
+   - Do not remove sleep without understanding impact
+2. **Spotify API Migration** (Feb 2026): Batch endpoints removed; now using individual endpoints
+   - All Track/Album/Artist fetching uses individual API calls
+   - Playlist add_tracks uses batch_size=50 (Spotify API limit for playlist operations)
+   - Exception handling distinguishes KeyError/ValueError (unavailable) from unexpected errors
+3. **Global DB Connection**: `spotfm/sqlite.py` uses module-level singleton with atexit cleanup
+4. **Duplicate Detection**: Operates on SQLite only, no API calls (optimization)
 
 ## Development Practices
 

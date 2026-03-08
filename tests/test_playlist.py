@@ -146,48 +146,37 @@ class TestPlaylistUpdateFromApi:
             "next": None,
         }
 
-        mock_spotify_client.tracks.return_value = {
-            "tracks": [
-                {
-                    "id": "track1",
-                    "name": "Track 1",
-                    "album": {"id": "album1", "name": "Album 1"},
-                    "artists": [{"id": "artist1", "name": "Artist 1"}],
-                },
-                {
-                    "id": "track2",
-                    "name": "Track 2",
-                    "album": {"id": "album2", "name": "Album 2"},
-                    "artists": [{"id": "artist2", "name": "Artist 2"}],
-                },
-            ]
-        }
+        # Mock individual track API responses
+        def mock_track_response(id, market):
+            return {
+                "id": id,
+                "name": f"Track {id[-1]}",
+                "album": {"id": f"album{id[-1]}", "name": f"Album {id[-1]}"},
+                "artists": [{"id": f"artist{id[-1]}", "name": f"Artist {id[-1]}"}],
+            }
 
-        # Mock batch albums API
-        mock_spotify_client.albums.return_value = {
-            "albums": [
-                {
-                    "id": "album1",
-                    "name": "Album 1",
-                    "release_date": "2024-01-01",
-                    "artists": [{"id": "artist1", "name": "Artist 1"}],
-                },
-                {
-                    "id": "album2",
-                    "name": "Album 2",
-                    "release_date": "2024-01-01",
-                    "artists": [{"id": "artist2", "name": "Artist 2"}],
-                },
-            ]
-        }
+        mock_spotify_client.track.side_effect = mock_track_response
 
-        # Mock batch artists API
-        mock_spotify_client.artists.return_value = {
-            "artists": [
-                {"id": "artist1", "name": "Artist 1", "genres": ["rock"]},
-                {"id": "artist2", "name": "Artist 2", "genres": ["pop"]},
-            ]
-        }
+        # Mock individual album API responses
+        def mock_album_response(id, market):
+            return {
+                "id": id,
+                "name": f"Album {id[-1]}",
+                "release_date": "2024-01-01",
+                "artists": [{"id": f"artist{id[-1]}", "name": f"Artist {id[-1]}"}],
+            }
+
+        mock_spotify_client.album.side_effect = mock_album_response
+
+        # Mock individual artist API responses
+        def mock_artist_response(id):
+            return {
+                "id": id,
+                "name": f"Artist {id[-1]}",
+                "genres": ["rock"] if id[-1] == "1" else ["pop"],
+            }
+
+        mock_spotify_client.artist.side_effect = mock_artist_response
 
         playlist = Playlist("playlist123")
 
@@ -250,42 +239,33 @@ class TestPlaylistUpdateFromApi:
         mock_spotify_client.playlist_items.return_value = first_page
         mock_spotify_client.next.return_value = second_page
 
-        mock_spotify_client.tracks.return_value = {
-            "tracks": [
-                {
-                    "id": "track1",
-                    "name": "Track 1",
-                    "album": {"id": "album1", "name": "Album 1"},
-                    "artists": [{"id": "artist1", "name": "Artist 1"}],
-                },
-                {
-                    "id": "track2",
-                    "name": "Track 2",
-                    "album": {"id": "album2", "name": "Album 2"},
-                    "artists": [{"id": "artist2", "name": "Artist 2"}],
-                },
-            ]
-        }
+        # Mock individual track API responses
+        def mock_track_response(id, market):
+            return {
+                "id": id,
+                "name": f"Track {id[-1]}",
+                "album": {"id": f"album{id[-1]}", "name": f"Album {id[-1]}"},
+                "artists": [{"id": f"artist{id[-1]}", "name": f"Artist {id[-1]}"}],
+            }
 
-        mock_spotify_client.album.side_effect = [
-            {
-                "id": "album1",
-                "name": "Album 1",
-                "release_date": "2024-01-01",
-                "artists": [{"id": "artist1", "name": "Artist 1"}],
-            },
-            {
-                "id": "album2",
-                "name": "Album 2",
-                "release_date": "2024-01-01",
-                "artists": [{"id": "artist2", "name": "Artist 2"}],
-            },
-        ]
+        mock_spotify_client.track.side_effect = mock_track_response
 
-        mock_spotify_client.artist.side_effect = [
-            {"id": "artist1", "name": "Artist 1", "genres": []},
-            {"id": "artist2", "name": "Artist 2", "genres": []},
-        ]
+        # Mock individual album API responses
+        def mock_album_response(id, market):
+            return {
+                "id": id,
+                "name": f"Album {id[-1]}",
+                "release_date": "2024-01-01",
+                "artists": [{"id": f"artist{id[-1]}", "name": f"Artist {id[-1]}"}],
+            }
+
+        mock_spotify_client.album.side_effect = mock_album_response
+
+        # Mock individual artist API responses
+        def mock_artist_response(id):
+            return {"id": id, "name": f"Artist {id[-1]}", "genres": []}
+
+        mock_spotify_client.artist.side_effect = mock_artist_response
 
         playlist = Playlist("playlist123")
 
@@ -324,30 +304,27 @@ class TestPlaylistUpdateFromApi:
             "next": None,
         }
 
-        mock_spotify_client.tracks.return_value = {
-            "tracks": [
-                {
-                    "id": "track2",
-                    "name": "Track 2",
-                    "album": {"id": "album2", "name": "Album 2"},
-                    "artists": [{"id": "artist2", "name": "Artist 2"}],
-                }
-            ]
+        # Mock individual track API response
+        mock_spotify_client.track.return_value = {
+            "id": "track2",
+            "name": "Track 2",
+            "album": {"id": "album2", "name": "Album 2"},
+            "artists": [{"id": "artist2", "name": "Artist 2"}],
         }
 
-        mock_spotify_client.albums.return_value = {
-            "albums": [
-                {
-                    "id": "album2",
-                    "name": "Album 2",
-                    "release_date": "2024-01-01",
-                    "artists": [{"id": "artist2", "name": "Artist 2"}],
-                }
-            ]
+        # Mock individual album API response
+        mock_spotify_client.album.return_value = {
+            "id": "album2",
+            "name": "Album 2",
+            "release_date": "2024-01-01",
+            "artists": [{"id": "artist2", "name": "Artist 2"}],
         }
 
-        mock_spotify_client.artists.return_value = {
-            "artists": [{"id": "artist2", "name": "Artist 2", "genres": ["pop"]}]
+        # Mock individual artist API response
+        mock_spotify_client.artist.return_value = {
+            "id": "artist2",
+            "name": "Artist 2",
+            "genres": ["pop"],
         }
 
         playlist = Playlist("playlist123")
@@ -381,42 +358,33 @@ class TestPlaylistUpdateFromApi:
             "next": None,
         }
 
-        mock_spotify_client.tracks.return_value = {
-            "tracks": [
-                {
-                    "id": "track1",
-                    "name": "Track 1",
-                    "album": {"id": "album1", "name": "Album 1"},
-                    "artists": [{"id": "artist1", "name": "Artist 1"}],
-                },
-                {
-                    "id": "track2",
-                    "name": "Track 2",
-                    "album": {"id": "album2", "name": "Album 2"},
-                    "artists": [{"id": "artist2", "name": "Artist 2"}],
-                },
-            ]
-        }
+        # Mock individual track API responses
+        def mock_track_response(id, market):
+            return {
+                "id": id,
+                "name": f"Track {id[-1]}",
+                "album": {"id": f"album{id[-1]}", "name": f"Album {id[-1]}"},
+                "artists": [{"id": f"artist{id[-1]}", "name": f"Artist {id[-1]}"}],
+            }
 
-        mock_spotify_client.album.side_effect = [
-            {
-                "id": "album1",
-                "name": "Album 1",
-                "release_date": "2024-01-01",
-                "artists": [{"id": "artist1", "name": "Artist 1"}],
-            },
-            {
-                "id": "album2",
-                "name": "Album 2",
-                "release_date": "2024-01-01",
-                "artists": [{"id": "artist2", "name": "Artist 2"}],
-            },
-        ]
+        mock_spotify_client.track.side_effect = mock_track_response
 
-        mock_spotify_client.artist.side_effect = [
-            {"id": "artist1", "name": "Artist 1", "genres": []},
-            {"id": "artist2", "name": "Artist 2", "genres": []},
-        ]
+        # Mock individual album API responses
+        def mock_album_response(id, market):
+            return {
+                "id": id,
+                "name": f"Album {id[-1]}",
+                "release_date": "2024-01-01",
+                "artists": [{"id": f"artist{id[-1]}", "name": f"Artist {id[-1]}"}],
+            }
+
+        mock_spotify_client.album.side_effect = mock_album_response
+
+        # Mock individual artist API responses
+        def mock_artist_response(id):
+            return {"id": id, "name": f"Artist {id[-1]}", "genres": []}
+
+        mock_spotify_client.artist.side_effect = mock_artist_response
 
         playlist = Playlist("playlist123")
 
@@ -760,48 +728,33 @@ class TestPlaylistGetTracks:
         playlist = Playlist("playlist123")
         playlist.raw_tracks = [("track1", "2024-01-01"), ("track2", "2024-01-02")]
 
-        mock_spotify_client.tracks.return_value = {
-            "tracks": [
-                {
-                    "id": "track1",
-                    "name": "Track 1",
-                    "album": {"id": "album1", "name": "Album 1"},
-                    "artists": [{"id": "artist1", "name": "Artist 1"}],
-                },
-                {
-                    "id": "track2",
-                    "name": "Track 2",
-                    "album": {"id": "album2", "name": "Album 2"},
-                    "artists": [{"id": "artist2", "name": "Artist 2"}],
-                },
-            ]
-        }
+        # Mock individual track API responses
+        def mock_track_response(id, market):
+            return {
+                "id": id,
+                "name": f"Track {id[-1]}",
+                "album": {"id": f"album{id[-1]}", "name": f"Album {id[-1]}"},
+                "artists": [{"id": f"artist{id[-1]}", "name": f"Artist {id[-1]}"}],
+            }
 
-        # Mock batch albums API
-        mock_spotify_client.albums.return_value = {
-            "albums": [
-                {
-                    "id": "album1",
-                    "name": "Album 1",
-                    "release_date": "2024-01-01",
-                    "artists": [{"id": "artist1", "name": "Artist 1"}],
-                },
-                {
-                    "id": "album2",
-                    "name": "Album 2",
-                    "release_date": "2024-01-01",
-                    "artists": [{"id": "artist2", "name": "Artist 2"}],
-                },
-            ]
-        }
+        mock_spotify_client.track.side_effect = mock_track_response
 
-        # Mock batch artists API
-        mock_spotify_client.artists.return_value = {
-            "artists": [
-                {"id": "artist1", "name": "Artist 1", "genres": []},
-                {"id": "artist2", "name": "Artist 2", "genres": []},
-            ]
-        }
+        # Mock individual album API responses
+        def mock_album_response(id, market):
+            return {
+                "id": id,
+                "name": f"Album {id[-1]}",
+                "release_date": "2024-01-01",
+                "artists": [{"id": f"artist{id[-1]}", "name": f"Artist {id[-1]}"}],
+            }
+
+        mock_spotify_client.album.side_effect = mock_album_response
+
+        # Mock individual artist API responses
+        def mock_artist_response(id):
+            return {"id": id, "name": f"Artist {id[-1]}", "genres": []}
+
+        mock_spotify_client.artist.side_effect = mock_artist_response
 
         with patch("spotfm.spotify.track.sleep"):
             tracks = playlist.get_tracks(mock_spotify_client)
@@ -869,10 +822,10 @@ class TestPlaylistAddTracks:
             track.id = f"track{i}"
             tracks.append(track)
 
-        playlist.add_tracks(tracks, mock_spotify_client, batch_size=2)
+        playlist.add_tracks(tracks, mock_spotify_client)
 
-        # Should make 3 calls (2+2+1)
-        assert mock_spotify_client.playlist_add_items.call_count == 3
+        # Should make 1 call (5 tracks fit in default batch_size of 50)
+        assert mock_spotify_client.playlist_add_items.call_count == 1
 
     def test_add_tracks_handles_errors(self, mock_spotify_client):
         """Test that errors are caught and logged."""
