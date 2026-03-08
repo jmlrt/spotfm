@@ -124,6 +124,21 @@ class TestParseUrl:
         uri = "spotify:playlist:37i9dQZF1DXcBWIGoYBM5M"
         assert utils.parse_url(uri) == "37i9dQZF1DXcBWIGoYBM5M"
 
+    def test_parse_url_with_trailing_slash(self):
+        """Test parsing URL with trailing slash."""
+        url = "https://open.spotify.com/track/3n3Ppam7vgaVa1iaRUc9Lp/"
+        assert utils.parse_url(url) == "3n3Ppam7vgaVa1iaRUc9Lp"
+
+    def test_parse_uri_with_trailing_whitespace(self):
+        """Test parsing URI with trailing whitespace."""
+        uri = "spotify:track:3n3Ppam7vgaVa1iaRUc9Lp "
+        assert utils.parse_url(uri) == "3n3Ppam7vgaVa1iaRUc9Lp"
+
+    def test_parse_url_multiple_trailing_slashes(self):
+        """Test parsing URL with multiple trailing slashes."""
+        url = "https://open.spotify.com/track/3n3Ppam7vgaVa1iaRUc9Lp///"
+        assert utils.parse_url(url) == "3n3Ppam7vgaVa1iaRUc9Lp"
+
 
 @pytest.mark.unit
 class TestParseConfig:

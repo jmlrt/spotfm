@@ -26,16 +26,19 @@ def parse_url(url):
 
     Handles both formats:
     - URL: https://open.spotify.com/track/123abc → 123abc
+    - URL with trailing slash: https://open.spotify.com/track/123abc/ → 123abc
     - URI: spotify:track:123abc → 123abc
     """
     # Check if it's a Spotify URI (spotify:entity_type:id)
     if url.startswith("spotify:"):
         # Extract the ID (last component after splitting by ':')
         parts = url.split(":")
-        return parts[-1] if len(parts) >= 3 else url
+        return parts[-1].strip() if len(parts) >= 3 else url.strip()
 
     # Otherwise treat it as a URL and extract the last path component
-    return urlparse(url).path.split("/")[-1]
+    # Strip trailing slashes and whitespace to handle URLs like "https://...track/123/"
+    path_segments = urlparse(url).path.strip("/").split("/")
+    return path_segments[-1] if path_segments[-1] else ""
 
 
 def parse_config(file=CONFIG_FILE):

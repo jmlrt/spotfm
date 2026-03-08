@@ -139,6 +139,8 @@ class Track:
         normalized_to_fetch = []  # Normalized IDs that need API fetch
 
         # Phase 1: Check cache/DB for all tracks (CRITICAL for performance)
+        # Track unique IDs to avoid fetching duplicates (though input may have repeats)
+        seen_missing = set()
         for normalized_id in normalized_ids:
             # Try pickle cache first
             track = retrieve_object_from_cache(cls.kind, normalized_id)
@@ -154,7 +156,10 @@ class Track:
                 continue
 
             # Track not in cache/DB, need to fetch from API
-            normalized_to_fetch.append(normalized_id)
+            # Only add to fetch list once, even if ID appears multiple times in input
+            if normalized_id not in seen_missing:
+                normalized_to_fetch.append(normalized_id)
+                seen_missing.add(normalized_id)
 
         # If all tracks cached, return early (typical case for update_playlists)
         if not normalized_to_fetch:
