@@ -111,7 +111,7 @@ api_secret = "..."
 username = "..."
 password_hash = "..."
 scrobbles_minimum = 2      # Minimum total scrobbles (default: 4)
-period_minimum = 1         # Minimum in period window (default: no filter)
+period_minimum = 1         # Minimum in period window (unset/omitted: no filter; 1: require ≥1 in period)
 ```
 
 ## Development
