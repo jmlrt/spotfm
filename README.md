@@ -136,34 +136,14 @@ See `hacks/create-tables.sql` for full schema.
 
 ## Architecture
 
-### Three-Tier Caching
+spotfm uses a **three-tier caching strategy** for performance:
+1. Pickle cache (`~/.cache/spotfm/`) - Fastest (in-memory files)
+2. SQLite database (`~/.spotfm/spotify.db`) - Persistent (offline querying)
+3. Spotify API - Source of truth (fallback)
 
-Entities (Track, Album, Artist, Playlist) use a three-tier caching strategy:
+**Important**: Tracks that are removed from all playlists become "orphaned" and accumulate in the database. This is intentional—they prevent the discovery feature from re-adding tracks you intentionally removed.
 
-1. **Pickle Cache** (`~/.cache/spotfm/{kind}/{id}.pickle`) - Fastest
-2. **SQLite Database** (`~/.spotfm/spotify.db`) - Persistent
-3. **Spotify API** - Source of truth, used as fallback
-
-### Workflow
-
-All entity classes follow this pattern:
-
-```
-get_entity(id, client)
-  → check pickle cache
-  → check SQLite database
-  → fetch from Spotify API
-  → update cache & database
-```
-
-### Track Lifecycle Tracking
-
-Tracks have timestamps to prevent re-adding intentionally removed tracks:
-
-- `created_at`: When track was first discovered (set once, immutable)
-- `last_seen_at`: Last time track appeared in any playlist (updated on sync)
-
-**Orphaned tracks** (in database but not in any playlist) accumulate and prevent re-discovery. This is intentional - they serve as a "negative cache".
+For comprehensive architecture details, design decisions, and entity lifecycle patterns, see [SPEC.md](SPEC.md).
 
 ## Contributing
 
