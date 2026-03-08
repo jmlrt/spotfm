@@ -1,5 +1,9 @@
 import argparse
 import logging
+import os
+import shlex
+import subprocess
+import tempfile
 
 from spotfm import lastfm, utils
 from spotfm.lastfm import read_lastfm_state, save_lastfm_state
@@ -24,26 +28,21 @@ def _non_negative_int(value):
     return ivalue
 
 
-def recent_scrobbles(user, limit, scrobbles_minimum, period, since_last_time=False):
+def recent_scrobbles(user, limit, scrobbles_minimum, period, period_minimum, interactive):
     current_count = user.get_playcount()
-    scrobble_count_to_save = current_count  # Track what state to save (may differ from current_count if capped)
+    scrobble_count_to_save = current_count  # Track what state to save
 
-    if since_last_time:
-        state = read_lastfm_state()
-        if state is None:
-            print(
-                "No previous state found. Initializing state with current playcount; "
-                "no scrobbles fetched this run. Run once without --since-last-time to "
-                "fetch existing scrobbles, then rerun with --since-last-time to get "
-                "only new ones."
-            )
-            save_lastfm_state(current_count)
-            return
+    state = read_lastfm_state()
+    if state is None:
+        # First run: initialize state with current count, fetch --limit scrobbles
+        print(f"Initializing scrobble tracking. Fetching up to {limit} recent scrobbles.")
+    else:
+        # Subsequent runs: fetch all new scrobbles since last run
         last_scrobble_count = None
         if isinstance(state, dict):
             last_scrobble_count = state.get("last_scrobble_count")
         if not isinstance(last_scrobble_count, int):
-            print("No valid previous state found. Run once without --since-last-time to initialize.")
+            print("Invalid previous state. Re-initializing scrobble tracking.")
             save_lastfm_state(current_count)
             return
         computed_limit = current_count - last_scrobble_count
@@ -51,20 +50,39 @@ def recent_scrobbles(user, limit, scrobbles_minimum, period, since_last_time=Fal
             print("No new scrobbles since last run.")
             save_lastfm_state(current_count)
             return
-        # Cap the computed limit to the --limit parameter to prevent unexpectedly large fetches
-        limit = min(computed_limit, limit)
-        if limit < computed_limit:
-            logging.warning(
-                f"Computed {computed_limit} new scrobbles but capping to --limit {limit}. "
-                "Rerun with a higher --limit if you want to fetch all new scrobbles in one go."
-            )
-            # When capped, do not advance state so that remaining unfetched scrobbles are not skipped
-            scrobble_count_to_save = last_scrobble_count
+        # Fetch all new scrobbles on subsequent runs
+        limit = computed_limit
         print(f"Fetching {limit} new scrobbles (was {last_scrobble_count}, now {current_count}).")
 
-    scrobbles = user.get_recent_tracks_scrobbles(limit, scrobbles_minimum, period)
-    for scrobble in scrobbles:
-        print(scrobble)
+    # Get scrobbles generator
+    scrobbles_gen = user.get_recent_tracks_scrobbles(limit, scrobbles_minimum, period, period_minimum)
+
+    if interactive:
+        # Collect all results first so exceptions/logs surface before editor opens
+        scrobbles = list(scrobbles_gen)
+        lines = sorted(set(scrobbles))
+        if not lines:
+            print("No results to open in editor.")
+            save_lastfm_state(scrobble_count_to_save)
+            return
+
+        editor = os.environ.get("VISUAL") or os.environ.get("EDITOR", "vim")
+        editor_args = shlex.split(editor)
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False, encoding="utf-8", newline="\n") as f:
+            f.write("\n".join(lines))
+            tmp = f.name
+        try:
+            result = subprocess.run([*editor_args, tmp])
+        finally:
+            os.unlink(tmp)
+        if result.returncode != 0:
+            print(f"Editor command {' '.join(editor_args)} exited with status {result.returncode}.")
+            print("Not advancing Last.FM state; please fix the editor issue and retry.")
+            return
+    else:
+        # Stream output in non-interactive mode
+        for scrobble in scrobbles_gen:
+            print(scrobble)
 
     save_lastfm_state(scrobble_count_to_save)
 
@@ -95,7 +113,17 @@ def lastfm_cli(args, config):
 
     match args.command:
         case "recent-scrobbles":
-            recent_scrobbles(user, args.limit, args.scrobbles_minimum, args.period, args.since_last_time)
+            # Use config default for scrobbles_minimum if not explicitly passed
+            scrobbles_minimum = args.scrobbles_minimum
+            if scrobbles_minimum is None:
+                scrobbles_minimum = config.get("lastfm", {}).get("scrobbles_minimum", 4)
+
+            # Use config default for period_minimum if not explicitly passed
+            period_minimum = args.period_minimum
+            if period_minimum is None:
+                period_minimum = config.get("lastfm", {}).get("period_minimum")
+
+            recent_scrobbles(user, args.limit, scrobbles_minimum, args.period, period_minimum, args.interactive)
 
 
 def spotify_cli(args, config):
@@ -166,7 +194,7 @@ def main():
     parser = argparse.ArgumentParser(
         prog="spotfm",
     )
-    parser.add_argument("-i", "--info", action="store_true")
+    parser.add_argument("--info", action="store_true")
     parser.add_argument("-v", "--verbose", action="store_true")
     subparsers = parser.add_subparsers(required=True, dest="group")
 
@@ -177,15 +205,33 @@ def main():
         "--limit",
         default=50,
         type=_positive_int,
-        help="Number of recent scrobbles to fetch (when --since-last-time is set, caps the computed diff to prevent unexpectedly large fetches)",
+        help="Number of recent scrobbles to fetch on first run (default: 50; on subsequent runs, all new scrobbles are fetched and --limit is ignored)",
     )
-    lastfm_parser.add_argument("-s", "--scrobbles-minimum", default=4, type=_non_negative_int)
-    lastfm_parser.add_argument("-p", "--period", default=90, type=_positive_int)
     lastfm_parser.add_argument(
-        "--since-last-time",
+        "-s",
+        "--scrobbles-minimum",
+        default=None,
+        type=_non_negative_int,
+        help="Minimum total scrobbles to include in results (uses config value or 4 if not specified)",
+    )
+    lastfm_parser.add_argument(
+        "-p",
+        "--period",
+        default=90,
+        type=_positive_int,
+        help="Period in days to count scrobbles within (default: 90)",
+    )
+    lastfm_parser.add_argument(
+        "--period-minimum",
+        default=None,
+        type=_non_negative_int,
+        help="Minimum scrobbles in the period window (default: unset, i.e. no filter)",
+    )
+    lastfm_parser.add_argument(
+        "-i",
+        "--interactive",
         action="store_true",
-        default=False,
-        help="Automatically fetch scrobbles added since the last run (reads/writes ~/.spotfm/lastfm_state.json)",
+        help="Open results in $EDITOR (or vim) with deduplication",
     )
 
     spotify_parser = subparsers.add_parser("spotify")

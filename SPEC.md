@@ -314,19 +314,51 @@ spfm spotify find-duplicate-names -o similar.csv
 ### Last.FM Commands
 
 #### `recent-scrobbles`
-**Purpose**: Fetch recent listening history from Last.FM
+**Purpose**: Fetch recent listening history from Last.FM with automatic state tracking
+
+**State Tracking Behavior**:
+- **First run**: Initializes state file (`~/.spotfm/lastfm_state.json`) with current playcount, fetches up to `--limit` scrobbles
+- **Subsequent runs**: Fetches ALL new scrobbles since last run (ignores `--limit`), auto-updates state
+- **State file**: Stores `last_scrobble_count` and `last_run_date` for tracking
+- **Error handling**: If fetch fails, state is not advanced (safe rollback)
 
 **Parameters**:
-- `-l, --limit`: Max scrobbles to fetch (default: 50)
-- `-s, --scrobbles-minimum`: Minimum scrobbles threshold (default: 4)
-- `-p, --period`: Period in days (default: 90)
+- `-l, --limit`: Scrobbles to fetch on first run (default: 50; ignored on subsequent runs)
+- `-s, --scrobbles-minimum`: Minimum total scrobbles to include (default: 4, configurable via `spotfm.toml`)
+- `-p, --period`: Period in days to count scrobbles within (default: 90)
+- `--period-minimum`: Minimum scrobbles required in period window (default: unset = no filter; configurable via `spotfm.toml`)
+- `-i, --interactive`: Open results in `$EDITOR` with automatic deduplication (default: false)
 
-**Output**: Timestamped list of tracks and artists
+**Config Defaults** (optional in `spotfm.toml`):
+```toml
+[lastfm]
+scrobbles_minimum = 2   # Minimum total scrobbles (default: 4)
+```
 
-**Example**:
+**Output**: Deduplicated list of tracks with format: `Artist - Title - period_scrobbles - total_scrobbles - url`
+
+**Examples**:
 ```bash
+# Basic: Initialize state and fetch 50 scrobbles
 spfm lastfm recent-scrobbles
-spfm lastfm recent-scrobbles -l 100 -s 5
+
+# First run with custom limit
+spfm lastfm recent-scrobbles -l 100
+
+# Subsequent runs: Automatically fetches all new scrobbles
+spfm lastfm recent-scrobbles
+
+# Filter by minimum scrobbles in period
+spfm lastfm recent-scrobbles --period-minimum 2
+
+# Interactive mode with deduplication in editor
+spfm lastfm recent-scrobbles -i
+
+# Combine filters: total ≥2 AND period ≥2
+spfm lastfm recent-scrobbles -s 2 --period-minimum 2
+
+# With config defaults, interactive mode
+spfm lastfm recent-scrobbles -i
 ```
 
 ---

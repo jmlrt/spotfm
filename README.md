@@ -90,8 +90,28 @@ spfm spotify find-relinked-tracks -o output.csv  # Save to CSV
 ### Last.FM Commands
 
 ```bash
-# Fetch recent scrobbles
+# Fetch recent scrobbles (auto-tracks state: first run initializes, subsequent runs fetch new only)
 spfm lastfm recent-scrobbles
+
+# Filter by minimum scrobbles in period window
+spfm lastfm recent-scrobbles --period-minimum 2
+
+# Open results in editor with automatic deduplication
+spfm lastfm recent-scrobbles -i
+
+# Combine config defaults with interactive mode (if configured)
+spfm lastfm recent-scrobbles -i -s 3 --period-minimum 2
+```
+
+**Configuration** (optional, in `spotfm.toml`):
+```toml
+[lastfm]
+api_key = "..."
+api_secret = "..."
+username = "..."
+password_hash = "..."
+scrobbles_minimum = 2      # Minimum total scrobbles (default: 4)
+period_minimum = 1         # Minimum in period window (unset/omitted: no filter; 1: require ≥1 in period)
 ```
 
 ## Development
