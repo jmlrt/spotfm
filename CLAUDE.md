@@ -53,7 +53,7 @@ A Python library and CLI tool for Spotify and Last.FM API interaction. Focuses o
 
 ## Code Style & Requirements
 
-- **Python**: 3.11+ (match/case statements)
+- **Python**: 3.14+ (PEP 758 bracketless exception syntax)
 - **Formatting**: ruff (120 char line length)
 - **Testing**: ≥90% coverage on modified code before committing
 - **String Safety**: `utils.sanitize_string()` removes single quotes (SQL safety)

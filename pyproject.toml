@@ -7,7 +7,7 @@ name = "spotfm"
 version = "0.0.4"
 description = "Simple Python lib to interact with Spotify and Last.FM APIs"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.14"
 license = {file = "LICENSE"}
 authors = [{name = "Julien Mailleret", email = "julien@mailleret.fr"}]
 dependencies = [

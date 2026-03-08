@@ -101,10 +101,10 @@ uv run pytest -k "test_name"
 
 The project uses:
 
-- **Language**: Python 3.11+ (uses match/case statements)
+- **Language**: Python 3.14+ (uses PEP 758 bracketless exception syntax)
 - **Formatter**: ruff (120 character line length)
 - **Linter**: ruff (checks run via pre-commit hooks)
-- **Type checking**: Built-in type hints (Python 3.11+)
+- **Type checking**: Built-in type hints (Python 3.14+)
 
 ### Pre-commit Hooks
 

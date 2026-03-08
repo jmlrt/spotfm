@@ -5,7 +5,7 @@
 # - Every pull request targeting main
 #
 # Test Matrix:
-# - Python versions: 3.11, 3.12, 3.13, 3.14
+# - Python version: 3.14 (minimum required version)
 # - Operating systems: Ubuntu (Linux), macOS
 #
 # Test flow:
@@ -32,7 +32,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
-        python-version: ["3.11", "3.12", "3.13", "3.14"]
+        python-version: ["3.14"]
 
     steps:
       - name: Checkout code
@@ -62,7 +62,7 @@ jobs:
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
-        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.14'
+        if: matrix.os == 'ubuntu-latest'
         with:
           file: ./coverage.xml
           flags: unittests
