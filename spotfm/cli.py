@@ -68,13 +68,17 @@ def recent_scrobbles(user, limit, scrobbles_minimum, period, period_minimum, int
 
         editor = os.environ.get("VISUAL") or os.environ.get("EDITOR", "vim")
         editor_args = shlex.split(editor)
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False, encoding="utf-8", newline="\n") as f:
             f.write("\n".join(lines))
             tmp = f.name
         try:
-            subprocess.run([*editor_args, tmp])
+            result = subprocess.run([*editor_args, tmp])
         finally:
             os.unlink(tmp)
+        if result.returncode != 0:
+            print(f"Editor command {' '.join(editor_args)} exited with status {result.returncode}.")
+            print("Not advancing Last.FM state; please fix the editor issue and retry.")
+            return
     else:
         # Stream output in non-interactive mode
         for scrobble in scrobbles_gen:

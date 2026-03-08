@@ -179,7 +179,7 @@ class TestRecentScrobblesCli:
 
         with (
             patch("spotfm.lastfm.LASTFM_STATE_FILE", state_file),
-            patch.dict("os.environ", {"EDITOR": "vim"}),
+            patch.dict("os.environ", {"EDITOR": "vim", "VISUAL": ""}),
             patch("subprocess.run") as mock_run,
             patch("spotfm.cli.os.unlink") as mock_unlink,
         ):
