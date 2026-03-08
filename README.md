@@ -92,10 +92,6 @@ spfm spotify find-relinked-tracks -o output.csv  # Save to CSV
 ```bash
 # Fetch recent scrobbles
 spfm lastfm recent-scrobbles
-
-# Get top tracks by period
-spfm lastfm top-tracks --period month
-spfm lastfm top-tracks --period year
 ```
 
 ## Development

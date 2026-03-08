@@ -38,7 +38,7 @@ A Python library and CLI tool for Spotify and Last.FM API interaction. Focuses o
 
 **Entity Lifecycle Pattern** (Track, Album, Artist, Playlist):
 - `get_{entity}(id, client, refresh=False, sync_to_db=True)` - Entry point
-- `update_from_cache()` → `update_from_db()` → `update_from_api(client)` → `sync_to_db()`
+- `retrieve_object_from_cache()` → `update_from_db()` → `update_from_api(client)` → `sync_to_db()`
 
 **Module Map:**
 - `spotfm/cli.py` - CLI entry point, argument parsing
@@ -62,7 +62,7 @@ A Python library and CLI tool for Spotify and Last.FM API interaction. Focuses o
 
 1. **Rate Limiting**: `sleep()` calls prevent Spotify 429 errors - do not remove without understanding impact
 2. **SQL Injection Risk**: F-strings used in queries (TODO: migrate to parameterized)
-3. **Batch Operations**: Default batch size 90 (BATCH_SIZE constant)
+3. **Batch Operations**: Default batch sizes: 50 for tracks (`BATCH_SIZE`), 20 for albums (`ALBUM_BATCH_SIZE`)
 4. **Global DB Connection**: `spotfm/sqlite.py` uses module-level singleton with atexit cleanup
 5. **Duplicate Detection**: Operates on SQLite only, no API calls (optimization)
 

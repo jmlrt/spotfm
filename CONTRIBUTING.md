@@ -47,8 +47,6 @@ Follow these practices:
 make test           # Quick test run
 make format         # Auto-fix code style
 make lint           # Check for issues
-make typecheck      # Type checking
-make check          # Full quality check (run before commit!)
 ```
 
 ### 3. Commit Changes
@@ -76,14 +74,11 @@ Co-Authored-By: Your Name <your.email@example.com>
 Before submitting a PR:
 
 ```bash
-# Run full quality check
-make check
-
 # Run specific test file
 uv run pytest tests/test_something.py
 
 # Run tests with coverage
-make test-cov
+make test-coverage
 
 # Test specific functionality
 uv run pytest -k "test_name"
@@ -169,7 +164,7 @@ uv run pytest tests/test_track.py::TestTrack::test_something
 ### Critical Patterns
 
 1. **Three-Tier Caching**: Pickle → SQLite → Spotify API
-2. **Entity Lifecycle**: `get_*()` → `update_from_cache()` → `update_from_db()` → `update_from_api()` → `sync_to_db()`
+2. **Entity Lifecycle**: `get_*()` → `retrieve_object_from_cache()` → `update_from_db()` → `update_from_api()` → `sync_to_db()`
 3. **Orphaned Tracks**: Never delete (they prevent re-adding removed tracks)
 4. **String Sanitization**: Always use `utils.sanitize_string()` for SQL safety
 
@@ -177,7 +172,7 @@ uv run pytest tests/test_track.py::TestTrack::test_something
 
 - Read the [Critical Warnings](CLAUDE.md#critical-warnings-️) in CLAUDE.md
 - Check [Key Implementation Notes](CLAUDE.md#key-implementation-notes) for context
-- Understand [Track Lifecycle Tracking](README.md#track-lifecycle-tracking) implications
+- Understand [Track Lifecycle Tracking](SPEC.md#track-lifecycle-timestamps) implications
 
 ## Common Tasks
 

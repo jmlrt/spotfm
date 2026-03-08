@@ -61,7 +61,7 @@ spotfm/
 │   ├── track.py        # Track entity with lifecycle tracking
 │   ├── album.py        # Album entity with relationships
 │   ├── artist.py       # Artist entity with genres
-│   ├── playlist.py      # Playlist entity with batch operations
+│   ├── playlist.py     # Playlist entity with batch operations
 │   ├── dupes.py        # Duplicate detection (ID, fuzzy match)
 │   ├── misc.py         # High-level commands (discover, add, count)
 │   └── constants.py    # BATCH_SIZE, MARKET, etc.
@@ -183,7 +183,7 @@ track = Track.get_track("spotify:track:123", client)
 
 ### 2. Loading Phase
 
-a. **`update_from_cache()`**: Load from pickle file
+a. **Cache load via `utils.retrieve_object_from_cache(kind, id)`**: Load from pickle file
    - If exists and not stale: return early
 
 b. **`update_from_db(client)`**: Load from SQLite
@@ -204,7 +204,7 @@ c. **`update_from_api(client)`**: Fetch from Spotify API
 
 ---
 
-## Caching Strategy
+## Orphaned Tracks & Track Lifecycle
 
 ### Orphaned Tracks (CRITICAL)
 
@@ -404,7 +404,7 @@ playlist_name = sanitize_string(user_input)  # Removes single quotes
 **Rationale**:
 - Spotify rate limit: ~10 requests/second
 - Sleep ensures we stay under limit
-- Batch size 90 matches API limits
+- Batch size 50 matches API limits
 
 **Do not remove** without understanding impact.
 
@@ -451,7 +451,7 @@ def test_track_sync(self, temp_database, temp_cache_dir, monkeypatch):
 GitHub Actions runs on all PRs:
 - Multiple Python versions (3.11, 3.12, 3.13, 3.14)
 - Multiple platforms (Ubuntu, macOS)
-- Lint, typecheck, and full test suite
+- Full test suite
 
 ---
 
@@ -466,15 +466,15 @@ See [TODO.md](TODO.md) for detailed specifications:
    - Summary results (e.g., "discovered 12 new tracks from Indie Mix")
    - Less noise in standard output mode
 
-2. **Random Playlist Generator** (LOW)
+2. **Duplicate Detection Improvements** (MEDIUM)
+   - Smart suffix parsing (ignore "- 2011 remaster", "- Nouvelle Ecole")
+   - Better track core comparison
+
+3. **Random Playlist Generator** (LOW)
    - Command: `spfm spotify random-playlist <size>`
    - Config: `random_exclude_playlists`, `random_history_runs`
    - Tracks selection without replacement
    - Implementation effort: ~1-2 hours
-
-3. **Duplicate Detection Improvements** (MEDIUM)
-   - Smart suffix parsing (ignore "- 2011 remaster", "- Nouvelle Ecole")
-   - Better track core comparison
 
 4. **CHANGELOG Automation** (LOW)
    - Auto-generate release notes from commits

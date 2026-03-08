@@ -76,7 +76,7 @@ See [TODO.md](TODO.md) for detailed feature specifications:
 - 240+ tests covering unit, integration, and CLI scenarios
 - Target: ≥90% coverage on modified code
 - Continuous integration on Python 3.11, 3.12, 3.13, 3.14
-- Multi-platform testing (Ubuntu, macOS, Windows)
+- Multi-platform testing (Ubuntu, macOS)
 
 ---
 
