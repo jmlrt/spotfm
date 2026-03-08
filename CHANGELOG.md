@@ -27,15 +27,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Commit strategy guidance (only commit changed files, not all files)
 
 **Configuration & Tooling**:
-- Deny list in .claude/settings.json to prevent dangerous operations
-- Consolidated git/gh subcommands into Bash(git:*) and Bash(gh:*)
+- Added deny list to .claude/settings.json for security
+- Consolidated git/gh subcommands to reduce permissions
 
 ### Changed
 
 **Documentation Refactoring**:
-- CLAUDE.md: 430 → 71 lines (lean 1-page quick reference with navigation)
-- README.md: 242 → 171 lines (eliminated duplication, user-focused)
-- .claude/settings.json: 45 → 20 permissions (57% reduction)
+- CLAUDE.md: Refactored to lean 1-page quick reference with navigation
+- README.md: Consolidated and user-focused (removed duplication)
 - Makefile: Updated test-all-versions to only test Python 3.14
 
 **Code Quality**:
