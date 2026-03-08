@@ -16,6 +16,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+**Last.FM Recent Scrobbles Enhancements**:
+- **State tracking now default** for `recent-scrobbles` command
+  - First run initializes state file with current playcount; fetches up to `--limit` scrobbles (default 50)
+  - Subsequent runs automatically fetch ALL new scrobbles since last run (ignores `--limit`)
+  - State file (`~/.spotfm/lastfm_state.json`) safely rolls back on fetch errors
+- **Period filtering** via `--period-minimum` flag
+  - Filter tracks by minimum scrobbles within period window (default: no filter)
+  - Works with `--scrobbles-minimum` to apply both filters (AND logic)
+  - Configurable via `period_minimum` in `spotfm.toml`
+- **Interactive mode** via `--interactive`/`-i` flag
+  - Open results in `$EDITOR` with automatic deduplication
+  - Safe temp file handling with cleanup
+  - Only opens editor if results exist
+- **Config-based defaults**
+  - `scrobbles_minimum` option in `spotfm.toml` (default: 4)
+  - `period_minimum` option in `spotfm.toml` (default: unset = no filter)
+  - Eliminates need to repeatedly type `-s` flag
+- **Fixed CLI flag conflict**
+  - Dropped `-i` short form from top-level `--info` flag (now exclusive to `--interactive`)
+
 **Documentation** (new comprehensive guides):
 - `SPEC.md` (8K) - Architecture, design decisions, features, data model
 - `CONTRIBUTING.md` (5.5K) - Development workflow, testing, code style
