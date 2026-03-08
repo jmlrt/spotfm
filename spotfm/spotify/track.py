@@ -230,20 +230,21 @@ class Track:
             album_ids.append(raw_track["album"]["id"])
             artist_ids.extend([artist["id"] for artist in raw_track["artists"]])
 
-        # Batch fetch albums and artists
-        # rate_limit=False: Phase 2 already rate limits via SUBMIT_DELAY, skip internal sleeps
+        # Batch fetch albums and artists (respecting internal rate limiting)
+        # Rate limiting is essential here: the parallel track phase ends and a burst of
+        # album/artist API calls could spike the request rate and trigger 429 limits.
         albums_dict = {}
         if album_ids:
             logging.info("Batch fetching albums (checking cache first)")
             unique_album_ids = list(dict.fromkeys(album_ids))
-            albums = Album.get_albums(unique_album_ids, client, refresh=refresh, rate_limit=False)
+            albums = Album.get_albums(unique_album_ids, client, refresh=refresh, rate_limit=True)
             albums_dict = {album.id: album for album in albums if album is not None}
 
         artists_dict = {}
         if artist_ids:
             logging.info("Batch fetching artists (checking cache first)")
             unique_artist_ids = list(dict.fromkeys(artist_ids))
-            artists = Artist.get_artists(unique_artist_ids, client, refresh=refresh, rate_limit=False)
+            artists = Artist.get_artists(unique_artist_ids, client, refresh=refresh, rate_limit=True)
             artists_dict = {artist.id: artist for artist in artists if artist is not None}
 
         # Populate album.artists
