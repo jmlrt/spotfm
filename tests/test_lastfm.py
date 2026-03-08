@@ -74,17 +74,18 @@ class TestRecentScrobblesCli:
         state = read_lastfm_state(state_file=state_file)
         assert state["last_scrobble_count"] == 150
 
-    def test_since_last_time_no_state_file(self, tmp_path, capsys):
-        """Test --since-last-time with no state file prints helpful message."""
+    def test_first_run_initializes_state(self, tmp_path, capsys):
+        """Test first run with no state file initializes tracking and fetches limit scrobbles."""
         state_file = tmp_path / "nonexistent.json"
         user = self._make_user()
 
         with patch("spotfm.lastfm.LASTFM_STATE_FILE", state_file):
-            recent_scrobbles(user, limit=10, scrobbles_minimum=0, period=90, since_last_time=True)
+            recent_scrobbles(user, limit=10, scrobbles_minimum=0, period=90)
 
         captured = capsys.readouterr()
-        assert "No previous state found" in captured.out
-        user.get_recent_tracks_scrobbles.assert_not_called()
+        assert "Initializing scrobble tracking" in captured.out
+        # Should fetch the limit amount on first run
+        user.get_recent_tracks_scrobbles.assert_called_once_with(10, 0, 90)
 
     def test_since_last_time_no_new_scrobbles(self, tmp_path, capsys):
         """Test --since-last-time when count has not changed."""
@@ -93,7 +94,7 @@ class TestRecentScrobblesCli:
         user = self._make_user(playcount=150)
 
         with patch("spotfm.lastfm.LASTFM_STATE_FILE", state_file):
-            recent_scrobbles(user, limit=10, scrobbles_minimum=0, period=90, since_last_time=True)
+            recent_scrobbles(user, limit=10, scrobbles_minimum=0, period=90)
 
         captured = capsys.readouterr()
         assert "No new scrobbles" in captured.out
@@ -106,7 +107,7 @@ class TestRecentScrobblesCli:
         user = self._make_user(playcount=173)
 
         with patch("spotfm.lastfm.LASTFM_STATE_FILE", state_file):
-            recent_scrobbles(user, limit=100, scrobbles_minimum=0, period=90, since_last_time=True)
+            recent_scrobbles(user, limit=100, scrobbles_minimum=0, period=90)
 
         user.get_recent_tracks_scrobbles.assert_called_once()
         call_args = user.get_recent_tracks_scrobbles.call_args
@@ -120,7 +121,7 @@ class TestRecentScrobblesCli:
 
         # limit is greater than the diff (38), so all new scrobbles are fetched
         with patch("spotfm.lastfm.LASTFM_STATE_FILE", state_file):
-            recent_scrobbles(user, limit=100, scrobbles_minimum=0, period=90, since_last_time=True)
+            recent_scrobbles(user, limit=100, scrobbles_minimum=0, period=90)
 
         state = read_lastfm_state(state_file=state_file)
         assert state["last_scrobble_count"] == 173
@@ -133,7 +134,7 @@ class TestRecentScrobblesCli:
 
         # Even though limit is 10 and diff is 38, --since-last-time fetches all 38
         with patch("spotfm.lastfm.LASTFM_STATE_FILE", state_file):
-            recent_scrobbles(user, limit=10, scrobbles_minimum=0, period=90, since_last_time=True)
+            recent_scrobbles(user, limit=10, scrobbles_minimum=0, period=90)
 
         state = read_lastfm_state(state_file=state_file)
         # State should advance to current count since we fetch all scrobbles
@@ -146,15 +147,15 @@ class TestRecentScrobblesCli:
         user = self._make_user(playcount=173)
 
         with patch("spotfm.lastfm.LASTFM_STATE_FILE", state_file):
-            recent_scrobbles(user, limit=100, scrobbles_minimum=0, period=90, since_last_time=True)
+            recent_scrobbles(user, limit=100, scrobbles_minimum=0, period=90)
 
         captured = capsys.readouterr()
         assert "38" in captured.out
         assert "135" in captured.out
         assert "173" in captured.out
 
-    def test_no_since_last_time_passes_original_limit(self, tmp_path):
-        """Test that without --since-last-time the original limit is passed through."""
+    def test_first_run_uses_limit_parameter(self, tmp_path):
+        """Test that on first run (no state file), the limit parameter is used."""
         state_file = tmp_path / "lastfm_state.json"
         user = self._make_user(playcount=200)
 

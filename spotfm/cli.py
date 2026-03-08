@@ -24,26 +24,22 @@ def _non_negative_int(value):
     return ivalue
 
 
-def recent_scrobbles(user, limit, scrobbles_minimum, period, since_last_time=False):
+def recent_scrobbles(user, limit, scrobbles_minimum, period):
     current_count = user.get_playcount()
-    scrobble_count_to_save = current_count  # Track what state to save (may differ from current_count if capped)
+    scrobble_count_to_save = current_count  # Track what state to save
 
-    if since_last_time:
-        state = read_lastfm_state()
-        if state is None:
-            print(
-                "No previous state found. Initializing state with current playcount; "
-                "no scrobbles fetched this run. Run once without --since-last-time to "
-                "fetch existing scrobbles, then rerun with --since-last-time to get "
-                "only new ones."
-            )
-            save_lastfm_state(current_count)
-            return
+    state = read_lastfm_state()
+    if state is None:
+        # First run: initialize state with current count, fetch --limit scrobbles
+        print(f"Initializing scrobble tracking. Fetching up to {limit} recent scrobbles.")
+        save_lastfm_state(current_count)
+    else:
+        # Subsequent runs: fetch all new scrobbles since last run
         last_scrobble_count = None
         if isinstance(state, dict):
             last_scrobble_count = state.get("last_scrobble_count")
         if not isinstance(last_scrobble_count, int):
-            print("No valid previous state found. Run once without --since-last-time to initialize.")
+            print("Invalid previous state. Re-initializing scrobble tracking.")
             save_lastfm_state(current_count)
             return
         computed_limit = current_count - last_scrobble_count
@@ -51,7 +47,7 @@ def recent_scrobbles(user, limit, scrobbles_minimum, period, since_last_time=Fal
             print("No new scrobbles since last run.")
             save_lastfm_state(current_count)
             return
-        # Fetch all new scrobbles (ignore --limit default); user can still cap with explicit --limit if needed
+        # Fetch all new scrobbles on subsequent runs
         limit = computed_limit
         print(f"Fetching {limit} new scrobbles (was {last_scrobble_count}, now {current_count}).")
 
@@ -88,7 +84,7 @@ def lastfm_cli(args, config):
 
     match args.command:
         case "recent-scrobbles":
-            recent_scrobbles(user, args.limit, args.scrobbles_minimum, args.period, args.since_last_time)
+            recent_scrobbles(user, args.limit, args.scrobbles_minimum, args.period)
 
 
 def spotify_cli(args, config):
@@ -170,16 +166,10 @@ def main():
         "--limit",
         default=50,
         type=_positive_int,
-        help="Number of recent scrobbles to fetch (default: 50; with --since-last-time, fetches all new scrobbles unless you specify a --limit cap)",
+        help="Number of recent scrobbles to fetch (default: 50 on first run; on subsequent runs, fetches all new scrobbles unless capped with --limit)",
     )
     lastfm_parser.add_argument("-s", "--scrobbles-minimum", default=4, type=_non_negative_int)
     lastfm_parser.add_argument("-p", "--period", default=90, type=_positive_int)
-    lastfm_parser.add_argument(
-        "--since-last-time",
-        action="store_true",
-        default=False,
-        help="Automatically fetch scrobbles added since the last run (reads/writes ~/.spotfm/lastfm_state.json)",
-    )
 
     spotify_parser = subparsers.add_parser("spotify")
     spotify_parser.add_argument(
