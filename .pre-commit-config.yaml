@@ -11,9 +11,9 @@ repos:
       - id: debug-statements
       - id: no-commit-to-branch
         args: [--branch, main, --branch, master]
-        stages: [commit]
+        stages: [pre-commit]
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.10
+    rev: v0.15.5
     hooks:
       - id: ruff
         args: [--fix]
