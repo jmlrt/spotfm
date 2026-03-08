@@ -8,12 +8,12 @@
 # - Python versions: 3.11, 3.12, 3.13, 3.14
 # - Operating systems: Ubuntu (Linux), macOS
 #
-# Stages:
-# 1. Unit tests: Fast tests with no external dependencies
-# 2. Integration tests: Tests that use temp databases
-# 3. Coverage: Full test suite with coverage report
-# 4. Coverage upload: Sends coverage to Codecov (Linux + Python 3.14 only)
-# 5. Test summary: Final status check
+# Test flow:
+# 1. Unit tests (step in `test` job): Fast tests with no external dependencies
+# 2. Integration tests (step in `test` job): Tests that use temp databases
+# 3. Coverage (step in `test` job): Full test suite with coverage report
+# 4. Coverage upload (step in `test` job): Sends coverage to Codecov (Linux + Python 3.14 only)
+# 5. Test summary (separate `test-summary` job): Final status check
 
 name: Tests
 

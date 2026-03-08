@@ -39,9 +39,9 @@ git checkout -b feature/your-feature-name
 
 Follow these practices:
 
-- **One change per commit**: Each commit should be atomic and pass `make check`
+- **One change per commit**: Each commit should be atomic and pass tests (`make test`) and linting (`make lint`)
 - **Test-driven development**: Write tests before or alongside code
-- **Run quality checks**: Before committing, run `make check`
+- **Run quality checks**: Before committing, run `make test` and `make lint`
 
 ```bash
 # During development

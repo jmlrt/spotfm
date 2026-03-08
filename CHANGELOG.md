@@ -20,8 +20,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Makefile enhanced with help target and organized command groups
 - Architecture documentation moved to code docstrings (track.py, sqlite.py, misc.py)
 - Testing patterns documented in conftest.py docstrings
-
-### Changed
 - SQL injection risk documentation (TODO: migrate to parameterized queries)
 - Rate limiting documentation clarified with actual sleep pattern locations
 

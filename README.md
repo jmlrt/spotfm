@@ -154,7 +154,7 @@ Quick start:
 ```bash
 make install           # Setup development environment
 make test              # Run tests
-make check             # Full quality check (lint + tests)
+make lint              # Check code style
 git checkout -b feature/your-feature  # Create feature branch
 ```
 
