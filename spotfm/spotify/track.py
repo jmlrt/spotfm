@@ -124,10 +124,14 @@ class Track:
 
         Strategy:
         1. Check cache/DB for all tracks first (respects 3-tier cache)
-        2. Fetch missing tracks individually from API (Spotify removed batch endpoint)
-        3. Collect album/artist IDs from missing tracks
-        4. Batch fetch only missing albums and artists
-        5. Return all tracks (cached + newly fetched)
+        2. Fetch missing tracks individually from API using get_track()
+           - Each get_track() call fetches its own track, album, and artists
+           - Caching is leveraged at each level for efficiency
+        3. Return all tracks (cached + newly fetched)
+
+        Note: Previously this method batch-fetched albums/artists, but Spotify
+        removed batch endpoints (Feb 2026). Now each get_track() handles its own
+        dependencies. Consider optimizing this for better performance.
         """
         if not tracks_id:
             return []
@@ -161,7 +165,9 @@ class Track:
         logging.info(f"Retrieved {len(tracks)} tracks from cache/DB, fetching {len(tracks_to_fetch)} from API")
 
         # Phase 2: Fetch missing tracks individually (Spotify removed batch endpoint)
-        # Use get_track() for each missing track to leverage its cache hierarchy
+        # Note: get_track() re-checks cache/DB for each track (redundant since we already know
+        # they're missing). This is acceptable for correctness but could be optimized with a
+        # fast-path for known-missing IDs that fetches directly from API.
         for i, track_id in enumerate(tracks_to_fetch):
             try:
                 track = cls.get_track(track_id, client, refresh=refresh, sync_to_db=True)
