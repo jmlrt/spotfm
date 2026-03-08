@@ -179,17 +179,21 @@ class TestRecentScrobblesCli:
 
         with (
             patch("spotfm.lastfm.LASTFM_STATE_FILE", state_file),
+            patch.dict("os.environ", {"EDITOR": "vim"}),
             patch("subprocess.run") as mock_run,
-            patch("os.unlink") as mock_unlink,
+            patch("spotfm.cli.os.unlink") as mock_unlink,
         ):
             recent_scrobbles(user, limit=10, scrobbles_minimum=0, period=90, period_minimum=None, interactive=True)
 
-        # Verify subprocess.run was called with an editor (vim, vi, or nvim)
+        # Verify subprocess.run was called
         assert mock_run.called
         call_args = mock_run.call_args[0][0]
-        assert call_args[0] in ["vim", "vi", "nvim"]  # Should be an editor
+        # First element should be the editor command
+        assert call_args[0] == "vim"
+        # Last element should be the temp file path
+        assert call_args[-1].endswith(".txt")
 
-        # Verify temp file was created and cleaned up
+        # Verify temp file was cleaned up
         assert mock_unlink.called
 
     def test_interactive_mode_empty_results(self, tmp_path, capsys):
@@ -579,7 +583,7 @@ class TestGetRecentTracksScrobbles:
         with pytest.raises(UnknownPeriodError) as exc_info:
             list(user.get_recent_tracks_scrobbles(period=999, period_minimum=None))
 
-        assert "period shoud be part of" in str(exc_info.value)
+        assert "period should be part of" in str(exc_info.value)
         assert str(PREDEFINED_PERIODS) in str(exc_info.value)
 
     @freeze_time("2024-01-15 12:00:00")

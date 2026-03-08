@@ -86,7 +86,7 @@ class User:
             period_minimum: Minimum scrobbles in the period window (None = no filter)
         """
         if period not in PREDEFINED_PERIODS:
-            raise UnknownPeriodError(f"period shoud be part of {PREDEFINED_PERIODS}")
+            raise UnknownPeriodError(f"period should be part of {PREDEFINED_PERIODS}")
 
         # Fetch recent tracks (1 API call)
         recent_tracks = self.user.get_recent_tracks(limit=limit)

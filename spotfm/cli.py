@@ -1,6 +1,7 @@
 import argparse
 import logging
 import os
+import shlex
 import subprocess
 import tempfile
 
@@ -35,7 +36,6 @@ def recent_scrobbles(user, limit, scrobbles_minimum, period, period_minimum, int
     if state is None:
         # First run: initialize state with current count, fetch --limit scrobbles
         print(f"Initializing scrobble tracking. Fetching up to {limit} recent scrobbles.")
-        save_lastfm_state(current_count)
     else:
         # Subsequent runs: fetch all new scrobbles since last run
         last_scrobble_count = None
@@ -54,10 +54,12 @@ def recent_scrobbles(user, limit, scrobbles_minimum, period, period_minimum, int
         limit = computed_limit
         print(f"Fetching {limit} new scrobbles (was {last_scrobble_count}, now {current_count}).")
 
-    # Collect all results first so exceptions/logs surface before editor opens
-    scrobbles = list(user.get_recent_tracks_scrobbles(limit, scrobbles_minimum, period, period_minimum))
+    # Get scrobbles generator
+    scrobbles_gen = user.get_recent_tracks_scrobbles(limit, scrobbles_minimum, period, period_minimum)
 
     if interactive:
+        # Collect all results first so exceptions/logs surface before editor opens
+        scrobbles = list(scrobbles_gen)
         lines = sorted(set(scrobbles))
         if not lines:
             print("No results to open in editor.")
@@ -65,15 +67,17 @@ def recent_scrobbles(user, limit, scrobbles_minimum, period, period_minimum, int
             return
 
         editor = os.environ.get("VISUAL") or os.environ.get("EDITOR", "vim")
+        editor_args = shlex.split(editor)
         with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
             f.write("\n".join(lines))
             tmp = f.name
         try:
-            subprocess.run([editor, tmp])
+            subprocess.run([*editor_args, tmp])
         finally:
             os.unlink(tmp)
     else:
-        for scrobble in scrobbles:
+        # Stream output in non-interactive mode
+        for scrobble in scrobbles_gen:
             print(scrobble)
 
     save_lastfm_state(scrobble_count_to_save)
@@ -197,7 +201,7 @@ def main():
         "--limit",
         default=50,
         type=_positive_int,
-        help="First run: fetch up to this many recent scrobbles (default: 50). Subsequent runs: fetch all new scrobbles since last run",
+        help="Number of recent scrobbles to fetch on first run (default: 50; on subsequent runs, all new scrobbles are fetched and --limit is ignored)",
     )
     lastfm_parser.add_argument(
         "-s",
@@ -217,7 +221,7 @@ def main():
         "--period-minimum",
         default=None,
         type=_non_negative_int,
-        help="Minimum scrobbles in the period window (default: 1, i.e. no filter)",
+        help="Minimum scrobbles in the period window (default: unset, i.e. no filter)",
     )
     lastfm_parser.add_argument(
         "-i",
