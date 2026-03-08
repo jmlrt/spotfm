@@ -112,7 +112,7 @@ class Track:
         return track
 
     @classmethod
-    def get_tracks(cls, tracks_id, client=None, refresh=False):
+    def get_tracks(cls, tracks_id, client=None, refresh=False, rate_limit=True):
         """
         Fetch multiple tracks efficiently, leveraging cache/DB with ThreadPoolExecutor parallelization.
 
@@ -120,8 +120,14 @@ class Track:
         1. Check cache/DB for all tracks first (respects 3-tier cache)
         2. Parallelize fetching missing tracks from API (ThreadPoolExecutor with 5 workers)
         3. Collect album/artist IDs from missing tracks
-        4. Batch fetch only missing albums and artists
+        4. Batch fetch only missing albums and artists (respecting rate_limit parameter)
         5. Return all tracks (cached + newly fetched)
+
+        Args:
+            tracks_id: List of track IDs to fetch (URLs, URIs, or plain IDs)
+            client: Spotify client (optional)
+            refresh: Force refresh from API instead of using cache/DB
+            rate_limit: Enable rate limiting for API calls (default: True)
         """
         if not tracks_id:
             return []
@@ -231,21 +237,22 @@ class Track:
             album_ids.append(raw_track["album"]["id"])
             artist_ids.extend([artist["id"] for artist in raw_track["artists"]])
 
-        # Batch fetch albums and artists (respecting internal rate limiting)
-        # Rate limiting is essential here: the parallel track phase ends and a burst of
-        # album/artist API calls could spike the request rate and trigger 429 limits.
+        # Batch fetch albums and artists (respecting caller's rate limiting preference)
+        # When rate_limit=True (default): Apply 0.05s sleep between API calls (~20 req/s)
+        # When rate_limit=False: Skip sleeps (useful for testing or when caller manages rate limiting)
+        # Note: Parallel track phase ends and would spike request rate without rate limiting.
         albums_dict = {}
         if album_ids:
             logging.info("Batch fetching albums (checking cache first)")
             unique_album_ids = list(dict.fromkeys(album_ids))
-            albums = Album.get_albums(unique_album_ids, client, refresh=refresh, rate_limit=True)
+            albums = Album.get_albums(unique_album_ids, client, refresh=refresh, rate_limit=rate_limit)
             albums_dict = {album.id: album for album in albums if album is not None}
 
         artists_dict = {}
         if artist_ids:
             logging.info("Batch fetching artists (checking cache first)")
             unique_artist_ids = list(dict.fromkeys(artist_ids))
-            artists = Artist.get_artists(unique_artist_ids, client, refresh=refresh, rate_limit=True)
+            artists = Artist.get_artists(unique_artist_ids, client, refresh=refresh, rate_limit=rate_limit)
             artists_dict = {artist.id: artist for artist in artists if artist is not None}
 
         # Populate album.artists

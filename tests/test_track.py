@@ -780,6 +780,67 @@ class TestTrackGetTracks:
         assert len(tracks) == 2
         assert [t.id for t in tracks] == ["good1", "good2"]
 
+    def test_get_tracks_rate_limit_parameter(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
+        """Test that rate_limit parameter is passed through to Album/Artist helpers."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
+
+        track_ids = ["track1", "track2"]
+
+        def mock_track_response(id, market):
+            return {
+                "id": id,
+                "name": f"Track {id[-1]}",
+                "album": {"id": f"album{id[-1]}", "name": f"Album {id[-1]}"},
+                "artists": [{"id": f"artist{id[-1]}", "name": f"Artist {id[-1]}"}],
+            }
+
+        mock_spotify_client.track.side_effect = mock_track_response
+
+        def mock_album_response(id, market):
+            return {
+                "id": id,
+                "name": f"Album {id[-1]}",
+                "release_date": "2024-01-01",
+                "artists": [{"id": f"artist{id[-1]}", "name": f"Artist {id[-1]}"}],
+            }
+
+        mock_spotify_client.album.side_effect = mock_album_response
+
+        def mock_artist_response(id):
+            return {"id": id, "name": f"Artist {id[-1]}", "genres": []}
+
+        mock_spotify_client.artist.side_effect = mock_artist_response
+
+        # Patch sleep to track if it's called
+        with (
+            patch("spotfm.spotify.track.sleep") as mock_track_sleep,
+            patch("spotfm.spotify.album.sleep") as mock_album_sleep,
+            patch("spotfm.spotify.artist.sleep") as mock_artist_sleep,
+        ):
+            # With rate_limit=True (default), album/artist sleeps should be called
+            tracks = Track.get_tracks(track_ids, mock_spotify_client, rate_limit=True)
+            assert len(tracks) == 2
+            # Album/artist sleeps should have been called (rate limiting enabled)
+            assert mock_album_sleep.called or mock_artist_sleep.called
+
+        # Reset mocks
+        mock_track_sleep.reset_mock()
+        mock_album_sleep.reset_mock()
+        mock_artist_sleep.reset_mock()
+
+        # With rate_limit=False, album/artist sleeps should NOT be called
+        with (
+            patch("spotfm.spotify.track.sleep") as mock_track_sleep,
+            patch("spotfm.spotify.album.sleep") as mock_album_sleep,
+            patch("spotfm.spotify.artist.sleep") as mock_artist_sleep,
+        ):
+            tracks = Track.get_tracks(track_ids, mock_spotify_client, rate_limit=False)
+            assert len(tracks) == 2
+            # Album/artist sleeps should NOT be called (rate limiting disabled)
+            assert not mock_album_sleep.called
+            assert not mock_artist_sleep.called
+
 
 @pytest.mark.unit
 class TestTrackHelperMethods:
