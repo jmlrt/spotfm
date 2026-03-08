@@ -1,27 +1,31 @@
 {
   "permissions": {
     "allow": [
-      "Bash(cat:*)",
-      "Bash(chmod:*)",
-      "Bash(gh auth:*)",
-      "Bash(gh issue:*)",
-      "Bash(gh pr:*)",
-      "Bash(gh run:*)",
-      "Bash(GIT_EDITOR=true git rebase:*)",
       "Bash(git:*)",
-      "Bash(grep:*)",
-      "Bash(jq:*)",
-      "Bash(ls:*)",
+      "Bash(gh:*)",
       "Bash(make:*)",
-      "Bash(mkdir:*)",
-      "Bash(rm:*)",
+      "Bash(pre-commit:*)",
+      "Bash(python3 -m py_compile:*)",
       "Bash(ruff:*)",
       "Bash(spfm:*)",
       "Bash(time uv run:*)",
-      "Bash(tree:*)",
       "Bash(uv:*)",
+      "Bash(rm -rf .pytest_cache:*)",
+      "Bash(rm -rf .ruff_cache:*)",
+      "Bash(rm -rf __pycache__:*)",
+      "Bash(rm -rf build:*)",
+      "Bash(rm -rf dist:*)",
+      "Bash(rm -rf *.egg-info:*)",
       "Skill(create-pr:*)",
       "Skill(review-pr)"
+    ],
+    "deny": [
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(rm -rf /*:*)",
+      "Bash(rm -rf ~:*)",
+      "Bash(rm -rf ./:*)"
     ]
   }
 }

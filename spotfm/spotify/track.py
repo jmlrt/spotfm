@@ -1,3 +1,39 @@
+"""Track entity model with three-tier caching and lifecycle tracking.
+
+ARCHITECTURE:
+=============
+
+Track implements the three-tier caching pattern:
+1. Pickle cache (~/.cache/spotfm/track/{id}.pickle) - Fastest
+2. SQLite database (~/.spotfm/spotify.db) - Persistent
+3. Spotify API - Source of truth
+
+LIFECYCLE TRACKING:
+===================
+
+Tracks maintain timestamps to prevent re-adding intentionally removed tracks:
+
+- created_at: When track was first discovered (immutable, set once)
+- last_seen_at: Last time track appeared in any playlist (updated on every sync)
+
+Orphaned tracks (in database but not in any playlist) accumulate and serve as a
+"negative cache" for the discovery feature. This prevents discover_from_playlists
+from re-adding tracks that were intentionally removed.
+
+WHY THIS MATTERS:
+- Deleting orphaned tracks would cause discover_from_playlists to re-add removed tracks
+- Tracks are never purged from the database (intentional design)
+- Only cleanup should be: tracks not seen in 90+ days AND with explicit user opt-in
+
+PERFORMANCE OPTIMIZATION:
+==========================
+
+- Module-level cache (_lifecycle_columns_cache) checks if lifecycle columns exist
+  on the first query, then caches the result to avoid checking on every sync_to_db()
+- This prevents 12,000+ redundant "SELECT created_at FROM tracks LIMIT 1" queries
+  on typical discover operations with 12,000 tracks
+"""
+
 import logging
 import sqlite3
 from datetime import date

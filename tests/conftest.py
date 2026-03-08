@@ -1,4 +1,36 @@
-"""Shared pytest fixtures and configuration for spotfm tests."""
+"""Shared pytest fixtures and configuration for spotfm tests.
+
+This module provides reusable fixtures for all tests in the spotfm test suite.
+
+TESTING PATTERNS:
+================
+
+1. **Database Isolation**: All tests use temporary databases to prevent accessing the
+   real database at ~/.spotfm/spotify.db. Use the temp_database fixture and monkeypatch
+   to redirect utils.DATABASE to the temporary database.
+
+   Example:
+       def test_something(self, temp_database, monkeypatch):
+           from spotfm import utils
+           monkeypatch.setattr(utils, "DATABASE", temp_database)
+           # Now tests use temp_database instead of real DB
+
+2. **Fixtures Available**:
+   - temp_database: Temporary SQLite database with full schema
+   - temp_cache_dir: Temporary pickle cache directory
+   - temp_config_file: Temporary config file
+   - mock_spotify_client: Mock Spotify client with sample API responses
+   - sample_*_data: Sample entity data (artist, album, track, playlist)
+   - reset_module_state: Auto-runs before/after each test (clears global caches)
+
+3. **Mocking Strategy**: Use mock_spotify_client fixture instead of making real API calls.
+   The fixture returns a MagicMock pre-configured with common API response shapes.
+
+4. **Time/Date Testing**: Use freezegun.freeze_time() decorator for deterministic dates.
+
+5. **Markers**: Tests are marked as @pytest.mark.unit or @pytest.mark.integration
+   to allow running test subsets (e.g., make test-unit).
+"""
 
 import sqlite3
 from unittest.mock import MagicMock
@@ -14,7 +46,19 @@ def temp_dir(tmp_path):
 
 @pytest.fixture
 def temp_database(tmp_path):
-    """Create a temporary SQLite database for testing."""
+    """Create a temporary SQLite database for testing.
+
+    This fixture creates a fresh database with the complete spotfm schema.
+    Use it with monkeypatch to redirect utils.DATABASE to this temp database:
+
+        def test_example(self, temp_database, monkeypatch):
+            from spotfm import utils
+            monkeypatch.setattr(utils, "DATABASE", temp_database)
+            # Now all database operations use temp_database
+
+    Returns:
+        Path: Path to the temporary database file
+    """
     db_path = tmp_path / "test_spotify.db"
 
     # Ensure parent directory exists (defensive programming for CI)
@@ -142,7 +186,23 @@ password_hash = "test_hash"
 
 @pytest.fixture
 def mock_spotify_client():
-    """Create a mock Spotify client for testing."""
+    """Create a mock Spotify client for testing.
+
+    This fixture returns a MagicMock pre-configured with sample responses for:
+    - client.artist() - Returns sample artist with genres
+    - client.album() - Returns sample album with release date
+    - client.track() - Returns sample track with album and artists
+    - client.tracks() - Returns list of tracks (batch endpoint)
+    - client.playlist() - Returns sample playlist
+    - client.playlist_items() - Returns playlist track items with added_at
+
+    Use this instead of making real API calls. Example:
+        def test_something(self, mock_spotify_client):
+            from spotfm.spotify.artist import Artist
+            artist = Artist("artist123", mock_spotify_client)
+            artist.update_from_api(mock_spotify_client)
+            assert artist.name == "Test Artist"
+    """
     client = MagicMock()
 
     # Mock common API responses

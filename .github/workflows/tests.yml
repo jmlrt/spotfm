@@ -1,3 +1,20 @@
+# CI/CD Workflow for spotfm Tests
+#
+# This workflow runs the test suite automatically on:
+# - Every push to main branch
+# - Every pull request targeting main
+#
+# Test Matrix:
+# - Python version: 3.14 (minimum required version)
+# - Operating systems: Ubuntu (Linux), macOS
+#
+# Test flow:
+# 1. Unit tests (step in `test` job): Fast tests with no external dependencies
+# 2. Integration tests (step in `test` job): Tests that use temp databases
+# 3. Coverage (step in `test` job): Full test suite with coverage report
+# 4. Coverage upload (step in `test` job): Sends coverage to Codecov (Linux + Python 3.14 only)
+# 5. Test summary (separate `test-summary` job): Final status check
+
 name: Tests
 
 on:
@@ -15,7 +32,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
-        python-version: ["3.11", "3.12", "3.13", "3.14"]
+        python-version: ["3.14"]
 
     steps:
       - name: Checkout code
@@ -45,7 +62,7 @@ jobs:
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
-        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.14'
+        if: matrix.os == 'ubuntu-latest'
         with:
           file: ./coverage.xml
           flags: unittests
