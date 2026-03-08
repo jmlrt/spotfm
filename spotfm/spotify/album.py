@@ -42,8 +42,12 @@ class Album:
         return album
 
     @classmethod
-    def get_albums(cls, album_ids, client=None, refresh=False, sync_to_db=True):
-        """Fetch multiple albums efficiently by calling individual API endpoints."""
+    def get_albums(cls, album_ids, client=None, refresh=False, sync_to_db=True, rate_limit=True):
+        """Fetch multiple albums efficiently by calling individual API endpoints.
+
+        Args:
+            rate_limit: If False, skip inter-call sleep (caller is responsible for rate limiting)
+        """
         if not album_ids:
             return []
 
@@ -80,8 +84,8 @@ class Album:
                 except Exception as e:
                     # API/HTTP or other unexpected error - log but continue
                     logging.warning(f"Unexpected error fetching album {album_id}: {e}")
-                # Rate limiting: sleep between individual calls
-                if i < len(ids_to_fetch) - 1:
+                # Rate limiting: sleep between individual calls (if enabled)
+                if rate_limit and i < len(ids_to_fetch) - 1:
                     sleep(0.05)
 
         # Return in original order

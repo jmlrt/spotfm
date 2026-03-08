@@ -228,18 +228,19 @@ class Track:
             artist_ids.extend([artist["id"] for artist in raw_track["artists"]])
 
         # Batch fetch albums and artists
+        # rate_limit=False: Phase 2 already rate limits via SUBMIT_DELAY, skip internal sleeps
         albums_dict = {}
         if album_ids:
             logging.info("Batch fetching albums (checking cache first)")
             unique_album_ids = list(dict.fromkeys(album_ids))
-            albums = Album.get_albums(unique_album_ids, client, refresh=refresh)
+            albums = Album.get_albums(unique_album_ids, client, refresh=refresh, rate_limit=False)
             albums_dict = {album.id: album for album in albums if album is not None}
 
         artists_dict = {}
         if artist_ids:
             logging.info("Batch fetching artists (checking cache first)")
             unique_artist_ids = list(dict.fromkeys(artist_ids))
-            artists = Artist.get_artists(unique_artist_ids, client, refresh=refresh)
+            artists = Artist.get_artists(unique_artist_ids, client, refresh=refresh, rate_limit=False)
             artists_dict = {artist.id: artist for artist in artists if artist is not None}
 
         # Populate album.artists
@@ -265,6 +266,16 @@ class Track:
                 # Use pre-fetched artists
                 track.artists_id = [artist["id"] for artist in raw_track["artists"]]
                 track.artists = [artists_dict[aid] for aid in track.artists_id if aid in artists_dict]
+
+                # Ensure all artists were hydrated (incomplete artists → incomplete genres)
+                if len(track.artists) != len(track.artists_id):
+                    missing = [aid for aid in track.artists_id if aid not in artists_dict]
+                    logging.warning(
+                        "Skipping sync for track %s due to missing artists: %s",
+                        track.id,
+                        ", ".join(missing),
+                    )
+                    continue
 
                 track.sync_to_db(client)
                 cache_object(track)
