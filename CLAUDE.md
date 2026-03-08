@@ -84,6 +84,20 @@ A Python library and CLI tool for Spotify and Last.FM API interaction. Focuses o
 - `@pytest.mark.integration` - Integration tests (use temp databases)
 - `@pytest.mark.slow` - Long-running tests (run with `pytest -m slow`)
 
+## Tool Priority Strategy
+
+**Always use dedicated tools before requesting new bash permissions:**
+
+1. **File reading** → Use `Read` tool (not `cat`)
+2. **File searching** → Use `Grep` tool (not `grep`)
+3. **File patterns** → Use `Glob` tool (not `find`)
+4. **File writing** → Use `Write` tool (not `echo`/`cat`)
+5. **File editing** → Use `Edit` tool (not `sed`)
+6. **Git commands** → Use `Bash(git:*)` (already allowed)
+7. **Build/test** → Use `make` targets (already allowed)
+
+**Benefit**: Dedicated tools provide better UX, proper permissions handling, and reduce bash permission bloat.
+
 ## 📖 For More Information
 
 - **Architecture & Design**: See [SPEC.md](SPEC.md) for comprehensive specification
