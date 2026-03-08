@@ -145,7 +145,10 @@ spotfm implements **three-tier caching** to minimize API calls:
 ### Tier 3: Spotify API
 - **Speed**: Slow (network latency + rate limiting)
 - **Rate limit**: ~10 requests/second
-- **Sleep pattern**: 0.1s between individual track API calls; 0.05s between album/artist API calls
+- **Sleep pattern**:
+  - Track fetches via `Track.get_tracks()`: 0.1s between individual track API calls
+  - Album fetches via `Album.get_albums()`: 0.05s between album API calls
+  - Artist fetches via `Artist.get_artists()`: 0.05s between artist API calls
   - Note: Spotify removed batch endpoints (Feb 2026); all fetches now use individual endpoints
   - Proactive rate limiting prevents 429 Too Many Requests errors
 - **Fallback**: Used when data not in Tier 1 or 2, or `refresh=True`

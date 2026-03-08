@@ -69,11 +69,11 @@ class Artist:
                         artists_dict[artist_id] = artist
                 except (KeyError, ValueError) as e:
                     # Artist not found, deleted, or unavailable on Spotify.
-                    # Note: transient API errors (429, 5xx) are not auto-retried (client configured with retries=0)
-                    # and will be handled by the generic Exception handler below.
+                    # Note: transient API errors (429, 5xx) are not auto-retried by the Spotify client
+                    # (configured with retries=0) and will be handled by the generic Exception handler below.
                     logging.debug(f"Artist {artist_id} not found or unavailable: {e}")
                 except Exception as e:
-                    # Unexpected error - log but continue
+                    # API/HTTP or other unexpected error - log but continue
                     logging.warning(f"Unexpected error fetching artist {artist_id}: {e}")
                 # Rate limiting: sleep between individual calls
                 if i < len(ids_to_fetch) - 1:

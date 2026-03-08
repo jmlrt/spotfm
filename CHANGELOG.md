@@ -18,10 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Spotify removed batch endpoints (`GET /albums`, `GET /artists`, `GET /tracks`)
   - Upgraded spotipy from 2.25.2 to >=2.26.0 (released 2026-03-03)
   - spotfm now uses individual endpoints with proactive rate limiting
-  - No user-visible changes; internal API calls adapted automatically
+  - **User-visible API changes:**
+    - `BATCH_SIZE` constant removed from `spotfm.spotify.constants`
+    - `Track.get_tracks()` no longer accepts `batch_size` parameter
+    - `Playlist.add_tracks()` no longer accepts `batch_size` parameter (always uses Spotify's limit of 50)
   - Improved error handling for deleted/unavailable tracks, albums, artists
-  - Rate limiting: 0.1s between track calls, 0.05s between album/artist calls
-  - Removed deprecated `BATCH_SIZE` constant (no longer needed)
+  - Rate limiting: 0.1s between track calls, 0.05s between album/artist calls (on multi-fetch paths)
 
 ### Added
 

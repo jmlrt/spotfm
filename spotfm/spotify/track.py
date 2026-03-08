@@ -181,11 +181,11 @@ class Track:
                     tracks.append(track)
             except (KeyError, ValueError) as e:
                 # Track not found, deleted, or unavailable on Spotify.
-                # Note: transient API errors (429, 5xx) are not auto-retried (client configured with retries=0)
-                # and will be handled by the generic Exception handler below.
+                # Note: transient API errors (429, 5xx) are not auto-retried by the Spotify client
+                # (configured with retries=0) and will be handled by the generic Exception handler below.
                 logging.debug(f"Track {track_id} not found or unavailable: {e}")
             except Exception as e:
-                # Unexpected error - log but continue
+                # API/HTTP or other unexpected error - log but continue
                 logging.warning(f"Unexpected error fetching track {track_id}: {e}")
             # Rate limiting: sleep between individual calls
             if i < len(tracks_to_fetch) - 1:

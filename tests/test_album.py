@@ -425,6 +425,8 @@ class TestAlbumGetAlbums:
         """Test get_albums with many albums using individual API calls."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
+        # Patch sleep to keep tests fast
+        monkeypatch.setattr("spotfm.spotify.album.sleep", lambda x: None)
 
         # Create 25 album IDs (all fetched individually now)
         album_ids = [f"album{i}" for i in range(1, 26)]
@@ -464,6 +466,8 @@ class TestAlbumGetAlbums:
         """Test get_albums removes duplicate IDs while preserving order."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
+        # Patch sleep to keep tests fast
+        monkeypatch.setattr("spotfm.spotify.album.sleep", lambda x: None)
 
         # Mock individual album API responses
         def mock_album_response(id, market):
@@ -523,6 +527,8 @@ class TestAlbumGetAlbums:
         """Test get_albums uses cached albums and only fetches missing ones."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
+        # Patch sleep to keep tests fast
+        monkeypatch.setattr("spotfm.spotify.album.sleep", lambda x: None)
 
         # Cache album1
         cached_album = Album("album1")
