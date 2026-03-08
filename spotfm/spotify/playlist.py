@@ -155,7 +155,7 @@ class Playlist:
                 ).fetchone()
                 if result:
                     self.snapshot_id = result[0]
-            except (sqlite3.OperationalError, TypeError):
+            except sqlite3.OperationalError, TypeError:
                 # Column might not exist yet or playlist not in DB
                 pass
 
