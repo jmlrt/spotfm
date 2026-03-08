@@ -202,11 +202,20 @@ Tracks have timestamps to prevent re-adding intentionally removed tracks:
 
 ## Contributing
 
-1. Create a feature branch: `git checkout -b feature/your-feature`
-2. Make changes and test: `make test`
-3. Ensure code quality: `make lint-fix && make pre-commit`
-4. Commit with clear messages (see CLAUDE.md for style)
-5. Push and open a pull request
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines on:
+- Development workflow and branch naming
+- Code style and testing requirements
+- Writing commit messages
+- Running quality checks
+- Common tasks (adding commands, fixing bugs, etc.)
+
+Quick start:
+```bash
+make install           # Setup development environment
+make test              # Run tests
+make check             # Full quality check (lint + tests)
+git checkout -b feature/your-feature  # Create feature branch
+```
 
 ## License
 
