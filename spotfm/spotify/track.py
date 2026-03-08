@@ -162,6 +162,14 @@ class Track:
             logging.info(f"All {len(tracks)} tracks retrieved from cache/DB")
             return tracks
 
+        # If client is missing and we have unfetched tracks, we can't proceed
+        if client is None:
+            logging.warning(
+                f"Retrieved {len(tracks)} tracks from cache/DB but {len(tracks_to_fetch)} "
+                f"are missing and no client was provided. Returning partial results."
+            )
+            return tracks
+
         logging.info(f"Retrieved {len(tracks)} tracks from cache/DB, fetching {len(tracks_to_fetch)} from API")
 
         # Phase 2: Fetch missing tracks individually (Spotify removed batch endpoint)
