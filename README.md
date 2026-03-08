@@ -100,60 +100,25 @@ spfm lastfm top-tracks --period year
 
 ## Development
 
-### Running Tests
+See [CONTRIBUTING.md](CONTRIBUTING.md) for comprehensive development documentation including:
+- Setup and installation
+- Testing (running tests, coverage requirements)
+- Code quality checks (linting, formatting, type checking)
+- Pre-commit hooks
+- Writing tests with proper database isolation
+- Git workflow and commit message standards
+
+**Quick reference:**
 
 ```bash
-# Run all tests
-make test
-
-# Run specific test types
-make test-unit          # Unit tests only (fast)
-make test-integration   # Integration tests only
-
-# Run with coverage report
-make test-coverage      # Generates HTML report in htmlcov/
-
-# Run in parallel (faster)
-make test-parallel
-
-# Run only failed tests
-make test-failed
-
-# Test across Python versions (3.11, 3.12, 3.13, 3.14)
-make test-all-versions
+make install            # Install dependencies
+make check              # Run lint + typecheck + tests (full validation)
+make test               # Run all tests
+make lint-fix           # Auto-fix code style
+make pre-commit         # Run all pre-commit hooks
 ```
 
-### Code Quality
-
-```bash
-# Format code with ruff
-make format
-
-# Check for linting issues
-make lint
-
-# Auto-fix linting issues
-make lint-fix
-make lint-fix-unsafe    # Includes unsafe fixes
-
-# Run all pre-commit hooks
-make pre-commit
-```
-
-### Adding Dependencies
-
-```bash
-make add PACKAGE=package-name
-make remove PACKAGE=package-name
-```
-
-### Build & Publish
-
-```bash
-make build              # Build distribution packages
-make clean              # Remove build artifacts and .venv
-make publish            # Tag release, push, and upload to PyPI
-```
+For other make targets, see `make help` or [Makefile](Makefile).
 
 ## Database Schema
 
