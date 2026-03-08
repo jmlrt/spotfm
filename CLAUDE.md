@@ -61,8 +61,8 @@ A Python library and CLI tool for Spotify and Last.FM API interaction. Focuses o
 ## Key Implementation Notes
 
 1. **Rate Limiting & Parallel Execution**: `sleep()` calls prevent Spotify 429 errors (~10 req/s target)
-   - 0.1s between track API calls in `Track.get_tracks()` (sequential or submission-based)
-   - 0.05s between album/artist API calls (Album/Artist multi-fetch helpers)
+   - 0.1s between track API calls in `Track.get_tracks()` parallel submission phase (~10 req/s)
+   - 0.05s between album/artist API calls in post-fetch hydration (Album/Artist multi-fetch helpers with rate_limit=True)
    - Note: Single-entity fetches via `Album.get_album()` / `Artist.get_artist()` are not rate-limited
    - ThreadPoolExecutor (5 workers) parallelizes track API calls with submission-based rate limiting
    - Provides 35-40% performance improvement (2.5 min → 1.5 min for 500+ tracks) while maintaining API rate

@@ -1,6 +1,7 @@
 """Unit tests for spotfm.spotify.track module."""
 
 import sqlite3
+from time import sleep
 from unittest.mock import patch
 
 import pytest
@@ -658,7 +659,7 @@ class TestTrackGetTracks:
 
         mock_spotify_client.track.side_effect = mock_track_response
 
-        # album1 returns successfully, album2 fails (returns None from get_albums)
+        # album1 returns successfully, album2 fails (omitted from get_albums result)
         def mock_album_response(id, market):
             if id == "album2":
                 raise KeyError("Album not found")
@@ -682,6 +683,102 @@ class TestTrackGetTracks:
         # Only track1 (with album1) should be returned; track2 skipped due to missing album
         assert len(tracks) == 1
         assert tracks[0].id == "track1"
+
+    def test_get_tracks_out_of_order_completion(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
+        """Test that get_tracks preserves order even when futures complete out of order.
+
+        This test verifies that the as_completed() result collection doesn't affect
+        the final ordering of tracks returned to the caller.
+        """
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
+
+        track_ids = ["track1", "track2", "track3", "track4"]
+
+        def mock_track_response(id, market):
+            # Mock track responses with variable delays to simulate out-of-order completion
+            # Add increasing delay: track1→0s, track2→1s, track3→0s, track4→1s
+            # This makes track3 likely to complete before track2 despite being submitted later
+            if id in ("track2", "track4"):
+                sleep(0.05)
+            return {
+                "id": id,
+                "name": f"Track {id[-1]}",
+                "album": {"id": f"album{id[-1]}", "name": f"Album {id[-1]}"},
+                "artists": [{"id": f"artist{id[-1]}", "name": f"Artist {id[-1]}"}],
+            }
+
+        mock_spotify_client.track.side_effect = mock_track_response
+
+        def mock_album_response(id, market):
+            return {
+                "id": id,
+                "name": f"Album {id[-1]}",
+                "release_date": "2024-01-01",
+                "artists": [{"id": f"artist{id[-1]}", "name": f"Artist {id[-1]}"}],
+            }
+
+        mock_spotify_client.album.side_effect = mock_album_response
+
+        def mock_artist_response(id):
+            return {"id": id, "name": f"Artist {id[-1]}", "genres": []}
+
+        mock_spotify_client.artist.side_effect = mock_artist_response
+
+        with patch("spotfm.spotify.track.sleep"):
+            tracks = Track.get_tracks(track_ids, mock_spotify_client)
+
+        # Verify all tracks returned and order matches input
+        assert len(tracks) == 4
+        assert [t.id for t in tracks] == track_ids, "Track order must match input order"
+
+    def test_get_tracks_thread_exception_handling(
+        self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client
+    ):
+        """Test that thread exceptions are handled gracefully without crashing.
+
+        This test verifies that when a future.result() raises an exception in the
+        thread pool, it's caught, logged, and the track is skipped without affecting
+        other tracks.
+        """
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
+
+        track_ids = ["good1", "bad", "good2"]
+
+        def mock_track_response(id, market):
+            if id == "bad":
+                raise RuntimeError("Simulated thread pool failure")
+            return {
+                "id": id,
+                "name": f"Track {id[-1]}",
+                "album": {"id": f"album{id[-1]}", "name": f"Album {id[-1]}"},
+                "artists": [{"id": f"artist{id[-1]}", "name": f"Artist {id[-1]}"}],
+            }
+
+        mock_spotify_client.track.side_effect = mock_track_response
+
+        def mock_album_response(id, market):
+            return {
+                "id": id,
+                "name": f"Album {id[-1]}",
+                "release_date": "2024-01-01",
+                "artists": [{"id": f"artist{id[-1]}", "name": f"Artist {id[-1]}"}],
+            }
+
+        mock_spotify_client.album.side_effect = mock_album_response
+
+        def mock_artist_response(id):
+            return {"id": id, "name": f"Artist {id[-1]}", "genres": []}
+
+        mock_spotify_client.artist.side_effect = mock_artist_response
+
+        with patch("spotfm.spotify.track.sleep"):
+            tracks = Track.get_tracks(track_ids, mock_spotify_client)
+
+        # Verify good tracks are returned despite one thread failing
+        assert len(tracks) == 2
+        assert [t.id for t in tracks] == ["good1", "good2"]
 
 
 @pytest.mark.unit
