@@ -7,21 +7,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+(No unreleased changes)
+
+## [0.1.0] - 2026-03-08
+
+### ⚠️ BREAKING CHANGES
+
+- **Minimum Python version upgraded from 3.11 to 3.14**
+  - Adopted PEP 758 bracketless exception syntax (`except A, B:` instead of `except (A, B):`)
+  - CI/CD now tests only Python 3.14 (dropped 3.11, 3.12, 3.13 support)
+  - Projects requiring older Python versions must pin to spotfm 0.0.4
+
 ### Added
-- Test markers for selective test runs (@pytest.mark.unit, @pytest.mark.integration, @pytest.mark.slow)
-- Comprehensive TODO.md with feature roadmap and implementation specs
-- Enhanced CLAUDE.md with test markers documentation
-- Contributing guidelines (CONTRIBUTING.md)
-- Improved .claude/settings.json with deny list for safety
+
+**Documentation** (new comprehensive guides):
+- `SPEC.md` (8K) - Architecture, design decisions, features, data model
+- `CONTRIBUTING.md` (5.5K) - Development workflow, testing, code style
+- `CHANGELOG.md` - Version history and release notes (this file)
+- Module-level docstrings explaining architecture (track.py, sqlite.py, misc.py)
+- Enhanced conftest.py with testing patterns documentation
+- Tool priority strategy to CLAUDE.md (Read/Grep/Glob/Edit/Write before bash)
+- Commit strategy guidance (only commit changed files, not all files)
+
+**Configuration & Tooling**:
+- Deny list in .claude/settings.json to prevent dangerous operations
+- Consolidated git/gh subcommands into Bash(git:*) and Bash(gh:*)
+- Reorganized TODO.md by priority (HIGH/MEDIUM/LOW) with effort estimates
 
 ### Changed
-- CLAUDE.md refactored from 430 → 71 lines (focused 1-page reference)
-- README.md expanded with comprehensive usage, setup, and database documentation
-- Makefile enhanced with help target and organized command groups
-- Architecture documentation moved to code docstrings (track.py, sqlite.py, misc.py)
-- Testing patterns documented in conftest.py docstrings
-- SQL injection risk documentation (TODO: migrate to parameterized queries)
-- Rate limiting documentation clarified with actual sleep pattern locations
+
+**Documentation Refactoring**:
+- CLAUDE.md: 430 → 71 lines (lean 1-page quick reference with navigation)
+- README.md: 242 → 171 lines (eliminated duplication, user-focused)
+- .claude/settings.json: 45 → 20 permissions (57% reduction)
+- Makefile: Updated test-all-versions to only test Python 3.14
+
+**Code Quality**:
+- Updated all Python version references from 3.11+ to 3.14+
+- PEP 758 syntax adoption in exception handlers (sqlite.py, playlist.py)
+- CI workflow: Clarified test steps vs separate jobs
+- Updated author email to GitHub noreply address
+
+### Removed
+
+- SPOTIPY_2.26.0_ANALYSIS.md (temporary analysis artifact)
+- SPOTIPY_2.26.0_PR25_IMPROVEMENTS.md (temporary analysis artifact)
+- Unnecessary Bash permissions (cat:*, grep:*, jq:*, chmod:*, etc.)
 
 ## [Recent Releases]
 

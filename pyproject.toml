@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "spotfm"
-version = "0.0.4"
+version = "0.1.0"
 description = "Simple Python lib to interact with Spotify and Last.FM APIs"
 readme = "README.md"
 requires-python = ">=3.14"
