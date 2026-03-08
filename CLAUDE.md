@@ -73,6 +73,12 @@ A Python library and CLI tool for Spotify and Last.FM API interaction. Focuses o
 - Run `make lint` (no ruff violations)
 - When fixing a bug in one CLI command, proactively check ALL similar commands for the same issue
 
+**Commit strategy:**
+- **ONLY commit files you changed** — use `git add <file1> <file2>` (not `git add .` or `git add -A`)
+- **Do not commit unrelated changes** — keep commits focused and atomic
+- **Example**: If you fix a bug in 3 files, commit exactly those 3 files, nothing more
+- This prevents accidentally committing IDE config, lock files, or temporary analysis artifacts
+
 **Test execution:**
 - `make test` - Full suite
 - `make test-unit` - Unit tests only (fast)

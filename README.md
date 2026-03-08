@@ -13,7 +13,7 @@ A Python library and CLI tool for interacting with Spotify and Last.FM APIs. Foc
 ## Installation
 
 ### Prerequisites
-- Python 3.11 or higher
+- Python 3.14 or higher
 - [uv](https://docs.astral.sh/uv/) (fast Python package manager)
 
 ### Setup

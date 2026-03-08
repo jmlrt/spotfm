@@ -39,7 +39,7 @@ Last updated: 2026-03-08
 
 ### Technologies
 
-- **Language**: Python 3.11+ (uses match/case statements)
+- **Language**: Python 3.14+ (PEP 758 bracketless exception syntax)
 - **APIs**: Spotify Web API (spotipy), Last.FM API (pylast)
 - **Database**: SQLite with lifecycle tracking
 - **Caching**: Pickle files for individual entities
@@ -449,7 +449,7 @@ def test_track_sync(self, temp_database, temp_cache_dir, monkeypatch):
 ### CI/CD
 
 GitHub Actions runs on all PRs:
-- Multiple Python versions (3.11, 3.12, 3.13, 3.14)
+- Python 3.14 (only supported version)
 - Multiple platforms (Ubuntu, macOS)
 - Full test suite
 

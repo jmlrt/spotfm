@@ -25,7 +25,7 @@ help:
 	@echo "  test-parallel        Run tests in parallel (faster)"
 	@echo "  test-watch           Watch for changes and re-run tests"
 	@echo "  test-failed          Re-run only failed tests"
-	@echo "  test-all-versions    Test across Python 3.11, 3.12, 3.13, 3.14"
+	@echo "  test-all-versions    Test across supported Python versions (3.14+)"
 	@echo ""
 	@echo "CLI Commands:"
 	@echo "  dupes-ids            Find duplicate track IDs (console output)"
@@ -111,17 +111,15 @@ test-failed:
 
 .PHONY: test-all-versions
 test-all-versions:
-	@echo "Testing across Python 3.11, 3.12, 3.13, 3.14..."
-	@for version in 3.11 3.12 3.13 3.14; do \
-		echo ""; \
-		echo "========================================"; \
-		echo "Testing with Python $$version..."; \
-		echo "========================================"; \
-		uv sync --python=$$version --all-extras --quiet && \
-		uv run --python=$$version pytest -q --tb=line || exit 1; \
-	done
+	@echo "Testing with Python 3.14 (only supported version)..."
 	@echo ""
-	@echo "✅ All Python versions passed!"
+	@echo "========================================"; \
+	echo "Testing with Python 3.14..."; \
+	echo "========================================"; \
+	uv sync --python=3.14 --all-extras --quiet && \
+	uv run --python=3.14 pytest -q --tb=line || exit 1
+	@echo ""
+	@echo "✅ Python 3.14 passed!"
 
 .PHONY: dupes-ids
 dupes-ids:

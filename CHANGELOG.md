@@ -60,11 +60,11 @@ See [TODO.md](TODO.md) for detailed feature specifications:
 ## Development
 
 ### Tools & Dependencies
-- **Python**: 3.11+
+- **Python**: 3.14+
 - **Package Manager**: uv
 - **Testing**: pytest with coverage
 - **Linting & Formatting**: ruff
-- **Type Checking**: Built-in type hints (Python 3.11+)
+- **Type Checking**: Built-in type hints (Python 3.14+)
 - **CI/CD**: GitHub Actions
 - **APIs**:
   - Spotify Web API via spotipy
@@ -73,7 +73,7 @@ See [TODO.md](TODO.md) for detailed feature specifications:
 ### Test Coverage
 - 240+ tests covering unit, integration, and CLI scenarios
 - Target: ≥90% coverage on modified code
-- Continuous integration on Python 3.11, 3.12, 3.13, 3.14
+- Continuous integration on Python 3.14
 - Multi-platform testing (Ubuntu, macOS)
 
 ---
