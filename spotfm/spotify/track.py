@@ -42,7 +42,7 @@ from time import sleep
 from spotfm import sqlite, utils
 from spotfm.spotify.album import Album
 from spotfm.spotify.artist import Artist
-from spotfm.spotify.constants import BATCH_SIZE, MARKET
+from spotfm.spotify.constants import MARKET
 from spotfm.utils import cache_object, retrieve_object_from_cache
 
 # Per-database cache for lifecycle columns existence check to handle database switching at runtime.
@@ -111,7 +111,7 @@ class Track:
         return track
 
     @classmethod
-    def get_tracks(cls, tracks_id, client=None, refresh=False, batch_size=BATCH_SIZE):
+    def get_tracks(cls, tracks_id, client=None, refresh=False):
         """
         Fetch multiple tracks efficiently, leveraging cache/DB.
 
@@ -119,8 +119,6 @@ class Track:
             tracks_id: List of track IDs to fetch
             client: Spotify client (optional)
             refresh: Force refresh from API instead of using cache/DB
-            batch_size: Deprecated - parameter is ignored. Kept for backward compatibility.
-                       Tracks are now fetched individually due to Spotify API changes.
 
         Strategy:
         1. Check cache/DB for all tracks first (respects 3-tier cache)

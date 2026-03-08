@@ -264,9 +264,9 @@ class TestBatchOperations:
         }
 
         with patch("spotfm.spotify.track.sleep"):
-            tracks = Track.get_tracks(track_ids, mock_spotify_client, batch_size=50)
+            tracks = Track.get_tracks(track_ids, mock_spotify_client)
 
-        # Should make 100 individual API calls (batch_size param now ignored)
+        # Should make 100 individual API calls (batch endpoints removed)
         assert mock_spotify_client.track.call_count == 100
         assert len(tracks) == 100
 

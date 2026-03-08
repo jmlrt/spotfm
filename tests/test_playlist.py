@@ -822,10 +822,10 @@ class TestPlaylistAddTracks:
             track.id = f"track{i}"
             tracks.append(track)
 
-        playlist.add_tracks(tracks, mock_spotify_client, batch_size=2)
+        playlist.add_tracks(tracks, mock_spotify_client)
 
-        # Should make 3 calls (2+2+1)
-        assert mock_spotify_client.playlist_add_items.call_count == 3
+        # Should make 1 call (5 tracks fit in default batch_size of 50)
+        assert mock_spotify_client.playlist_add_items.call_count == 1
 
     def test_add_tracks_handles_errors(self, mock_spotify_client):
         """Test that errors are caught and logged."""

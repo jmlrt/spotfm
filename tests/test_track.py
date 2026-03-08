@@ -490,10 +490,10 @@ class TestTrackGetTracks:
         mock_spotify_client.artist.side_effect = mock_artist_response
 
         with patch("spotfm.spotify.track.sleep"):
-            tracks = Track.get_tracks(track_ids, mock_spotify_client, batch_size=2)
+            tracks = Track.get_tracks(track_ids, mock_spotify_client)
 
         assert len(tracks) == 5
-        # Should have made 5 individual calls for tracks (batch_size param is now ignored)
+        # Should have made 5 individual calls for tracks (batch endpoints removed)
         assert mock_spotify_client.track.call_count == 5
 
     def test_get_tracks_handles_none_track(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
