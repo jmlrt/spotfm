@@ -1,3 +1,46 @@
+"""High-level Spotify commands and utilities.
+
+DISCOVER WORKFLOW (discover_from_playlists):
+===========================================
+
+The discover feature finds new tracks in source playlists that don't exist in the
+local database, then adds them to a destination playlist.
+
+ALGORITHM:
+1. Fetch all tracks from source playlists via Spotify API
+2. Load tracks into database (creates Track objects, syncs to SQLite)
+3. Query database for orphaned track IDs (tracks in DB but not in any playlist)
+4. Skip orphaned tracks to prevent re-adding intentionally removed tracks
+5. Add remaining new tracks to destination playlist
+6. Sync destination playlist to database
+
+WHY SKIP ORPHANED TRACKS?
+- Orphaned tracks represent tracks the user intentionally removed
+- They accumulate in the database as a "negative cache"
+- Skipping them prevents re-discovering removed tracks on subsequent runs
+- This is the core feature that makes the discovery truly "smart"
+
+PLAYLIST RESOLUTION:
+====================
+
+resolve_playlist_patterns_to_ids() normalizes various playlist reference formats:
+- Direct Spotify IDs (22 alphanumeric chars)
+- Exact database lookups by ID
+- Fuzzy name lookups (SQL LIKE pattern matching)
+- Supports single string or list of patterns
+
+This allows config to reference playlists by name, ID, or URL pattern.
+
+RATE LIMITING:
+==============
+
+Sleep calls are strategically placed:
+- 0.1s between individual track API calls (prevent 429 errors)
+- 1s between batch operations (respect API rate limits)
+
+Timing should not be removed without understanding Spotify API limits.
+"""
+
 import csv
 import logging
 from pathlib import Path

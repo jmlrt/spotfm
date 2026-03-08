@@ -1,5 +1,45 @@
 VERSION := $(shell uv run hacks/get_version.py)
 
+.PHONY: help
+help:
+	@echo "spotfm Makefile - Available targets:"
+	@echo ""
+	@echo "Setup:"
+	@echo "  install              Install dependencies (creates .venv)"
+	@echo "  add PACKAGE=name     Add a new package dependency"
+	@echo "  remove PACKAGE=name  Remove a package dependency"
+	@echo ""
+	@echo "Code Quality:"
+	@echo "  format               Format code with ruff"
+	@echo "  lint                 Check code with ruff"
+	@echo "  lint-fix             Auto-fix linting issues"
+	@echo "  lint-fix-unsafe      Auto-fix including unsafe fixes"
+	@echo "  pre-commit           Run all pre-commit hooks"
+	@echo ""
+	@echo "Testing:"
+	@echo "  test                 Run all tests (unit + integration)"
+	@echo "  test-unit            Run unit tests only (fast)"
+	@echo "  test-integration     Run integration tests only"
+	@echo "  test-verbose         Run tests with verbose output"
+	@echo "  test-coverage        Run tests with coverage report (HTML in htmlcov/)"
+	@echo "  test-parallel        Run tests in parallel (faster)"
+	@echo "  test-watch           Watch for changes and re-run tests"
+	@echo "  test-failed          Re-run only failed tests"
+	@echo "  test-all-versions    Test across Python 3.11, 3.12, 3.13, 3.14"
+	@echo ""
+	@echo "CLI Commands:"
+	@echo "  dupes-ids            Find duplicate track IDs (console output)"
+	@echo "  dupes-names          Find similar track names via fuzzy matching"
+	@echo "  dupes-ids-csv        Export duplicate IDs to data/dupes_ids.csv"
+	@echo "  dupes-names-csv      Export similar tracks to data/dupes_names.csv"
+	@echo "  relinked             Find relinked tracks (console output)"
+	@echo "  relinked-csv         Export relinked tracks to data/relinked_tracks.csv"
+	@echo ""
+	@echo "Build & Publish:"
+	@echo "  build                Build distribution packages"
+	@echo "  clean                Remove build artifacts, .venv, and cache"
+	@echo "  publish              Tag release, push, and upload to PyPI"
+
 .PHONY: sync
 sync:
 	uv sync --all-extras

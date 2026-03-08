@@ -1,3 +1,37 @@
+"""SQLite database connection management with singleton pattern.
+
+SINGLETON PATTERN:
+==================
+
+This module implements a global singleton database connection to avoid creating
+new connections on every query. This improves performance significantly:
+
+- Single connection reused across all modules
+- Connection pooling and statement caching at SQLite level
+- Automatic cleanup on program exit via atexit handler
+
+WHY NOT CONNECTION POOLING?
+- SQLite (in file-based mode) is thread-limited; concurrent writes fail
+- A single persistent connection is more efficient than pools for SQLite
+- Tests monkeypatch to use different databases without breaking the singleton
+
+SCHEMA MIGRATION:
+=================
+
+migrate_database_schema() runs automatically on first connection:
+- Checks current schema version
+- Applies pending migrations (e.g., adding lifecycle columns)
+- Idempotent - safe to run multiple times
+- Tracks migrated databases to avoid redundant checks
+
+TEST ISOLATION:
+===============
+
+__getattr__ implementation allows tests to monkeypatch utils.DATABASE and
+have the singleton automatically switch to the temp database without breaking
+the global connection reference.
+"""
+
 import atexit
 import logging
 import re
