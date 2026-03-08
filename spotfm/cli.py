@@ -51,15 +51,8 @@ def recent_scrobbles(user, limit, scrobbles_minimum, period, since_last_time=Fal
             print("No new scrobbles since last run.")
             save_lastfm_state(current_count)
             return
-        # Cap the computed limit to the --limit parameter to prevent unexpectedly large fetches
-        limit = min(computed_limit, limit)
-        if limit < computed_limit:
-            logging.warning(
-                f"Computed {computed_limit} new scrobbles but capping to --limit {limit}. "
-                "Rerun with a higher --limit if you want to fetch all new scrobbles in one go."
-            )
-            # When capped, do not advance state so that remaining unfetched scrobbles are not skipped
-            scrobble_count_to_save = last_scrobble_count
+        # Fetch all new scrobbles (ignore --limit default); user can still cap with explicit --limit if needed
+        limit = computed_limit
         print(f"Fetching {limit} new scrobbles (was {last_scrobble_count}, now {current_count}).")
 
     scrobbles = user.get_recent_tracks_scrobbles(limit, scrobbles_minimum, period)
@@ -177,7 +170,7 @@ def main():
         "--limit",
         default=50,
         type=_positive_int,
-        help="Number of recent scrobbles to fetch (when --since-last-time is set, caps the computed diff to prevent unexpectedly large fetches)",
+        help="Number of recent scrobbles to fetch (default: 50; with --since-last-time, fetches all new scrobbles unless you specify a --limit cap)",
     )
     lastfm_parser.add_argument("-s", "--scrobbles-minimum", default=4, type=_non_negative_int)
     lastfm_parser.add_argument("-p", "--period", default=90, type=_positive_int)

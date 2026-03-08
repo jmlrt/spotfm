@@ -125,19 +125,19 @@ class TestRecentScrobblesCli:
         state = read_lastfm_state(state_file=state_file)
         assert state["last_scrobble_count"] == 173
 
-    def test_since_last_time_does_not_advance_state_when_capped(self, tmp_path):
-        """Test --since-last-time does not advance state when diff exceeds limit."""
+    def test_since_last_time_fetches_all_scrobbles_ignoring_limit(self, tmp_path):
+        """Test --since-last-time fetches all new scrobbles regardless of --limit."""
         state_file = tmp_path / "lastfm_state.json"
         save_lastfm_state(135, state_file=state_file)
         user = self._make_user(playcount=173)
 
-        # limit (10) is less than the diff (38), so we are capped
+        # Even though limit is 10 and diff is 38, --since-last-time fetches all 38
         with patch("spotfm.lastfm.LASTFM_STATE_FILE", state_file):
             recent_scrobbles(user, limit=10, scrobbles_minimum=0, period=90, since_last_time=True)
 
         state = read_lastfm_state(state_file=state_file)
-        # When capped, state should not advance to avoid skipping older scrobbles
-        assert state["last_scrobble_count"] == 135
+        # State should advance to current count since we fetch all scrobbles
+        assert state["last_scrobble_count"] == 173
 
     def test_since_last_time_prints_diff_info(self, tmp_path, capsys):
         """Test --since-last-time prints informational message with counts."""
