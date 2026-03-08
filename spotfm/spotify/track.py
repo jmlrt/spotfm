@@ -36,7 +36,7 @@ PERFORMANCE OPTIMIZATION:
 
 import logging
 import sqlite3
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import date
 from time import sleep
 
@@ -193,26 +193,29 @@ class Track:
                 return None
 
         # Parallel fetch phase: submit tasks with rate limiting
-        # Maintain order using indexed futures
-        futures_with_index = []
+        # Maintain order using a future→(index, track_id) map.
+        # Results are collected via as_completed() to avoid head-of-line blocking,
+        # then written back into a pre-allocated list by index to preserve input order.
+        future_map = {}  # future → (i, normalized_id)
         with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
             for i, normalized_id in enumerate(normalized_to_fetch):
                 future = executor.submit(fetch_track, normalized_id)
-                futures_with_index.append((i, normalized_id, future))
+                future_map[future] = (i, normalized_id)
                 # Rate limiting: sleep between submissions (same as sequential baseline)
                 if i < len(normalized_to_fetch) - 1:
                     sleep(SUBMIT_DELAY)
 
-            # Collect results in original order
-            results = [None] * len(futures_with_index)
-            for i, track_id, future in futures_with_index:
-                try:
-                    raw_track = future.result()
-                    if raw_track is not None:
-                        results[i] = raw_track
-                except Exception as e:
-                    # Thread raised an exception - log and skip this track
-                    logging.warning(f"Thread failed fetching track {track_id} at index {i}: {e}")
+        # Collect results as futures complete (avoids blocking on slow early requests)
+        results = [None] * len(normalized_to_fetch)
+        for future in as_completed(future_map):
+            i, track_id = future_map[future]
+            try:
+                raw_track = future.result()
+                if raw_track is not None:
+                    results[i] = raw_track
+            except Exception as e:
+                # Thread raised an exception - log and skip this track
+                logging.warning(f"Thread failed fetching track {track_id} at index {i}: {e}")
 
         # Filter out None results while maintaining order
         raw_tracks = [track for track in results if track is not None]
@@ -257,11 +260,17 @@ class Track:
                 track.album_id = raw_track["album"]["id"]
                 track.updated = str(date.today())
 
-                # Use pre-fetched album
+                # Use pre-fetched album (mirrors artist completeness check below)
                 album = albums_dict.get(track.album_id)
-                if album:
-                    track.album = album.name
-                    track.release_date = album.release_date
+                if album is None:
+                    logging.warning(
+                        "Skipping sync for track %s due to missing album %s",
+                        track.id,
+                        track.album_id,
+                    )
+                    continue
+                track.album = album.name
+                track.release_date = album.release_date
 
                 # Use pre-fetched artists
                 track.artists_id = [artist["id"] for artist in raw_track["artists"]]

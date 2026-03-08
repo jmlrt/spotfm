@@ -639,6 +639,50 @@ class TestTrackGetTracks:
             "Artists API should not be called when loading from pickle cache"
         )
 
+    def test_get_tracks_skips_track_with_missing_album(
+        self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client
+    ):
+        """Test that tracks are skipped (not synced) when album fetch fails."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
+
+        track_ids = ["track1", "track2"]
+
+        def mock_track_response(id, market):
+            return {
+                "id": id,
+                "name": f"Track {id[-1]}",
+                "album": {"id": f"album{id[-1]}", "name": f"Album {id[-1]}"},
+                "artists": [{"id": f"artist{id[-1]}", "name": f"Artist {id[-1]}"}],
+            }
+
+        mock_spotify_client.track.side_effect = mock_track_response
+
+        # album1 returns successfully, album2 fails (returns None from get_albums)
+        def mock_album_response(id, market):
+            if id == "album2":
+                raise KeyError("Album not found")
+            return {
+                "id": id,
+                "name": f"Album {id[-1]}",
+                "release_date": "2024-01-01",
+                "artists": [{"id": f"artist{id[-1]}", "name": f"Artist {id[-1]}"}],
+            }
+
+        mock_spotify_client.album.side_effect = mock_album_response
+
+        def mock_artist_response(id):
+            return {"id": id, "name": f"Artist {id[-1]}", "genres": []}
+
+        mock_spotify_client.artist.side_effect = mock_artist_response
+
+        with patch("spotfm.spotify.track.sleep"):
+            tracks = Track.get_tracks(track_ids, mock_spotify_client)
+
+        # Only track1 (with album1) should be returned; track2 skipped due to missing album
+        assert len(tracks) == 1
+        assert tracks[0].id == "track1"
+
 
 @pytest.mark.unit
 class TestTrackHelperMethods:
