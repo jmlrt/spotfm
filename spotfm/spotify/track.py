@@ -197,11 +197,7 @@ class Track:
                 # Track not found, deleted, or unavailable on Spotify
                 logging.debug(f"Track {normalized_id} not found or unavailable: {e}")
                 return None
-            except Exception as e:
-                # Unexpected API/HTTP errors (429, 5xx, timeouts, etc.)
-                # Log at WARNING to surface transient failures that reduce result set
-                logging.warning(f"Unexpected error fetching track {normalized_id}: {e}")
-                return None
+            # Let unexpected exceptions propagate so result collection can handle them properly
 
         # Parallel fetch phase: submit tasks with rate limiting
         # Maintain order using a future→(index, track_id) map.
@@ -213,8 +209,8 @@ class Track:
             for i, normalized_id in enumerate(normalized_to_fetch):
                 future = executor.submit(fetch_track, normalized_id)
                 future_map[future] = (i, normalized_id)
-                # Rate limiting: sleep between submissions (same as sequential baseline)
-                if i < len(normalized_to_fetch) - 1:
+                # Rate limiting: sleep between submissions (only if rate_limit=True)
+                if rate_limit and i < len(normalized_to_fetch) - 1:
                     sleep(SUBMIT_DELAY)
 
             # Collect results as futures complete (avoids blocking on slow early requests)
@@ -225,9 +221,12 @@ class Track:
                     raw_track = future.result()
                     if raw_track is not None:
                         results[i] = raw_track
+                except KeyError, ValueError:
+                    # Track not found - already logged by fetch_track at debug level
+                    pass
                 except Exception as e:
-                    # Thread raised an exception - log and skip this track
-                    logging.warning(f"Thread failed fetching track {track_id} at index {i}: {e}")
+                    # Unexpected API/HTTP error - log and skip this track
+                    logging.warning(f"Unexpected error fetching track {track_id}: {e}")
 
         # Filter out None results while maintaining order
         raw_tracks = [track for track in results if track is not None]
@@ -246,11 +245,18 @@ class Track:
         # When rate_limit=True (default): Apply 0.05s sleep between API calls (~20 req/s)
         # When rate_limit=False: Skip sleeps (useful for testing or when caller manages rate limiting)
         # Note: Parallel track phase ends and would spike request rate without rate limiting.
+        # Skip hydrating artists in album fetch - we fetch them separately below with rate limiting
         albums_dict = {}
         if album_ids:
             logging.info("Batch fetching albums (checking cache first)")
             unique_album_ids = list(dict.fromkeys(album_ids))
-            albums = Album.get_albums(unique_album_ids, client, refresh=refresh, rate_limit=rate_limit)
+            albums = Album.get_albums(
+                unique_album_ids,
+                client,
+                refresh=refresh,
+                rate_limit=rate_limit,
+                hydrate_artists=False,
+            )
             albums_dict = {album.id: album for album in albums if album is not None}
 
         artists_dict = {}
