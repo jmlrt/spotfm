@@ -152,6 +152,14 @@ class Track:
             logging.info(f"All {len(tracks)} tracks retrieved from cache/DB")
             return tracks
 
+        # If client is missing and we have unfetched tracks, we can't proceed
+        if client is None:
+            logging.warning(
+                f"Retrieved {len(tracks)} tracks from cache/DB but {len(tracks_to_fetch)} "
+                f"are missing and no client was provided. Returning partial results."
+            )
+            return tracks
+
         logging.info(f"Retrieved {len(tracks)} tracks from cache/DB, fetching {len(tracks_to_fetch)} from API")
 
         # Phase 2: Fetch missing tracks in parallel with rate limiting
@@ -180,21 +188,21 @@ class Track:
         with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
             for i, track_id in enumerate(tracks_to_fetch):
                 future = executor.submit(fetch_track, track_id)
-                futures_with_index.append((i, future))
+                futures_with_index.append((i, track_id, future))
                 # Rate limiting: sleep between submissions (same as sequential baseline)
                 if i < len(tracks_to_fetch) - 1:
                     sleep(SUBMIT_DELAY)
 
             # Collect results in original order
             results = [None] * len(futures_with_index)
-            for i, future in futures_with_index:
+            for i, track_id, future in futures_with_index:
                 try:
                     raw_track = future.result()
                     if raw_track is not None:
                         results[i] = raw_track
                 except Exception as e:
                     # Thread raised an exception - log and skip this track
-                    logging.warning(f"Thread failed fetching track at index {i}: {e}")
+                    logging.warning(f"Thread failed fetching track {track_id} at index {i}: {e}")
 
         # Filter out None results while maintaining order
         raw_tracks = [track for track in results if track is not None]
