@@ -503,10 +503,10 @@ class TestTrackGetTracks:
 
         track_ids = ["track1", "invalid", "track2"]
 
-        # Mock individual track API responses - invalid raises exception
+        # Mock individual track API responses - invalid raises KeyError (expected for unavailable)
         def mock_track_response(id, market):
             if id == "invalid":
-                raise Exception("Track not found")
+                raise KeyError("Track not found")
             return {
                 "id": id,
                 "name": f"Track {id[-1]}",

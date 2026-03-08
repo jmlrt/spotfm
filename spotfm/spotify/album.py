@@ -73,8 +73,9 @@ class Album:
                     if album.name is not None:
                         albums_dict[album_id] = album
                 except (KeyError, ValueError) as e:
-                    # Album not found, deleted, or unavailable on Spotify
-                    # (Transient errors like 429, 5xx are auto-retried by spotipy)
+                    # Album not found, deleted, or unavailable on Spotify.
+                    # Note: transient API errors (429, 5xx) are not auto-retried (client configured with retries=0)
+                    # and will be handled by the generic Exception handler below.
                     logging.debug(f"Album {album_id} not found or unavailable: {e}")
                 except Exception as e:
                     # Unexpected error - log but continue

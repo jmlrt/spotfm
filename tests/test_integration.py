@@ -407,10 +407,10 @@ class TestErrorHandling:
 
         track_ids = ["valid1", "invalid", "valid2"]
 
-        # Setup individual track mock - invalid raises exception
+        # Setup individual track mock - invalid raises KeyError (expected for unavailable)
         def mock_track_response(id, market):
             if id == "invalid":
-                raise Exception("Track not found")
+                raise KeyError("Track not found")
             tracks = {
                 "valid1": {
                     "id": "valid1",

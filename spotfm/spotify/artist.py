@@ -68,8 +68,9 @@ class Artist:
                     if artist.name is not None:
                         artists_dict[artist_id] = artist
                 except (KeyError, ValueError) as e:
-                    # Artist not found, deleted, or unavailable on Spotify
-                    # (Transient errors like 429, 5xx are auto-retried by spotipy)
+                    # Artist not found, deleted, or unavailable on Spotify.
+                    # Note: transient API errors (429, 5xx) are not auto-retried (client configured with retries=0)
+                    # and will be handled by the generic Exception handler below.
                     logging.debug(f"Artist {artist_id} not found or unavailable: {e}")
                 except Exception as e:
                     # Unexpected error - log but continue

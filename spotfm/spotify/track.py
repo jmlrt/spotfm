@@ -182,8 +182,9 @@ class Track:
                 if track.name is not None:
                     tracks.append(track)
             except (KeyError, ValueError) as e:
-                # Track not found, deleted, or unavailable on Spotify
-                # (Transient errors like 429, 5xx are auto-retried by spotipy)
+                # Track not found, deleted, or unavailable on Spotify.
+                # Note: transient API errors (429, 5xx) are not auto-retried (client configured with retries=0)
+                # and will be handled by the generic Exception handler below.
                 logging.debug(f"Track {track_id} not found or unavailable: {e}")
             except Exception as e:
                 # Unexpected error - log but continue

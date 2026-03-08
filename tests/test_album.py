@@ -488,15 +488,17 @@ class TestAlbumGetAlbums:
         assert mock_spotify_client.album.call_count == 1
 
     def test_get_albums_handles_none_response(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
-        """Test get_albums handles None in API response (deleted albums)."""
+        """Test get_albums handles deleted albums (KeyError on unavailable items)."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
+        # Patch sleep to keep tests fast
+        monkeypatch.setattr("spotfm.spotify.album.sleep", lambda x: None)
 
-        # Mock individual album API responses - deleted_album raises exception
+        # Mock individual album API responses - deleted_album raises KeyError (expected for unavailable)
         def mock_album_response(id, market):
             if id == "deleted_album":
-                # Simulate deleted/unavailable album by raising an exception
-                raise Exception("Album not found")
+                # Simulate deleted/unavailable album by raising KeyError (matches production handling)
+                raise KeyError("Album not found")
             return {
                 "id": id,
                 "name": "Album 1",
@@ -510,7 +512,7 @@ class TestAlbumGetAlbums:
         mock_spotify_client.artist.return_value = {"id": "artist1", "name": "Artist 1", "genres": []}
 
         with freeze_time("2024-03-15"):
-            # get_albums should handle exceptions gracefully and return only valid albums
+            # get_albums should handle KeyError gracefully and return only valid albums
             albums = Album.get_albums(["album1", "deleted_album"], mock_spotify_client, sync_to_db=False)
 
         # Should only return valid albums
