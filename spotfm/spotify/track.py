@@ -115,9 +115,16 @@ class Track:
         """
         Fetch multiple tracks efficiently, leveraging cache/DB.
 
+        Args:
+            tracks_id: List of track IDs to fetch
+            client: Spotify client (optional)
+            refresh: Force refresh from API instead of using cache/DB
+            batch_size: Deprecated - parameter is ignored. Kept for backward compatibility.
+                       Tracks are now fetched individually due to Spotify API changes.
+
         Strategy:
         1. Check cache/DB for all tracks first (respects 3-tier cache)
-        2. Only batch fetch missing tracks from API
+        2. Fetch missing tracks individually from API (Spotify removed batch endpoint)
         3. Collect album/artist IDs from missing tracks
         4. Batch fetch only missing albums and artists
         5. Return all tracks (cached + newly fetched)

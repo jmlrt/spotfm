@@ -60,7 +60,7 @@ class Album:
                 albums_dict[album_id] = album
             else:
                 album = Album(album_id, client)
-                if client is not None and (not album.update_from_db() or refresh):
+                if client is not None and (not album.update_from_db(client) or refresh):
                     ids_to_fetch.append(album_id)
                 else:
                     albums_dict[album_id] = album
