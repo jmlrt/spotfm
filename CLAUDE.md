@@ -2,6 +2,17 @@
 
 This file provides essential guidance for Claude Code when working on spotfm.
 
+## 📚 Documentation Navigation
+
+**This is a 1-page quick reference.** For comprehensive documentation, see:
+
+- **[SPEC.md](SPEC.md)** - Source of truth for architecture, design decisions, features, and data model
+  - Read this for: understanding three-tier caching, entity lifecycle, critical design decisions, orphaned tracks handling
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Complete development guide for contributing code
+  - Read this for: testing requirements, code style, commit messages, workflow, database isolation practices
+- **[README.md](README.md)** - User-facing documentation with setup, configuration, and usage
+  - Read this for: installation, CLI commands, configuration guide, project overview
+
 ## What is spotfm?
 
 A Python library and CLI tool for Spotify and Last.FM API interaction. Focuses on playlist management, track discovery, and music library analytics. Data syncs to a local SQLite database for offline querying.
@@ -73,4 +84,10 @@ A Python library and CLI tool for Spotify and Last.FM API interaction. Focuses o
 - `@pytest.mark.integration` - Integration tests (use temp databases)
 - `@pytest.mark.slow` - Long-running tests (run with `pytest -m slow`)
 
-See README.md for detailed usage. See Makefile for all available commands.
+## 📖 For More Information
+
+- **Architecture & Design**: See [SPEC.md](SPEC.md) for comprehensive specification
+- **Contributing & Workflow**: See [CONTRIBUTING.md](CONTRIBUTING.md) for complete development guide
+- **Usage & Configuration**: See [README.md](README.md) for user documentation
+- **Build Commands**: Run `make help` or see [Makefile](Makefile)
+- **Feature Roadmap**: See [TODO.md](TODO.md) for planned enhancements
