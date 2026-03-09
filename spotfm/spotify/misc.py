@@ -206,7 +206,7 @@ def discover_from_playlists(client, discover_playlist_id, sources_playlists_ids)
                 placeholders = ",".join(["?"] * len(chunk))
                 rows = sqlite.select_db(
                     sqlite.DATABASE,
-                    f"SELECT id FROM tracks WHERE id IN ({placeholders})",
+                    f"SELECT t.id FROM tracks t INNER JOIN albums_tracks at ON at.track_id = t.id WHERE t.id IN ({placeholders})",
                     chunk,
                 ).fetchall()
                 in_db_before.update(row[0] for row in rows)

@@ -128,10 +128,14 @@ def do_rollback(manifest_path):
             sp.playlist_remove_all_occurrences_of_items(pl_id, batch)
 
     # Re-insert into source playlists_tracks — INSERT OR IGNORE makes this idempotent
+    added_at_by_id = {t["id"]: t.get("added_at", str(date.today())) for t in tracks}
     for track_id in all_ids:
+        added_at = added_at_by_id[track_id]
         sqlite.query_db(
             sqlite.DATABASE,
-            [f"INSERT OR IGNORE INTO playlists_tracks (playlist_id, track_id) VALUES ('{source_id}', '{track_id}')"],
+            [
+                f"INSERT OR IGNORE INTO playlists_tracks (playlist_id, track_id, added_at) VALUES ('{source_id}', '{track_id}', '{added_at}')"
+            ],
         )
 
     print(f"\nRollback complete. {len(all_ids)} tracks restored to {source_id}.")
@@ -158,11 +162,11 @@ def main():
 
     from spotfm import sqlite, utils
 
-    # Query all tracks in source playlist with album release dates
+    # Query all tracks in source playlist with album release dates and added_at
     rows = sqlite.query_db_select(
         sqlite.DATABASE,
         """
-        SELECT t.id, t.name, al.release_date
+        SELECT t.id, t.name, al.release_date, pt.added_at
         FROM tracks t
         JOIN playlists_tracks pt ON t.id = pt.track_id
         LEFT JOIN albums_tracks at_map ON t.id = at_map.track_id
@@ -180,7 +184,7 @@ def main():
     decade_buckets = {}  # label -> list of (track_id, track_name, pl_id)
     no_album = []  # (track_id, track_name) with no release date
 
-    for track_id, track_name, release_date_raw in rows:
+    for track_id, track_name, release_date_raw, _added_at in rows:
         parsed = parse_release_date(release_date_raw)
         pl_id, label = classify_track(parsed)
         if pl_id is None:
@@ -219,11 +223,13 @@ def main():
 
     # Build manifest BEFORE any API calls — enables rollback if script crashes mid-flight
     release_date_by_id = {r[0]: r[2] for r in rows}
+    added_at_by_id = {r[0]: r[3] for r in rows}
     manifest_entries = [
         {
             "id": track_id,
             "name": track_name,
             "release_date": release_date_by_id[track_id],
+            "added_at": added_at_by_id[track_id],
             "dest_pl_id": pl_id,
             "dest_label": label,
         }
