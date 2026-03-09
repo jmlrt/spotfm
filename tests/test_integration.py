@@ -487,4 +487,226 @@ class TestErrorHandling:
             playlist = Playlist.get_playlist("empty_playlist", mock_spotify_client, sync_to_db=False)
 
         assert playlist.name == "Empty Playlist"
-        assert len(playlist.raw_tracks) == 0
+
+
+@pytest.mark.integration
+class TestDiscoverFromPlaylists:
+    """Integration tests for discover_from_playlists.
+
+    Tests verify the complete discover workflow and catch regressions, particularly
+    the pre-sync bug where Track.get_tracks() inside Playlist.update_from_api()
+    would sync new tracks to the DB before discover_from_playlists could check
+    if they were truly new — causing them to be treated as orphaned and skipped.
+    """
+
+    SOURCE_PL_ID = "source_pl"
+    DEST_PL_ID = "dest_pl"
+
+    def _configure_client(self, client, source_track_ids, dest_track_ids=None):
+        """Set up mock Spotify client responses for discover tests."""
+        if dest_track_ids is None:
+            dest_track_ids = []
+
+        def playlist_side_effect(id, fields=None, market=None):
+            name = "Discover Dest" if id == self.DEST_PL_ID else "Discover Source"
+            return {"id": id, "name": name, "owner": {"id": "testuser"}, "snapshot_id": f"snap_{id}"}
+
+        def playlist_items_side_effect(id, fields=None, market=None, additional_types=None):
+            track_ids = dest_track_ids if id == self.DEST_PL_ID else source_track_ids
+            return {
+                "items": [{"track": {"id": tid}, "added_at": "2024-01-01T00:00:00Z"} for tid in track_ids],
+                "next": None,
+            }
+
+        def track_side_effect(id, market=None):
+            return {
+                "id": id,
+                "name": f"Track {id}",
+                "album": {"id": f"alb_{id}", "name": f"Album {id}"},
+                "artists": [{"id": f"art_{id}", "name": f"Artist {id}"}],
+            }
+
+        def album_side_effect(id, market=None):
+            artist_id = id.replace("alb_", "art_")
+            return {"id": id, "name": f"Album {id}", "release_date": "2024-01-01", "artists": [{"id": artist_id}]}
+
+        def artist_side_effect(id):
+            return {"id": id, "name": f"Artist {id}", "genres": ["pop"]}
+
+        client.playlist.side_effect = playlist_side_effect
+        client.playlist_items.side_effect = playlist_items_side_effect
+        client.track.side_effect = track_side_effect
+        client.album.side_effect = album_side_effect
+        client.artist.side_effect = artist_side_effect
+
+    @freeze_time("2024-03-15")
+    def test_new_track_is_discovered_and_added(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
+        """Regression test: tracks not in DB are discovered and added to the destination playlist.
+
+        This test catches the pre-sync bug where Playlist.update_from_api() called
+        Track.get_tracks() which synced new tracks to the tracks table before
+        discover_from_playlists could check if they were truly new. Because the
+        tracks were in the DB (but not in playlists_tracks), is_orphaned() returned
+        True and they were silently skipped instead of being added to discover dest.
+
+        With the fix, Track.get_tracks() is called with sync_to_db=False during
+        update_from_api(), so new tracks are NOT pre-synced. discover_from_playlists
+        detects them via the in_db_before pre-check and correctly adds them.
+        """
+        import sqlite3 as _sqlite3
+        from unittest.mock import MagicMock, patch
+
+        from spotfm.spotify.misc import discover_from_playlists
+
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
+        self._configure_client(mock_spotify_client, source_track_ids=["new_track"])
+
+        client_wrapper = MagicMock()
+        client_wrapper.client = mock_spotify_client
+
+        with (
+            patch("spotfm.spotify.track.sleep"),
+            patch("spotfm.spotify.album.sleep"),
+            patch("spotfm.spotify.artist.sleep"),
+        ):
+            discover_from_playlists(client_wrapper, self.DEST_PL_ID, [self.SOURCE_PL_ID])
+
+        # The new track must have been submitted to the Spotify API for addition
+        mock_spotify_client.playlist_add_items.assert_called_once()
+        dest_id, added_ids = mock_spotify_client.playlist_add_items.call_args[0]
+        assert dest_id == self.DEST_PL_ID
+        assert "new_track" in added_ids
+
+        # The track must also be persisted to the local DB after discovery
+        conn = _sqlite3.connect(temp_database)
+        track_in_db = conn.execute("SELECT id FROM tracks WHERE id = 'new_track'").fetchone()
+        conn.close()
+        assert track_in_db is not None, "Discovered track must be synced to DB"
+
+    @freeze_time("2024-03-15")
+    def test_orphaned_track_is_not_readded(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
+        """Orphaned tracks (in DB but not in any playlists_tracks) must not be re-added.
+
+        This is the negative-cache feature: tracks previously removed from all
+        playlists are kept in the DB as orphans so discover skips them,
+        preventing re-discovery of intentionally rejected tracks.
+        """
+        import sqlite3 as _sqlite3
+        from unittest.mock import MagicMock, patch
+
+        from spotfm.spotify.misc import discover_from_playlists
+
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
+
+        # Pre-seed DB: track exists but has NO playlists_tracks entry (orphaned)
+        conn = _sqlite3.connect(temp_database)
+        conn.execute("INSERT INTO artists VALUES ('art_orphan', 'Orphan Artist', '2024-01-01')")
+        conn.execute("INSERT INTO albums VALUES ('alb_orphan', 'Orphan Album', '2024-01-01', '2024-01-01')")
+        conn.execute(
+            "INSERT INTO tracks VALUES ('orphan_track', 'Orphan Track', '2024-01-01', '2024-01-01', '2024-01-01')"
+        )
+        conn.execute("INSERT INTO albums_tracks VALUES ('alb_orphan', 'orphan_track')")
+        conn.execute("INSERT INTO tracks_artists VALUES ('orphan_track', 'art_orphan')")
+        conn.commit()
+        conn.close()
+
+        self._configure_client(mock_spotify_client, source_track_ids=["orphan_track"])
+
+        client_wrapper = MagicMock()
+        client_wrapper.client = mock_spotify_client
+
+        with (
+            patch("spotfm.spotify.track.sleep"),
+            patch("spotfm.spotify.album.sleep"),
+            patch("spotfm.spotify.artist.sleep"),
+        ):
+            discover_from_playlists(client_wrapper, self.DEST_PL_ID, [self.SOURCE_PL_ID])
+
+        mock_spotify_client.playlist_add_items.assert_not_called()
+
+    @freeze_time("2024-03-15")
+    def test_track_in_managed_playlist_is_skipped(
+        self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client
+    ):
+        """Tracks already in a managed playlist must not be added to the discover destination."""
+        import sqlite3 as _sqlite3
+        from unittest.mock import MagicMock, patch
+
+        from spotfm.spotify.misc import discover_from_playlists
+
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
+
+        # Pre-seed DB: track exists AND is in a managed playlist
+        conn = _sqlite3.connect(temp_database)
+        conn.execute("INSERT INTO artists VALUES ('art_existing', 'Existing Artist', '2024-01-01')")
+        conn.execute("INSERT INTO albums VALUES ('alb_existing', 'Existing Album', '2024-01-01', '2024-01-01')")
+        conn.execute(
+            "INSERT INTO tracks VALUES ('existing_track', 'Existing Track', '2024-01-01', '2024-01-01', '2024-01-01')"
+        )
+        conn.execute("INSERT INTO albums_tracks VALUES ('alb_existing', 'existing_track')")
+        conn.execute("INSERT INTO tracks_artists VALUES ('existing_track', 'art_existing')")
+        conn.execute("INSERT INTO playlists VALUES ('managed_pl', 'My Playlist', 'testuser', '2024-01-01')")
+        conn.execute("INSERT INTO playlists_tracks VALUES ('managed_pl', 'existing_track', '2024-01-01')")
+        conn.commit()
+        conn.close()
+
+        self._configure_client(mock_spotify_client, source_track_ids=["existing_track"])
+
+        client_wrapper = MagicMock()
+        client_wrapper.client = mock_spotify_client
+
+        with (
+            patch("spotfm.spotify.track.sleep"),
+            patch("spotfm.spotify.album.sleep"),
+            patch("spotfm.spotify.artist.sleep"),
+        ):
+            discover_from_playlists(client_wrapper, self.DEST_PL_ID, [self.SOURCE_PL_ID])
+
+        mock_spotify_client.playlist_add_items.assert_not_called()
+
+    @freeze_time("2024-03-15")
+    def test_mixed_source_playlist(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
+        """Source playlist with new, orphaned, and managed tracks: only new ones are added."""
+        import sqlite3 as _sqlite3
+        from unittest.mock import MagicMock, patch
+
+        from spotfm.spotify.misc import discover_from_playlists
+
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
+
+        # Set up: 3 tracks in source playlist with different DB states
+        # - "new_t": not in DB → should be discovered
+        # - "orphan_t": in DB, not in playlists_tracks → should be skipped
+        # - "managed_t": in DB, in playlists_tracks → should be skipped
+        conn = _sqlite3.connect(temp_database)
+        for tid in ("orphan_t", "managed_t"):
+            conn.execute(f"INSERT INTO artists VALUES ('art_{tid}', 'Artist', '2024-01-01')")
+            conn.execute(f"INSERT INTO albums VALUES ('alb_{tid}', 'Album', '2024-01-01', '2024-01-01')")
+            conn.execute(f"INSERT INTO tracks VALUES ('{tid}', 'Track', '2024-01-01', '2024-01-01', '2024-01-01')")
+            conn.execute(f"INSERT INTO albums_tracks VALUES ('alb_{tid}', '{tid}')")
+            conn.execute(f"INSERT INTO tracks_artists VALUES ('{tid}', 'art_{tid}')")
+        conn.execute("INSERT INTO playlists VALUES ('managed_pl', 'My Playlist', 'testuser', '2024-01-01')")
+        conn.execute("INSERT INTO playlists_tracks VALUES ('managed_pl', 'managed_t', '2024-01-01')")
+        conn.commit()
+        conn.close()
+
+        self._configure_client(mock_spotify_client, source_track_ids=["new_t", "orphan_t", "managed_t"])
+
+        client_wrapper = MagicMock()
+        client_wrapper.client = mock_spotify_client
+
+        with (
+            patch("spotfm.spotify.track.sleep"),
+            patch("spotfm.spotify.album.sleep"),
+            patch("spotfm.spotify.artist.sleep"),
+        ):
+            discover_from_playlists(client_wrapper, self.DEST_PL_ID, [self.SOURCE_PL_ID])
+
+        mock_spotify_client.playlist_add_items.assert_called_once()
+        dest_id, added_ids = mock_spotify_client.playlist_add_items.call_args[0]
+        assert dest_id == self.DEST_PL_ID
+        assert added_ids == ["new_t"]

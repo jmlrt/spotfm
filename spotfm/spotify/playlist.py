@@ -107,9 +107,9 @@ class Playlist:
     #     self._sorted_tracks = sorted(self.tracks)
     #     return self._sorted_tracks
 
-    def get_tracks(self, client):
+    def get_tracks(self, client, sync_to_db=True):
         raw_tracks_id = [raw_track[0] for raw_track in self.raw_tracks]
-        return Track.get_tracks(raw_tracks_id, client)
+        return Track.get_tracks(raw_tracks_id, client, sync_to_db=sync_to_db)
 
     def update_from_db(self):
         has_snapshot_id = _check_snapshot_id_column()
@@ -172,7 +172,7 @@ class Playlist:
                 self.raw_tracks = [(col[0], col[1]) for col in results]
             if self.tracks is None:
                 # Hydrate Track objects from raw_tracks (set by update_from_db or just above)
-                self.tracks = self.get_tracks(client)
+                self.tracks = self.get_tracks(client, sync_to_db=False)
             # Update the last-updated marker to reflect a successful refresh
             self.updated = str(date.today())
             return
@@ -194,7 +194,7 @@ class Playlist:
                 # If track is relinked, use the original track ID from linked_from
                 track_id = track_data["linked_from"]["id"] if track_data.get("linked_from") else track_data["id"]
                 self.raw_tracks.append((track_id, track["added_at"]))
-        self.tracks = self.get_tracks(client)
+        self.tracks = self.get_tracks(client, sync_to_db=False)
         self.updated = str(date.today())
 
     def sync_to_db(self, client):

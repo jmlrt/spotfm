@@ -191,15 +191,33 @@ def discover_from_playlists(client, discover_playlist_id, sources_playlists_ids)
     for playlist_id in sources_playlists_ids:
         playlist = Playlist.get_playlist(playlist_id, client.client, refresh=True, sync_to_db=False)
         logging.info(f"Looking for new tracks into {playlist.id} - {playlist.name}")
-        tracks = playlist.get_tracks(client.client)
+
+        # Pre-check which track IDs are already in DB before get_tracks() potentially syncs new ones.
+        # update_from_api() calls get_tracks(sync_to_db=False) so tracks are NOT pre-synced,
+        # but on subsequent runs they may already be in DB from update_playlists or prior discovers.
+        raw_track_ids = [utils.parse_url(raw_track[0]) for raw_track in playlist.raw_tracks]
+        if raw_track_ids:
+            placeholders = ",".join(["?"] * len(raw_track_ids))
+            rows = sqlite.select_db(
+                sqlite.DATABASE,
+                f"SELECT id FROM tracks WHERE id IN ({placeholders})",
+                raw_track_ids,
+            ).fetchall()
+            in_db_before = {row[0] for row in rows}
+        else:
+            in_db_before = set()
+
+        # playlist.tracks is already populated by update_from_api() (with sync_to_db=False).
+        # Using it directly avoids a redundant second get_tracks() call.
+        tracks = playlist.tracks
 
         for track in tracks:
-            if not track.update_from_db():
-                # Track doesn't exist in DB - truly new
+            if track.id not in in_db_before:
+                # Track wasn't in DB before this run - truly new
                 logging.info(f"New track found: {track.id}")
                 new_tracks.append(track)
             elif track.is_orphaned():
-                # Track exists in DB but not in any playlist (was removed)
+                # Track exists in DB but not in any playlist (was intentionally removed)
                 last_seen = getattr(track, "last_seen_at", "unknown")
                 logging.info(f"Skipping orphaned track: {track.id} (last seen: {last_seen})")
                 # Do NOT add to new_tracks
