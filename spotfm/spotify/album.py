@@ -28,22 +28,27 @@ class Album:
         return self.name
 
     @classmethod
-    def get_album(cls, id, client=None, refresh=False, sync_to_db=True):
+    def get_album(cls, id, client=None, refresh=False, sync_to_db=True, hydrate_artists=True):
         album = retrieve_object_from_cache(cls.kind, id)
         if album is not None and (client is None or not refresh):
             return album
 
         album = Album(id, client)
-        if client is not None and (not album.update_from_db(client) or refresh):
-            album.update_from_api(client)
+        if client is not None and (not album.update_from_db(client, hydrate_artists=hydrate_artists) or refresh):
+            album.update_from_api(client, hydrate_artists=hydrate_artists)
             cache_object(album)
             if sync_to_db:
                 album.sync_to_db()
         return album
 
     @classmethod
-    def get_albums(cls, album_ids, client=None, refresh=False, sync_to_db=True):
-        """Fetch multiple albums efficiently by calling individual API endpoints."""
+    def get_albums(cls, album_ids, client=None, refresh=False, sync_to_db=True, rate_limit=True, hydrate_artists=True):
+        """Fetch multiple albums efficiently by calling individual API endpoints.
+
+        Args:
+            rate_limit: If False, skip inter-call sleep (caller is responsible for rate limiting)
+            hydrate_artists: If False, skip fetching artists (caller will fetch separately)
+        """
         if not album_ids:
             return []
 
@@ -69,7 +74,9 @@ class Album:
         if ids_to_fetch and client is not None:
             for i, album_id in enumerate(ids_to_fetch):
                 try:
-                    album = cls.get_album(album_id, client, refresh=refresh, sync_to_db=sync_to_db)
+                    album = cls.get_album(
+                        album_id, client, refresh=refresh, sync_to_db=sync_to_db, hydrate_artists=hydrate_artists
+                    )
                     if album.name is not None:
                         albums_dict[album_id] = album
                 except (KeyError, ValueError) as e:
@@ -80,14 +87,14 @@ class Album:
                 except Exception as e:
                     # API/HTTP or other unexpected error - log but continue
                     logging.warning(f"Unexpected error fetching album {album_id}: {e}")
-                # Rate limiting: sleep between individual calls
-                if i < len(ids_to_fetch) - 1:
+                # Rate limiting: sleep between individual calls (if enabled)
+                if rate_limit and i < len(ids_to_fetch) - 1:
                     sleep(0.05)
 
         # Return in original order
         return [albums_dict.get(album_id) for album_id in album_ids if album_id in albums_dict]
 
-    def update_from_db(self, client=None):
+    def update_from_db(self, client=None, hydrate_artists=True):
         try:
             self.name, self.release_date, self.updated = sqlite.select_db(
                 sqlite.DATABASE, f"SELECT name, release_date, updated_at FROM albums WHERE id == '{self.id}'"
@@ -99,17 +106,19 @@ class Album:
             sqlite.DATABASE, f"SELECT artist_id FROM albums_artists WHERE album_id == '{self.id}'"
         ).fetchall()
         self.artists_id = [col[0] for col in results]
-        self.artists = [Artist.get_artist(id, client) for id in self.artists_id]
+        if hydrate_artists:
+            self.artists = [Artist.get_artist(id, client) for id in self.artists_id]
         logging.info("Album ID %s retrieved from database", self.id)
         return True
 
-    def update_from_api(self, client):
+    def update_from_api(self, client, hydrate_artists=True):
         logging.info("Fetching album %s from api", self.id)
         album = client.album(self.id, market=MARKET)
         self.name = utils.sanitize_string(album["name"])
         self.release_date = album["release_date"]
         self.artists_id = [artist["id"] for artist in album["artists"]]
-        self.artists = [Artist.get_artist(id, client) for id in self.artists_id]
+        if hydrate_artists:
+            self.artists = [Artist.get_artist(id, client) for id in self.artists_id]
         self.updated = str(date.today())
 
     def sync_to_db(self):

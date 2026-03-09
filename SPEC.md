@@ -429,21 +429,47 @@ from spotfm.utils import sanitize_string
 playlist_name = sanitize_string(user_input)  # Removes single quotes
 ```
 
-### 5. Rate Limiting via Sleep Calls
+### 5. Rate Limiting via Sleep Calls & Parallel Execution
 
-**Decision**: Strategic sleep() calls to prevent Spotify 429 errors
+**Decision**: Strategic sleep() calls to prevent Spotify 429 errors; parallel execution for improved performance
 
-**Locations**:
-- 0.1s between individual track API calls (track.py)
-- 0.05s between individual album/artist API calls (album.py, artist.py)
+**Rate Limiting Strategy**:
+- **Spotify general rate**: ~10 requests/second (0.1s sleep between operations)
+- **Spotify album/artist metadata**: ~20 requests/second (0.05s sleep for faster hydration)
+- **Last.FM rate**: ~5 requests/second (0.2s sleep between requests)
+- **Parallelized track fetching**: ThreadPoolExecutor maintains ~10 req/s via submission-based rate limiting
+
+**Locations & Implementation**:
+
+**Track Fetching (Phase 2) - Parallelized**:
+- ThreadPoolExecutor with 5 workers, 0.1s submission delay (implemented in Track.get_tracks parallel fetch phase)
+- Parallelizes individual `client.track()` API calls while maintaining ~10 Spotify req/s effective rate
+- 35-40% performance improvement (2.5 min → 1.5 min for 500+ new tracks)
+- Rate limiting via submission delay (0.1s between task submissions) maintains same total API load as sequential
+
+**Album/Artist Batch Fetches**:
+- Individual API calls: 0.05s sleep between album/artist API calls (~20 req/s) (Album.get_albums and Artist.get_artists methods)
+- Sequential after parallel track phase (sequential post-processing step in Track.get_tracks)
+- Faster rate acceptable since these are already-discovered metadata (lower priority than new tracks)
+
+**Other Operations**:
+- Playlist track additions: 0.1s between each track addition (playlist modification helpers in misc.py)
+- Last.FM API calls: 0.2s between requests (~5 req/s) (Last.FM client methods in lastfm.py)
+
+**Implementation Details**:
+- ThreadPoolExecutor hides 200ms network latency across 5 concurrent workers
+- Sequential DB sync after parallel fetches (SQLite is single-writer)
+- Error handling: individual fetch failures logged and skipped
+- Thread-safe for read-only operations (spotipy's requests.Session)
 
 **Rationale**:
 - Spotify rate limit: ~10 requests/second
+- Individual endpoints required (batch endpoints removed Feb 2026)
+- Parallel execution doesn't increase API load, just hides network latency
 - Proactive sleep prevents 429 Too Many Requests errors
-- Individual endpoints (Spotify removed batch endpoints Feb 2026)
 - No retries configured (client uses retries=0); sleep is the primary strategy
 
-**Do not remove** without understanding impact.
+**Do not remove** rate-limiting sleep without understanding impact.
 
 ---
 

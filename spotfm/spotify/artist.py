@@ -37,8 +37,12 @@ class Artist:
         return artist
 
     @classmethod
-    def get_artists(cls, artist_ids, client=None, refresh=False, sync_to_db=True):
-        """Fetch multiple artists efficiently by calling individual API endpoints."""
+    def get_artists(cls, artist_ids, client=None, refresh=False, sync_to_db=True, rate_limit=True):
+        """Fetch multiple artists efficiently by calling individual API endpoints.
+
+        Args:
+            rate_limit: If False, skip inter-call sleep (caller is responsible for rate limiting)
+        """
         if not artist_ids:
             return []
 
@@ -75,8 +79,8 @@ class Artist:
                 except Exception as e:
                     # API/HTTP or other unexpected error - log but continue
                     logging.warning(f"Unexpected error fetching artist {artist_id}: {e}")
-                # Rate limiting: sleep between individual calls
-                if i < len(ids_to_fetch) - 1:
+                # Rate limiting: sleep between individual calls (if enabled)
+                if rate_limit and i < len(ids_to_fetch) - 1:
                     sleep(0.05)
 
         # Return in original order

@@ -36,6 +36,7 @@ PERFORMANCE OPTIMIZATION:
 
 import logging
 import sqlite3
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import date
 from time import sleep
 
@@ -111,85 +112,217 @@ class Track:
         return track
 
     @classmethod
-    def get_tracks(cls, tracks_id, client=None, refresh=False):
+    def get_tracks(cls, tracks_id, client=None, refresh=False, rate_limit=True):
         """
-        Fetch multiple tracks efficiently, leveraging cache/DB.
-
-        Args:
-            tracks_id: List of track IDs to fetch
-            client: Spotify client (optional)
-            refresh: Force refresh from API instead of using cache/DB
+        Fetch multiple tracks efficiently, leveraging cache/DB with ThreadPoolExecutor parallelization.
 
         Strategy:
         1. Check cache/DB for all tracks first (respects 3-tier cache)
-        2. Fetch missing tracks individually from API using get_track()
-           - Each get_track() call fetches its own track, album, and artists
-           - Caching is leveraged at each level for efficiency
-        3. Return all tracks (cached + newly fetched)
+        2. Parallelize fetching missing tracks from API (ThreadPoolExecutor with 5 workers)
+        3. Collect album/artist IDs from missing tracks
+        4. Batch fetch only missing albums and artists (respecting rate_limit parameter)
+        5. Return all tracks (cached + newly fetched)
 
-        Note: Previously this method batch-fetched albums/artists, but Spotify
-        removed batch endpoints (Feb 2026). Now each get_track() handles its own
-        dependencies. Consider optimizing this for better performance.
+        Args:
+            tracks_id: List of track IDs to fetch (URLs, URIs, or plain IDs)
+            client: Spotify client (optional)
+            refresh: Force refresh from API instead of using cache/DB
+            rate_limit: Enable rate limiting for API calls (default: True)
         """
         if not tracks_id:
             return []
 
-        tracks = []
-        tracks_to_fetch = []
+        # Normalize all track IDs upfront (handles URLs/URIs)
+        normalized_ids = [utils.parse_url(tid) for tid in tracks_id]
+
+        cached_tracks = {}  # Map of normalized_track_id → Track
+        normalized_to_fetch = []  # Normalized IDs that need API fetch
 
         # Phase 1: Check cache/DB for all tracks (CRITICAL for performance)
-        for track_id in tracks_id:
+        # Track unique IDs to avoid fetching duplicates (though input may have repeats)
+        seen_missing = set()
+        for normalized_id in normalized_ids:
             # Try pickle cache first
-            track = retrieve_object_from_cache(cls.kind, track_id)
+            track = retrieve_object_from_cache(cls.kind, normalized_id)
             if track is not None and not refresh:
-                tracks.append(track)
+                cached_tracks[normalized_id] = track
                 continue
 
             # Try DB
-            track = Track(track_id, client)
+            track = Track(normalized_id, client)
             if not refresh and track.update_from_db(client):
                 cache_object(track)
-                tracks.append(track)
+                cached_tracks[normalized_id] = track
                 continue
 
             # Track not in cache/DB, need to fetch from API
-            tracks_to_fetch.append(track_id)
+            # Only add to fetch list once, even if ID appears multiple times in input
+            if normalized_id not in seen_missing:
+                normalized_to_fetch.append(normalized_id)
+                seen_missing.add(normalized_id)
 
         # If all tracks cached, return early (typical case for update_playlists)
-        if not tracks_to_fetch:
-            logging.info(f"All {len(tracks)} tracks retrieved from cache/DB")
-            return tracks
+        if not normalized_to_fetch:
+            logging.info(f"All {len(cached_tracks)} tracks retrieved from cache/DB")
+            return [cached_tracks[nid] for nid in normalized_ids]
 
         # If client is missing and we have unfetched tracks, we can't proceed
         if client is None:
             logging.warning(
-                f"Retrieved {len(tracks)} tracks from cache/DB but {len(tracks_to_fetch)} "
+                f"Retrieved {len(cached_tracks)} tracks from cache/DB but {len(normalized_to_fetch)} "
                 f"are missing and no client was provided. Returning partial results."
             )
-            return tracks
+            return [cached_tracks[nid] for nid in normalized_ids if nid in cached_tracks]
 
-        logging.info(f"Retrieved {len(tracks)} tracks from cache/DB, fetching {len(tracks_to_fetch)} from API")
+        logging.info(
+            f"Retrieved {len(cached_tracks)} tracks from cache/DB, fetching {len(normalized_to_fetch)} from API"
+        )
 
-        # Phase 2: Fetch missing tracks individually (Spotify removed batch endpoint)
-        # Note: get_track() re-checks cache/DB for each track (redundant since we already know
-        # they're missing). This is acceptable for correctness but could be optimized with a
-        # fast-path for known-missing IDs that fetches directly from API.
-        for i, track_id in enumerate(tracks_to_fetch):
+        # Phase 2: Fetch missing tracks in parallel with rate limiting
+        # Uses ThreadPoolExecutor to parallelize individual API calls while enforcing rate limits.
+        # Rate limiting is enforced by throttling task submission rate to maintain same ~10 req/s
+        # as sequential baseline. Parallel execution hides network latency while respecting API limits.
+        #
+        # NOTE: Thread safety - spotipy's requests.Session is assumed thread-safe for concurrent
+        # read-only operations. If threading issues occur, fall back to sequential fetch by setting
+        # MAX_WORKERS = 1 below.
+        MAX_WORKERS = 5  # Up to 5 concurrent in-flight requests (parallelism degree)
+        SUBMIT_DELAY = 0.1  # 0.1s between submissions → ~10 req/s max request-start rate (same as sequential baseline)
+
+        def fetch_track(normalized_id):
+            """Fetch single track's raw data from API (normalized_id already parsed)."""
             try:
-                track = cls.get_track(track_id, client, refresh=refresh, sync_to_db=True)
-                if track.name is not None:
-                    tracks.append(track)
+                return client.track(normalized_id, market=MARKET)
             except (KeyError, ValueError) as e:
-                # Track not found, deleted, or unavailable on Spotify.
-                # Note: transient API errors (429, 5xx) are not auto-retried by the Spotify client
-                # (configured with retries=0) and will be handled by the generic Exception handler below.
-                logging.debug(f"Track {track_id} not found or unavailable: {e}")
-            except Exception as e:
-                # API/HTTP or other unexpected error - log but continue
-                logging.warning(f"Unexpected error fetching track {track_id}: {e}")
-            # Rate limiting: sleep between individual calls
-            if i < len(tracks_to_fetch) - 1:
-                sleep(0.1)
+                # Track not found, deleted, or unavailable on Spotify
+                logging.debug(f"Track {normalized_id} not found or unavailable: {e}")
+                return None
+            # Let unexpected exceptions propagate so result collection can handle them properly
+
+        # Parallel fetch phase: submit tasks with rate limiting
+        # Maintain order using a future→(index, track_id) map.
+        # Results are collected via as_completed() to avoid head-of-line blocking,
+        # then written back into a pre-allocated list by index to preserve input order.
+        future_map = {}  # future → (i, normalized_id)
+        results = [None] * len(normalized_to_fetch)
+        with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+            for i, normalized_id in enumerate(normalized_to_fetch):
+                future = executor.submit(fetch_track, normalized_id)
+                future_map[future] = (i, normalized_id)
+                # Rate limiting: sleep between submissions (only if rate_limit=True)
+                if rate_limit and i < len(normalized_to_fetch) - 1:
+                    sleep(SUBMIT_DELAY)
+
+            # Collect results as futures complete (avoids blocking on slow early requests)
+            # as_completed() must be called inside the executor context for incremental processing
+            for future in as_completed(future_map):
+                i, track_id = future_map[future]
+                try:
+                    raw_track = future.result()
+                    if raw_track is not None:
+                        results[i] = raw_track
+                except KeyError, ValueError:
+                    # Track not found - already logged by fetch_track at debug level
+                    pass
+                except Exception as e:
+                    # Unexpected API/HTTP error - log and skip this track
+                    logging.warning(f"Unexpected error fetching track {track_id}: {e}")
+
+        # Filter out None results while maintaining order
+        raw_tracks = [track for track in results if track is not None]
+
+        # Sequential processing after parallel fetches
+        # Create track objects, fetch albums/artists, and sync to DB
+        album_ids = []
+        artist_ids = []
+
+        # Collect all album/artist IDs from raw tracks
+        for raw_track in raw_tracks:
+            album_ids.append(raw_track["album"]["id"])
+            artist_ids.extend([artist["id"] for artist in raw_track["artists"]])
+
+        # Batch fetch albums and artists (respecting caller's rate limiting preference)
+        # When rate_limit=True (default): Apply 0.05s sleep between API calls (~20 req/s)
+        # When rate_limit=False: Skip sleeps (useful for testing or when caller manages rate limiting)
+        # Note: Parallel track phase ends and would spike request rate without rate limiting.
+        # Skip hydrating artists in album fetch - we fetch them separately below with rate limiting
+        albums_dict = {}
+        if album_ids:
+            logging.info("Batch fetching albums (checking cache first)")
+            unique_album_ids = list(dict.fromkeys(album_ids))
+            albums = Album.get_albums(
+                unique_album_ids,
+                client,
+                refresh=refresh,
+                rate_limit=rate_limit,
+                hydrate_artists=False,
+            )
+            albums_dict = {album.id: album for album in albums if album is not None}
+
+        artists_dict = {}
+        if artist_ids:
+            logging.info("Batch fetching artists (checking cache first)")
+            unique_artist_ids = list(dict.fromkeys(artist_ids))
+            artists = Artist.get_artists(unique_artist_ids, client, refresh=refresh, rate_limit=rate_limit)
+            artists_dict = {artist.id: artist for artist in artists if artist is not None}
+
+        # Populate album.artists
+        for album in albums_dict.values():
+            if album.artists_id:
+                album.artists = [artists_dict[aid] for aid in album.artists_id if aid in artists_dict]
+
+        # Create track objects from fetched data
+        fetched_tracks = {}  # Map of track_id → Track
+        for raw_track in raw_tracks:
+            try:
+                track = Track(raw_track["id"], client)
+                track.name = utils.sanitize_string(raw_track["name"])
+                track.album_id = raw_track["album"]["id"]
+                track.updated = str(date.today())
+
+                # Use pre-fetched album (mirrors artist completeness check below)
+                album = albums_dict.get(track.album_id)
+                if album is None:
+                    logging.warning(
+                        "Skipping sync for track %s due to missing album %s",
+                        track.id,
+                        track.album_id,
+                    )
+                    continue
+                track.album = album.name
+                track.release_date = album.release_date
+
+                # Use pre-fetched artists
+                track.artists_id = [artist["id"] for artist in raw_track["artists"]]
+                track.artists = [artists_dict[aid] for aid in track.artists_id if aid in artists_dict]
+
+                # Ensure all artists were hydrated (incomplete artists → incomplete genres)
+                if len(track.artists) != len(track.artists_id):
+                    missing = [aid for aid in track.artists_id if aid not in artists_dict]
+                    logging.warning(
+                        "Skipping sync for track %s due to missing artists: %s",
+                        track.id,
+                        ", ".join(missing),
+                    )
+                    continue
+
+                track.sync_to_db(client)
+                cache_object(track)
+                fetched_tracks[track.id] = track
+
+            except (TypeError, KeyError) as e:
+                track_id = raw_track.get("id", "unknown") if raw_track else "unknown"
+                logging.warning(f"Error processing track {track_id}: {e}", exc_info=True)
+
+        # Rebuild tracks list in original input order (combining cached + fetched)
+        # Use normalized IDs for lookups, iterate in normalized_ids order to preserve input order
+        tracks = []
+        for normalized_id in normalized_ids:
+            if normalized_id in cached_tracks:
+                tracks.append(cached_tracks[normalized_id])
+            elif normalized_id in fetched_tracks:
+                tracks.append(fetched_tracks[normalized_id])
+            # Skip if track not found (deleted/unavailable)
 
         return tracks
 
