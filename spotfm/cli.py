@@ -152,6 +152,11 @@ def spotify_cli(args, config):
             spotify_misc.discover_from_playlists(
                 client_read_write, config["spotify"]["discover_playlist"], config["spotify"]["sources_playlists"]
             )
+        case "remove-playlist-dupes":
+            if not args.playlists or len(args.playlists) != 1:
+                print("Error: --playlists requires exactly one playlist ID")
+                return
+            spotify_misc.remove_playlist_dupes(client, args.playlists[0])
         case "find-duplicate-ids":
             excluded = config["spotify"].get("excluded_playlists", [])
             spotify_dupes.find_duplicate_ids(excluded_playlist_ids=excluded, output_file=args.output)
@@ -249,6 +254,7 @@ def main():
             "find-relinked-tracks",
             "list-playlists-with-track-counts",
             "find-tracks",
+            "remove-playlist-dupes",
         ],
     )
     spotify_parser.add_argument(
