@@ -192,18 +192,24 @@ def discover_from_playlists(client, discover_playlist_id, sources_playlists_ids)
         playlist = Playlist.get_playlist(playlist_id, client.client, refresh=True, sync_to_db=False)
         logging.info(f"Looking for new tracks into {playlist.id} - {playlist.name}")
 
-        # Pre-check which track IDs are already in DB before get_tracks() potentially syncs new ones.
-        # update_from_api() calls get_tracks(sync_to_db=False) so tracks are NOT pre-synced,
-        # but on subsequent runs they may already be in DB from update_playlists or prior discovers.
+        # Pre-check which track IDs are already in DB for this discover run.
+        # Playlist.get_playlist(..., refresh=True, sync_to_db=False) has already called
+        # update_from_api(), so playlist.raw_tracks is a stable snapshot from the API; some of
+        # these IDs may already exist in the DB from update_playlists or prior discovers.
         raw_track_ids = [utils.parse_url(raw_track[0]) for raw_track in playlist.raw_tracks]
         if raw_track_ids:
-            placeholders = ",".join(["?"] * len(raw_track_ids))
-            rows = sqlite.select_db(
-                sqlite.DATABASE,
-                f"SELECT id FROM tracks WHERE id IN ({placeholders})",
-                raw_track_ids,
-            ).fetchall()
-            in_db_before = {row[0] for row in rows}
+            # Batch IDs to avoid exceeding SQLite's bound-parameter limit (commonly 999).
+            in_db_before = set()
+            chunk_size = 900
+            for i in range(0, len(raw_track_ids), chunk_size):
+                chunk = raw_track_ids[i : i + chunk_size]
+                placeholders = ",".join(["?"] * len(chunk))
+                rows = sqlite.select_db(
+                    sqlite.DATABASE,
+                    f"SELECT id FROM tracks WHERE id IN ({placeholders})",
+                    chunk,
+                ).fetchall()
+                in_db_before.update(row[0] for row in rows)
         else:
             in_db_before = set()
 
@@ -290,11 +296,14 @@ def remove_playlist_dupes(client, target_playlist_id):
     playlist = Playlist(target_playlist_id)
     playlist.remove_tracks(track_ids, client.client)
 
-    placeholders = "','".join(track_ids)
-    sqlite.query_db(
-        sqlite.DATABASE,
-        [f"DELETE FROM playlists_tracks WHERE playlist_id = '{target_playlist_id}' AND track_id IN ('{placeholders}')"],
+    con = sqlite.get_db_connection(sqlite.DATABASE)
+    cur = con.cursor()
+    placeholders = ",".join(["?"] * len(track_ids))
+    cur.execute(
+        f"DELETE FROM playlists_tracks WHERE playlist_id = ? AND track_id IN ({placeholders})",
+        [target_playlist_id, *track_ids],
     )
+    con.commit()
 
     print(f"Done. Removed {len(track_ids)} tracks from '{playlist_name}'.")
 

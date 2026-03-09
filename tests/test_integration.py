@@ -487,6 +487,8 @@ class TestErrorHandling:
             playlist = Playlist.get_playlist("empty_playlist", mock_spotify_client, sync_to_db=False)
 
         assert playlist.name == "Empty Playlist"
+        assert len(playlist.raw_tracks) == 0
+        assert len(playlist.tracks) == 0
 
 
 @pytest.mark.integration

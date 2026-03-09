@@ -147,7 +147,7 @@ def spotify_cli(args, config):
             client_read_write = spotify_client.Client(
                 config["spotify"]["client_id"],
                 config["spotify"]["client_secret"],
-                scope="playlist-modify-private",
+                scope="playlist-modify-public playlist-modify-private",
             )
             spotify_misc.discover_from_playlists(
                 client_read_write, config["spotify"]["discover_playlist"], config["spotify"]["sources_playlists"]
