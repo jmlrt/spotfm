@@ -72,9 +72,10 @@ A Python library and CLI tool for Spotify and Last.FM API interaction. Focuses o
    - All Track/Album/Artist fetching uses individual API calls
    - Playlist add_tracks uses batch_size=50 (Spotify API limit for playlist operations)
    - Exception handling distinguishes KeyError/ValueError (unavailable) from unexpected errors
-3. **SQL Injection Risk**: F-strings used in queries (TODO: migrate to parameterized)
-4. **Global DB Connection**: `spotfm/sqlite.py` uses module-level singleton with atexit cleanup
-5. **Duplicate Detection**: Operates on SQLite only, no API calls (optimization)
+3. **`sync_to_db` in discover context** — `Track.get_tracks()` and `Playlist.get_tracks()` default to `sync_to_db=True`. Any caller that needs to check "is this track new before writing it?" **must pass `sync_to_db=False`** (e.g. `discover_from_playlists`). Forgetting this causes all tracks to appear pre-existing and discover silently adds nothing.
+4. **SQL Injection Risk**: F-strings used in queries (TODO: migrate to parameterized)
+5. **Global DB Connection**: `spotfm/sqlite.py` uses module-level singleton with atexit cleanup
+6. **Duplicate Detection**: Operates on SQLite only, no API calls (optimization)
 
 ## Development Practices
 
@@ -82,6 +83,11 @@ A Python library and CLI tool for Spotify and Last.FM API interaction. Focuses o
 - Run `make test` (all tests pass)
 - Run `make lint` (no ruff violations)
 - When fixing a bug in one CLI command, proactively check ALL similar commands for the same issue
+
+**Branch creation when on a feature branch:**
+- Always check `git branch` before creating a new fix/feature branch
+- If currently on a feature branch (e.g. `perf/threadpool-phase2`), do NOT stash and switch — the stash will conflict
+- Instead: note changed files, `git checkout main && git checkout -b fix/new-branch`, re-apply edits manually with the Edit tool
 
 **Commit strategy:**
 - **ONLY commit files you changed** — use `git add <file1> <file2>` (not `git add .` or `git add -A`)

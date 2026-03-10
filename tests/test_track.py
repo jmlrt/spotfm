@@ -168,6 +168,7 @@ class TestTrackUpdateFromDb:
     def test_update_from_db_success(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
         """Test successful update from database."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
 
         # Insert test data
@@ -196,6 +197,7 @@ class TestTrackUpdateFromDb:
     def test_update_from_db_not_found(self, temp_database, monkeypatch):
         """Test update from database when track not found."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
 
         track = Track("nonexistent")
         result = track.update_from_db()
@@ -212,6 +214,7 @@ class TestTrackUpdateFromApi:
     def test_update_from_api_success(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
         """Test successful update from API."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
 
         mock_spotify_client.track.return_value = {
@@ -252,6 +255,7 @@ class TestTrackUpdateFromApi:
     def test_update_from_api_sanitizes_name(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
         """Test that track name is sanitized."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
 
         mock_spotify_client.track.return_value = {
@@ -294,6 +298,7 @@ class TestTrackSyncToDb:
     def test_sync_to_db_success(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
         """Test syncing track to database."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
 
         track = Track("track123")
@@ -358,6 +363,7 @@ class TestTrackGetTrack:
     def test_get_track_refresh_forces_api_call(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
         """Test that refresh=True forces API call."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
 
         # Cache a track
@@ -412,6 +418,7 @@ class TestTrackGetTracks:
     def test_get_tracks_single_batch(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
         """Test getting multiple tracks with individual API calls."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
 
         track_ids = ["track1", "track2", "track3"]
@@ -457,6 +464,7 @@ class TestTrackGetTracks:
     def test_get_tracks_multiple_batches(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
         """Test getting tracks with individual API calls."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
 
         # Create 5 track IDs
@@ -500,6 +508,7 @@ class TestTrackGetTracks:
     def test_get_tracks_handles_none_track(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
         """Test that None/invalid tracks are skipped."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
 
         track_ids = ["track1", "invalid", "track2"]
@@ -547,6 +556,7 @@ class TestTrackGetTracks:
         from pathlib import Path
 
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
 
         # Insert a track into the database directly (simulating existing data)
@@ -645,6 +655,7 @@ class TestTrackGetTracks:
     ):
         """Test that tracks are skipped (not synced) when album fetch fails."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
 
         track_ids = ["track1", "track2"]
@@ -691,6 +702,7 @@ class TestTrackGetTracks:
         the final ordering of tracks returned to the caller.
         """
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
 
         track_ids = ["track1", "track2", "track3", "track4"]
@@ -742,6 +754,7 @@ class TestTrackGetTracks:
         other tracks.
         """
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
 
         track_ids = ["good1", "bad", "good2"]
@@ -783,6 +796,7 @@ class TestTrackGetTracks:
     def test_get_tracks_rate_limit_parameter(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
         """Test that rate_limit parameter is passed through to Album/Artist helpers."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
 
         track_ids = ["track1", "track2"]
@@ -898,6 +912,7 @@ class TestTrackLifecycleTracking:
     def test_lifecycle_timestamps_on_first_sync(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
         """Test that tracks get lifecycle timestamps on first sync."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
 
         # Create new track with API data
@@ -922,6 +937,7 @@ class TestTrackLifecycleTracking:
     ):
         """Test that created_at is preserved when track is updated."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
 
         # First sync at 2024-01-01
@@ -949,6 +965,7 @@ class TestTrackLifecycleTracking:
     def test_is_orphaned_returns_true_when_not_in_playlists(self, temp_database, monkeypatch):
         """Test that is_orphaned() returns True for tracks not in any playlist."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
 
         # Create track in DB but not in playlists_tracks
         conn = sqlite3.connect(temp_database)
@@ -973,6 +990,7 @@ class TestTrackLifecycleTracking:
     def test_is_orphaned_returns_false_when_in_playlist(self, temp_database, monkeypatch):
         """Test that is_orphaned() returns False for tracks in playlists."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
 
         # Create track in DB and in playlists_tracks
         conn = sqlite3.connect(temp_database)
@@ -999,6 +1017,7 @@ class TestTrackLifecycleTracking:
     def test_update_from_db_handles_null_lifecycle_timestamps(self, temp_database, monkeypatch):
         """Test that update_from_db() handles NULL lifecycle timestamps gracefully."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
 
         # Manually insert track with old schema (NULL timestamps)
         conn = sqlite3.connect(temp_database)

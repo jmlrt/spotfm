@@ -324,7 +324,9 @@ def reset_module_state():
     reset_lifecycle_columns_cache()
     # Reset snapshot_id column cache to avoid stale values when DATABASE is monkeypatched
     reset_snapshot_id_column_cache()
+
     yield
+
     # Cleanup after test runs - close the global database connection
     db_module.close_db_connection()
     # Clear migrated databases set after test

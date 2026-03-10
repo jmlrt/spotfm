@@ -112,7 +112,7 @@ class Track:
         return track
 
     @classmethod
-    def get_tracks(cls, tracks_id, client=None, refresh=False, rate_limit=True):
+    def get_tracks(cls, tracks_id, client=None, refresh=False, rate_limit=True, sync_to_db=True):
         """
         Fetch multiple tracks efficiently, leveraging cache/DB with ThreadPoolExecutor parallelization.
 
@@ -128,6 +128,8 @@ class Track:
             client: Spotify client (optional)
             refresh: Force refresh from API instead of using cache/DB
             rate_limit: Enable rate limiting for API calls (default: True)
+            sync_to_db: Sync newly fetched tracks to DB (default: True). Set False in discover
+                context to avoid pre-syncing tracks before the caller can check if they're new.
         """
         if not tracks_id:
             return []
@@ -306,7 +308,8 @@ class Track:
                     )
                     continue
 
-                track.sync_to_db(client)
+                if sync_to_db:
+                    track.sync_to_db(client)
                 cache_object(track)
                 fetched_tracks[track.id] = track
 

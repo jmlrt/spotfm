@@ -170,11 +170,11 @@ def discover_from_playlists(client, discover_playlist_id, sources_playlists_ids)
     cause previously removed tracks to be re-added to the discover playlist.
 
     Only adds tracks that:
-    - Don't exist in the database (never seen before), OR
-    - Exist but are currently in other playlists
+    - Don't exist in the database (never seen before)
 
     Skips tracks that:
     - Are orphaned (in DB but removed from all playlists)
+    - Already exist in the database (whether in other playlists or not)
 
     Args:
         client: Spotify client instance
@@ -187,19 +187,45 @@ def discover_from_playlists(client, discover_playlist_id, sources_playlists_ids)
     """
     discover_playlist = Playlist.get_playlist(discover_playlist_id, client.client, refresh=True, sync_to_db=False)
     new_tracks = []
+    seen_new_ids = set()  # Track IDs already added in this run to avoid duplicates across source playlists
 
     for playlist_id in sources_playlists_ids:
         playlist = Playlist.get_playlist(playlist_id, client.client, refresh=True, sync_to_db=False)
         logging.info(f"Looking for new tracks into {playlist.id} - {playlist.name}")
-        tracks = playlist.get_tracks(client.client)
+
+        # Pre-check which track IDs are already in DB for this discover run.
+        # Playlist.get_playlist(..., refresh=True, sync_to_db=False) has already called
+        # update_from_api(), so playlist.raw_tracks is a stable snapshot from the API; some of
+        # these IDs may already exist in the DB from update_playlists or prior discovers.
+        raw_track_ids = [utils.parse_url(raw_track[0]) for raw_track in playlist.raw_tracks]
+        if raw_track_ids:
+            # Batch IDs to avoid exceeding SQLite's bound-parameter limit (commonly 999).
+            in_db_before = set()
+            chunk_size = 900
+            for i in range(0, len(raw_track_ids), chunk_size):
+                chunk = raw_track_ids[i : i + chunk_size]
+                placeholders = ",".join(["?"] * len(chunk))
+                rows = sqlite.select_db(
+                    sqlite.DATABASE,
+                    f"SELECT id FROM tracks WHERE id IN ({placeholders})",
+                    chunk,
+                ).fetchall()
+                in_db_before.update(row[0] for row in rows)
+        else:
+            in_db_before = set()
+
+        # playlist.tracks is already populated by update_from_api() (with sync_to_db=False).
+        # Using it directly avoids a redundant second get_tracks() call.
+        tracks = playlist.tracks
 
         for track in tracks:
-            if not track.update_from_db():
-                # Track doesn't exist in DB - truly new
+            if track.id not in in_db_before and track.id not in seen_new_ids:
+                # Track wasn't in DB before this run AND not already added in a previous source playlist
                 logging.info(f"New track found: {track.id}")
                 new_tracks.append(track)
+                seen_new_ids.add(track.id)
             elif track.is_orphaned():
-                # Track exists in DB but not in any playlist (was removed)
+                # Track exists in DB but not in any playlist (was intentionally removed)
                 last_seen = getattr(track, "last_seen_at", "unknown")
                 logging.info(f"Skipping orphaned track: {track.id} (last seen: {last_seen})")
                 # Do NOT add to new_tracks
@@ -207,14 +233,14 @@ def discover_from_playlists(client, discover_playlist_id, sources_playlists_ids)
                 # Track exists and is in other playlists
                 logging.debug(f"Skipping track {track.id} (already in playlists)")
 
-        logging.info(f"Adding {len(new_tracks)} new tracks to db")
-
-        for track in new_tracks:
-            track.sync_to_db(client.client)
-
     logging.info(f"Adding new tracks to {discover_playlist.id} - {discover_playlist.name}")
     if len(new_tracks) > 0:
         discover_playlist.add_tracks(new_tracks, client.client)
+        # Only sync to DB after successful playlist add to prevent orphaning tracks
+        # if the Spotify API call fails
+        logging.info(f"Adding {len(new_tracks)} new tracks to db")
+        for track in new_tracks:
+            track.sync_to_db(client.client)
 
 
 def count_tracks_by_playlists():

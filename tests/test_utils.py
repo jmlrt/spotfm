@@ -360,8 +360,12 @@ class TestDatabaseSwitching:
 class TestGetAttr:
     """Tests for __getattr__ function."""
 
-    def test_getattr_database(self):
-        """Test accessing DATABASE via __getattr__."""
+    def test_getattr_database(self, monkeypatch):
+        """Test that sqlite.DATABASE forwards to utils.DATABASE via __getattr__."""
+        # Prior tests may have monkeypatched sqlite.DATABASE but not utils.DATABASE (or vice versa),
+        # leaving them out of sync. Explicitly sync before testing __getattr__ forwarding behavior.
+        monkeypatch.setattr(db_module, "DATABASE", utils.DATABASE)
+        # Verify that accessing sqlite.DATABASE delegates to utils.DATABASE through __getattr__
         assert db_module.DATABASE == utils.DATABASE
 
     def test_getattr_database_log_level(self):
