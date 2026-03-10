@@ -558,9 +558,11 @@ class TestDiscoverFromPlaylists:
         import sqlite3 as _sqlite3
         from unittest.mock import MagicMock, patch
 
+        from spotfm import sqlite
         from spotfm.spotify.misc import discover_from_playlists
 
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
         self._configure_client(mock_spotify_client, source_track_ids=["new_track"])
 
@@ -597,9 +599,11 @@ class TestDiscoverFromPlaylists:
         import sqlite3 as _sqlite3
         from unittest.mock import MagicMock, patch
 
+        from spotfm import sqlite
         from spotfm.spotify.misc import discover_from_playlists
 
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
 
         # Pre-seed DB: track exists but has NO playlists_tracks entry (orphaned)
@@ -636,9 +640,11 @@ class TestDiscoverFromPlaylists:
         import sqlite3 as _sqlite3
         from unittest.mock import MagicMock, patch
 
+        from spotfm import sqlite
         from spotfm.spotify.misc import discover_from_playlists
 
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
 
         # Pre-seed DB: track exists AND is in a managed playlist
@@ -675,9 +681,11 @@ class TestDiscoverFromPlaylists:
         import sqlite3 as _sqlite3
         from unittest.mock import MagicMock, patch
 
+        from spotfm import sqlite
         from spotfm.spotify.misc import discover_from_playlists
 
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
 
         # Set up: 3 tracks in source playlist with different DB states

@@ -170,11 +170,11 @@ def discover_from_playlists(client, discover_playlist_id, sources_playlists_ids)
     cause previously removed tracks to be re-added to the discover playlist.
 
     Only adds tracks that:
-    - Don't exist in the database (never seen before), OR
-    - Exist but are currently in other playlists
+    - Don't exist in the database (never seen before)
 
     Skips tracks that:
     - Are orphaned (in DB but removed from all playlists)
+    - Already exist in the database (whether in other playlists or not)
 
     Args:
         client: Spotify client instance
@@ -187,6 +187,7 @@ def discover_from_playlists(client, discover_playlist_id, sources_playlists_ids)
     """
     discover_playlist = Playlist.get_playlist(discover_playlist_id, client.client, refresh=True, sync_to_db=False)
     new_tracks = []
+    seen_new_ids = set()  # Track IDs already added in this run to avoid duplicates across source playlists
 
     for playlist_id in sources_playlists_ids:
         playlist = Playlist.get_playlist(playlist_id, client.client, refresh=True, sync_to_db=False)
@@ -218,10 +219,11 @@ def discover_from_playlists(client, discover_playlist_id, sources_playlists_ids)
         tracks = playlist.tracks
 
         for track in tracks:
-            if track.id not in in_db_before:
-                # Track wasn't in DB before this run - truly new
+            if track.id not in in_db_before and track.id not in seen_new_ids:
+                # Track wasn't in DB before this run AND not already added in a previous source playlist
                 logging.info(f"New track found: {track.id}")
                 new_tracks.append(track)
+                seen_new_ids.add(track.id)
             elif track.is_orphaned():
                 # Track exists in DB but not in any playlist (was intentionally removed)
                 last_seen = getattr(track, "last_seen_at", "unknown")
