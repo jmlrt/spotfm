@@ -791,7 +791,8 @@ class TestRemovePlaylistDupes:
         conn.close()
 
         client_wrapper = MagicMock()
-        remove_playlist_dupes(client_wrapper.client, self.TARGET_PL_ID)
+        client_wrapper.client = mock_spotify_client
+        remove_playlist_dupes(client_wrapper, self.TARGET_PL_ID)
 
         mock_spotify_client.playlist_remove_all_occurrences_of_items.assert_not_called()
 

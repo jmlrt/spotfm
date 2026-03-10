@@ -8,6 +8,7 @@ import tempfile
 from spotfm import lastfm, utils
 from spotfm.lastfm import read_lastfm_state, save_lastfm_state
 from spotfm.spotify import client as spotify_client
+from spotfm.spotify import constants as spotify_constants
 from spotfm.spotify import dupes as spotify_dupes
 from spotfm.spotify import misc as spotify_misc
 
@@ -153,7 +154,7 @@ def spotify_cli(args, config):
             client_read_write = spotify_client.Client(
                 config["spotify"]["client_id"],
                 config["spotify"]["client_secret"],
-                scope="playlist-modify-public playlist-modify-private",
+                scope=spotify_constants.SCOPE,
             )
             spotify_misc.discover_from_playlists(
                 client_read_write, config["spotify"]["discover_playlist"], config["spotify"]["sources_playlists"]

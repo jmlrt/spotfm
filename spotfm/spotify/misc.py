@@ -206,7 +206,7 @@ def discover_from_playlists(client, discover_playlist_id, sources_playlists_ids)
                 placeholders = ",".join(["?"] * len(chunk))
                 rows = sqlite.select_db(
                     sqlite.DATABASE,
-                    f"SELECT t.id FROM tracks t INNER JOIN albums_tracks at ON at.track_id = t.id WHERE t.id IN ({placeholders})",
+                    f"SELECT id FROM tracks WHERE id IN ({placeholders})",
                     chunk,
                 ).fetchall()
                 in_db_before.update(row[0] for row in rows)
@@ -274,7 +274,7 @@ def remove_playlist_dupes(client, target_playlist_id):
     API, then cleans up the local DB.
 
     Args:
-        client: Spotify client instance (needs playlist-modify-* scope)
+        client: Client wrapper object or Spotify client instance (needs playlist-modify-* scope)
         target_playlist_id: Playlist ID to clean duplicates from
     """
     rows = sqlite.query_db_select(
@@ -294,15 +294,21 @@ def remove_playlist_dupes(client, target_playlist_id):
     print(f"Removing {len(track_ids)} duplicate tracks from '{playlist_name}'")
 
     playlist = Playlist(target_playlist_id)
-    playlist.remove_tracks(track_ids, client.client)
+    # Support both wrapper objects and raw spotipy clients
+    spotify_client = getattr(client, "client", client)
+    playlist.remove_tracks(track_ids, spotify_client)
 
     con = sqlite.get_db_connection(sqlite.DATABASE)
     cur = con.cursor()
-    placeholders = ",".join(["?"] * len(track_ids))
-    cur.execute(
-        f"DELETE FROM playlists_tracks WHERE playlist_id = ? AND track_id IN ({placeholders})",
-        [target_playlist_id, *track_ids],
-    )
+    # Batch the delete to avoid exceeding SQLite's bound-parameter limit
+    chunk_size = 900
+    for i in range(0, len(track_ids), chunk_size):
+        chunk = track_ids[i : i + chunk_size]
+        placeholders = ",".join(["?"] * len(chunk))
+        cur.execute(
+            f"DELETE FROM playlists_tracks WHERE playlist_id = ? AND track_id IN ({placeholders})",
+            [target_playlist_id, *chunk],
+        )
     con.commit()
 
     print(f"Done. Removed {len(track_ids)} tracks from '{playlist_name}'.")
