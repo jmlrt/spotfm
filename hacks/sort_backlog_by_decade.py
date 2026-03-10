@@ -51,7 +51,7 @@ def parse_release_date(raw):
             return date(int(parts[0]), int(parts[1]), 1)
         else:
             return date(int(parts[0]), int(parts[1]), int(parts[2]))
-    except ValueError, TypeError:
+    except (ValueError, TypeError):
         return None
 
 
