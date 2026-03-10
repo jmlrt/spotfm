@@ -250,3 +250,14 @@ class Playlist:
                 client.playlist_add_items(self.id, batch)
             except TypeError:
                 print(f"Error: Failed to add {batch} to playlist {self.id}")
+
+    def remove_tracks(self, track_ids, client):
+        batch_size = 100  # Spotify API limit for playlist remove items
+        track_ids_batches = [track_ids[i : i + batch_size] for i in range(0, len(track_ids), batch_size)]
+
+        for i, batch in enumerate(track_ids_batches):
+            logging.info(f"Remove batch: {i}/{len(track_ids_batches)}")
+            try:
+                client.playlist_remove_all_occurrences_of_items(self.id, batch)
+            except TypeError:
+                print(f"Error: Failed to remove {batch} from playlist {self.id}")

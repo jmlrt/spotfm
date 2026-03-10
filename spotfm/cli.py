@@ -144,6 +144,16 @@ def spotify_cli(args, config):
             spotify_misc.add_tracks_from_file(client, args.file)
         case "add-tracks-from-file-batch":
             spotify_misc.add_tracks_from_file_batch(client, args.file)
+        case "remove-tracks-from-playlist":
+            if not args.playlists or not args.file:
+                print("Error: remove-tracks-from-playlist requires both -p/--playlists and -f/--file")
+                return
+            client_read_write = spotify_client.Client(
+                config["spotify"]["client_id"],
+                config["spotify"]["client_secret"],
+                scope=spotify_constants.SCOPE,
+            )
+            spotify_misc.remove_tracks_from_file(client_read_write, args.playlists[0], args.file)
         case "discover-from-playlists":
             client_read_write = spotify_client.Client(
                 config["spotify"]["client_id"],
@@ -244,6 +254,7 @@ def main():
             "update-playlists",
             "add-tracks-from-file",
             "add-tracks-from-file-batch",
+            "remove-tracks-from-playlist",
             "discover-from-playlists",
             "find-duplicate-ids",
             "find-duplicate-names",

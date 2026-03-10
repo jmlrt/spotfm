@@ -154,6 +154,35 @@ def add_tracks_from_file_batch(client, file_path):
             logging.info(f"Error adding track to db: {e}")
 
 
+def remove_tracks_from_file(client, playlist_id, file_path):
+    """Remove tracks from a Spotify playlist using track IDs from a file.
+
+    Each line in the file should be a Spotify track ID or URL.
+    Removes the tracks from the Spotify playlist and updates the local DB.
+
+    WARNING: This does NOT remove tracks from the tracks table (they remain as
+    orphaned tracks, preserving the negative cache for discover_from_playlists).
+
+    Args:
+        client: Spotify client wrapper instance
+        playlist_id: ID of the playlist to remove tracks from
+        file_path: Path to file containing track IDs (one per line)
+    """
+    track_ids = [utils.parse_url(tid) for tid in utils.manage_tracks_ids_file(file_path)]
+    playlist = Playlist.get_playlist(playlist_id, client.client, refresh=False)
+    playlist.remove_tracks(track_ids, client.client)
+
+    # Remove from local DB playlists_tracks (not tracks table — preserve negative cache)
+    queries = []
+    for track_id in track_ids:
+        queries.append(
+            f"DELETE FROM playlists_tracks WHERE playlist_id = '{playlist_id}' AND track_id = '{utils.sanitize_string(track_id)}'"
+        )
+    if queries:
+        sqlite.query_db(sqlite.DATABASE, queries)
+    logging.info(f"Removed {len(track_ids)} tracks from playlist {playlist_id}")
+
+
 def discover_from_playlists(client, discover_playlist_id, sources_playlists_ids):
     """Discover new tracks from source playlists and add them to a discover playlist.
 

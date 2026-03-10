@@ -573,3 +573,117 @@ class TestListPlaylistsWithTrackCounts:
             ("Has Tracks", "id_full", 20),
         ]
         mock_sqlite_select_db.assert_called_once()
+
+
+@pytest.mark.unit
+class TestRemoveTracksFromFile:
+    """Tests for remove_tracks_from_file function."""
+
+    def test_remove_tracks_from_file(self, temp_database, temp_cache_dir, tmp_path, monkeypatch, mock_spotify_client):
+        """Test removing tracks from a playlist via file."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
+        monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
+
+        # Setup database with a playlist and tracks
+        conn = sqlite3.connect(temp_database)
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO playlists VALUES ('playlist123', 'Test Playlist', 'user123', '2024-01-01')")
+        cursor.execute("INSERT INTO playlists_tracks VALUES ('playlist123', 'track1', '2024-01-01T00:00:00Z')")
+        cursor.execute("INSERT INTO playlists_tracks VALUES ('playlist123', 'track2', '2024-01-01T00:00:00Z')")
+        cursor.execute("INSERT INTO tracks VALUES ('track1', 'Track 1', '2024-01-01', '2024-01-01', '2024-01-01')")
+        cursor.execute("INSERT INTO tracks VALUES ('track2', 'Track 2', '2024-01-01', '2024-01-01', '2024-01-01')")
+        conn.commit()
+        conn.close()
+
+        # Create a file with track IDs to remove
+        file_path = tmp_path / "remove.txt"
+        file_path.write_text("track1\ntrack2\n")
+
+        # Create mock client
+        client = MagicMock()
+        client.client = mock_spotify_client
+
+        # Call the function
+        misc.remove_tracks_from_file(client, "playlist123", str(file_path))
+
+        # Verify playlist_remove_all_occurrences_of_items was called
+        mock_spotify_client.playlist_remove_all_occurrences_of_items.assert_called_once()
+
+        # Verify tracks were removed from DB
+        conn = sqlite3.connect(temp_database)
+        cursor = conn.cursor()
+        remaining = cursor.execute("SELECT track_id FROM playlists_tracks WHERE playlist_id = 'playlist123'").fetchall()
+        conn.close()
+
+        assert len(remaining) == 0
+
+    def test_remove_tracks_preserves_tracks_table(
+        self, temp_database, temp_cache_dir, tmp_path, monkeypatch, mock_spotify_client
+    ):
+        """Test that remove_tracks_from_file doesn't delete from tracks table."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
+        monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
+
+        # Setup database
+        conn = sqlite3.connect(temp_database)
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO playlists VALUES ('playlist123', 'Test Playlist', 'user123', '2024-01-01')")
+        cursor.execute("INSERT INTO playlists_tracks VALUES ('playlist123', 'track1', '2024-01-01T00:00:00Z')")
+        cursor.execute("INSERT INTO tracks VALUES ('track1', 'Track 1', '2024-01-01', '2024-01-01', '2024-01-01')")
+        conn.commit()
+        conn.close()
+
+        # Create file with track ID
+        file_path = tmp_path / "remove.txt"
+        file_path.write_text("track1\n")
+
+        # Create mock client
+        client = MagicMock()
+        client.client = mock_spotify_client
+
+        # Call the function
+        misc.remove_tracks_from_file(client, "playlist123", str(file_path))
+
+        # Verify track still exists in tracks table (orphaned)
+        conn = sqlite3.connect(temp_database)
+        cursor = conn.cursor()
+        track = cursor.execute("SELECT id FROM tracks WHERE id = 'track1'").fetchone()
+        conn.close()
+
+        assert track is not None
+        assert track[0] == "track1"
+
+    def test_remove_tracks_from_file_with_urls(
+        self, temp_database, temp_cache_dir, tmp_path, monkeypatch, mock_spotify_client
+    ):
+        """Test removing tracks using Spotify URLs."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
+        monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
+
+        # Setup database
+        conn = sqlite3.connect(temp_database)
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO playlists VALUES ('playlist123', 'Test Playlist', 'user123', '2024-01-01')")
+        cursor.execute("INSERT INTO playlists_tracks VALUES ('playlist123', 'track1', '2024-01-01T00:00:00Z')")
+        cursor.execute("INSERT INTO tracks VALUES ('track1', 'Track 1', '2024-01-01', '2024-01-01', '2024-01-01')")
+        conn.commit()
+        conn.close()
+
+        # Create file with Spotify URL
+        file_path = tmp_path / "remove.txt"
+        file_path.write_text("spotify:track:track1\n")
+
+        # Create mock client
+        client = MagicMock()
+        client.client = mock_spotify_client
+
+        # Call the function
+        misc.remove_tracks_from_file(client, "playlist123", str(file_path))
+
+        # Verify playlist_remove_all_occurrences_of_items was called with parsed track ID
+        mock_spotify_client.playlist_remove_all_occurrences_of_items.assert_called_once()
+        call_args = mock_spotify_client.playlist_remove_all_occurrences_of_items.call_args[0]
+        assert call_args[1] == ["track1"]  # URL parsed to track ID
