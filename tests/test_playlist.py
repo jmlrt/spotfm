@@ -128,8 +128,6 @@ class TestPlaylistUpdateFromApi:
         monkeypatch.setattr(utils, "DATABASE", temp_database)
         monkeypatch.setattr(sqlite, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
-        monkeypatch.setattr(utils, "DATABASE", temp_database)
-        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
 
         mock_spotify_client.playlist.return_value = {
             "id": "playlist123",
@@ -740,8 +738,6 @@ class TestPlaylistGetTracks:
         monkeypatch.setattr(utils, "DATABASE", temp_database)
         monkeypatch.setattr(sqlite, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
-        monkeypatch.setattr(utils, "DATABASE", temp_database)
-        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
 
         playlist = Playlist("playlist123")
         playlist.raw_tracks = [("track1", "2024-01-01"), ("track2", "2024-01-02")]

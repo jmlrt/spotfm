@@ -90,8 +90,10 @@ spfm spotify find-relinked-tracks -o output.csv  # Save to CSV
 ### Last.FM Commands
 
 ```bash
-# Fetch recent scrobbles (auto-tracks state: first run initializes, subsequent runs fetch new only)
-spfm lastfm recent-scrobbles
+# Fetch recent scrobbles using state tracking (first run initializes state only, subsequent runs fetch new scrobbles)
+# Use --limit to fetch a specific number of scrobbles regardless of state
+spfm lastfm recent-scrobbles --limit 50
+spfm lastfm recent-scrobbles  # On subsequent runs, fetches new scrobbles since last invocation
 
 # Filter by minimum scrobbles in period window
 spfm lastfm recent-scrobbles --period-minimum 2

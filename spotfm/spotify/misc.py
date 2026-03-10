@@ -231,14 +231,14 @@ def discover_from_playlists(client, discover_playlist_id, sources_playlists_ids)
                 # Track exists and is in other playlists
                 logging.debug(f"Skipping track {track.id} (already in playlists)")
 
-        logging.info(f"Adding {len(new_tracks)} new tracks to db")
-
-        for track in new_tracks:
-            track.sync_to_db(client.client)
-
     logging.info(f"Adding new tracks to {discover_playlist.id} - {discover_playlist.name}")
     if len(new_tracks) > 0:
         discover_playlist.add_tracks(new_tracks, client.client)
+        # Only sync to DB after successful playlist add to prevent orphaning tracks
+        # if the Spotify API call fails
+        logging.info(f"Adding {len(new_tracks)} new tracks to db")
+        for track in new_tracks:
+            track.sync_to_db(client.client)
 
 
 def count_tracks_by_playlists():
@@ -296,7 +296,13 @@ def remove_playlist_dupes(client, target_playlist_id):
     playlist = Playlist(target_playlist_id)
     # Support both wrapper objects and raw spotipy clients
     spotify_client = getattr(client, "client", client)
-    playlist.remove_tracks(track_ids, spotify_client)
+
+    try:
+        playlist.remove_tracks(track_ids, spotify_client)
+    except Exception as e:
+        logging.error(f"Failed to remove tracks from Spotify API: {e}")
+        print("Error: Failed to remove tracks from playlist. DB not updated.")
+        raise
 
     con = sqlite.get_db_connection(sqlite.DATABASE)
     cur = con.cursor()

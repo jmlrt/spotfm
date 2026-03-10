@@ -129,14 +129,15 @@ def do_rollback(manifest_path):
 
     # Re-insert into source playlists_tracks — INSERT OR IGNORE makes this idempotent
     added_at_by_id = {t["id"]: t.get("added_at", str(date.today())) for t in tracks}
+    con = sqlite.get_db_connection(sqlite.DATABASE)
+    cur = con.cursor()
     for track_id in all_ids:
         added_at = added_at_by_id[track_id]
-        sqlite.query_db(
-            sqlite.DATABASE,
-            [
-                f"INSERT OR IGNORE INTO playlists_tracks (playlist_id, track_id, added_at) VALUES ('{source_id}', '{track_id}', '{added_at}')"
-            ],
+        cur.execute(
+            "INSERT OR IGNORE INTO playlists_tracks (playlist_id, track_id, added_at) VALUES (?, ?, ?)",
+            (source_id, track_id, added_at),
         )
+    con.commit()
 
     print(f"\nRollback complete. {len(all_ids)} tracks restored to {source_id}.")
     print("Run `spfm spotify update-playlists` to re-sync the DB with Spotify state.")
@@ -270,12 +271,18 @@ def main():
     for batch in batched(all_moved_ids, BATCH_SIZE):
         sp.playlist_remove_all_occurrences_of_items(source_id, batch)
 
-    # Update local DB — remove from source playlist only
-    placeholders = "','".join(all_moved_ids)
-    sqlite.query_db(
-        sqlite.DATABASE,
-        [f"DELETE FROM playlists_tracks WHERE playlist_id = '{source_id}' AND track_id IN ('{placeholders}')"],
-    )
+    # Update local DB — remove from source playlist only (batched to avoid SQLite param limit)
+    con = sqlite.get_db_connection(sqlite.DATABASE)
+    cur = con.cursor()
+    chunk_size = 900
+    for i in range(0, len(all_moved_ids), chunk_size):
+        chunk = all_moved_ids[i : i + chunk_size]
+        placeholders = ",".join(["?"] * len(chunk))
+        cur.execute(
+            f"DELETE FROM playlists_tracks WHERE playlist_id = ? AND track_id IN ({placeholders})",
+            (source_id, *tuple(chunk)),
+        )
+    con.commit()
 
     print(f"\nDone. Moved {len(all_moved_ids)} tracks into decade playlists.")
     if no_album:

@@ -100,12 +100,18 @@ def main():
     playlist = Playlist(BACKLOG_ID)
     playlist.remove_tracks(track_ids, client.client)
 
-    # Update local DB
-    placeholders = "','".join(track_ids)
-    sqlite.query_db(
-        sqlite.DATABASE,
-        [f"DELETE FROM playlists_tracks WHERE playlist_id = '{BACKLOG_ID}' AND track_id IN ('{placeholders}')"],
-    )
+    # Update local DB (batched to avoid SQLite param limit)
+    con = sqlite.get_db_connection(sqlite.DATABASE)
+    cur = con.cursor()
+    chunk_size = 900
+    for i in range(0, len(track_ids), chunk_size):
+        chunk = track_ids[i : i + chunk_size]
+        placeholders = ",".join(["?"] * len(chunk))
+        cur.execute(
+            f"DELETE FROM playlists_tracks WHERE playlist_id = ? AND track_id IN ({placeholders})",
+            (BACKLOG_ID, *tuple(chunk)),
+        )
+    con.commit()
 
     print(f"\nDone. Removed {len(track_ids)} tracks from IR-Backlog-Mar-9.")
 

@@ -1,0 +1,6530 @@
+{
+  "timestamp": "2026-03-09T10:28:32.379725",
+  "source_id": "3qJuoBKFatWNl0XmO6iG0g",
+  "tracks": [
+    {
+      "id": "00viEDY2MUtmTanky345ps",
+      "name": "Fanmi la",
+      "release_date": "2021-03-26",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "01ilVtxrMGzcGORBi28P8I",
+      "name": "Pito",
+      "release_date": "2020-07-24",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "07Jeu9TZ5GRvYLAm4nb6rT",
+      "name": "7 Jou",
+      "release_date": "2022-10-07",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "0A5FQkAtB6Eh5RgkEIznWP",
+      "name": "Monalisa",
+      "release_date": "2023-06-21",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "0Ac5Bxk62PVSEYLXWmIAhn",
+      "name": "Chance",
+      "release_date": "2022-01-19",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "0ApflIvLLPwEZuS36WYlh6",
+      "name": "Sugarcane - Remix",
+      "release_date": "2022-04-08",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "0BD9boQC7jUTWkAoib4Z0d",
+      "name": "Mele\u011fim",
+      "release_date": "2020-03-19",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "0G8JSk6N6VMvLisq3ENE3B",
+      "name": "Ya Dieu dedans",
+      "release_date": "2023-08-12",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "0GTO1m0ZbLNvsl6EAMXpj7",
+      "name": "Ch\u00e9rie",
+      "release_date": "2023-08-17",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "0HvfKpQ3mn0903BoAwb3nB",
+      "name": "St. Thomas Native (feat. Chronic Law)",
+      "release_date": "2023-01-27",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "0RUavidTwACAYUoNhAxNNp",
+      "name": "Ny pense plus",
+      "release_date": "2020-06-19",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "0SsDuZYjZu8ipBl3Refw5w",
+      "name": "Mov\u00e9",
+      "release_date": "2021-11-26",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "0T5ZL9YHfNdjm9OAEY8q24",
+      "name": "Moli",
+      "release_date": "2022-05-25",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "0UvG1kG6vH8LBRbDpBfi7O",
+      "name": "Qu\u00eate",
+      "release_date": "2023-10-13",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "0V9hYbo9uL11hqLP3u0yqA",
+      "name": "Babylon",
+      "release_date": "2023-09-05",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "0VCSXLLY2Wn9Z6zvd4Cnph",
+      "name": "Lov\u00e9",
+      "release_date": "2023-04-28",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "0VzBKgimNRMauaqzT2rEnS",
+      "name": "Go Down Deh (feat. Sean Paul & Shaggy)",
+      "release_date": "2021-04-30",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "0ZyPfZ9KrkY2uJYzMiwmoo",
+      "name": "Il \u00e9tait une fois",
+      "release_date": "2020-01-17",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "0cWnp0UYJgC00vaA1eUbPF",
+      "name": "Criminel",
+      "release_date": "2021-04-28",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "0cmtrrR2jnzH1P4hpSZy3Y",
+      "name": "ZABOKA",
+      "release_date": "2023-10-20",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "0hCWrSOPEScdbAiCpq4jNk",
+      "name": "Chak moun on moun",
+      "release_date": "2021-07-30",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "0jGIMIyoRaZPx9tuO69Kvb",
+      "name": "Rebel",
+      "release_date": "2020-09-11",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "0k72ejsBskcD4RMrOQj3Ep",
+      "name": "Celebrity love",
+      "release_date": "2023-09-06",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "0lxhqrcSTDn28es5HVya0F",
+      "name": "L\u00e9s\u00e9 mwen",
+      "release_date": "2021-03-26",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "0n6eySSHMNGoClefCc5Hbe",
+      "name": "Numero Uno",
+      "release_date": "2020-12-11",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "0nxrwH1Jdd72sFEn2Oo3Qo",
+      "name": "Toucher",
+      "release_date": "2020-10-15",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "0ol389u3G18P4VxsDEmuUy",
+      "name": "OCB Black",
+      "release_date": "2021-10-29",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "0p9mUcff7qINBXbt20PY36",
+      "name": "Punani Imperial",
+      "release_date": "2022-04-29",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "0q6PZ4jQiQJy7Z8OCvi52q",
+      "name": "C l\u00e0",
+      "release_date": "2023-01-27",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "0ryqUP7jg0nltXZHeI3Q08",
+      "name": "3 Mic",
+      "release_date": "2022-05-11",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "0tvffvQ8Gb4W2Z52KPF0k7",
+      "name": "Sp\u00e9ro Patronum",
+      "release_date": "2022-05-27",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "0u2A4QNAMUyfQbgfVR3HvK",
+      "name": "Cough (Odo)",
+      "release_date": "2022-10-13",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "0u77jPc44fS40vJPM9eCCZ",
+      "name": "Lovla",
+      "release_date": "2021-07-30",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "0v391pPJXysSBHuq94eKeS",
+      "name": "Ki Manny\u00e9",
+      "release_date": "2022-05-27",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "0vNY7uNEG8El6doRdP21D5",
+      "name": "Emiliana",
+      "release_date": "2021-12-03",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "0w173GUMOhyDMksob5FYW8",
+      "name": "Baby all\u00f4",
+      "release_date": "2020-12-11",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "0wBApQV8mIdHzfEr42QowE",
+      "name": "La Rocade",
+      "release_date": "2023-10-13",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "0wFntgKCXxNp7ui6LitFsF",
+      "name": "Eritaj",
+      "release_date": "2020-12-04",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "0wIYlcH9j9ySi9mm0xyt1a",
+      "name": "John Abruzzi",
+      "release_date": "2023-10-19",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "0wJALeEUycReLoEkDNQknQ",
+      "name": "FREDO SANTANA",
+      "release_date": "2022-04-01",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "0yHyEuO6sXnuJghlnro7Fl",
+      "name": "Nouvo Mood",
+      "release_date": "2023-11-03",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "11jljbDlwqMyvQdepjse5G",
+      "name": "Toko Toko",
+      "release_date": "2022-04-14",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "135KOEZZ4s0idH7XFv9zfQ",
+      "name": "Je veux te...",
+      "release_date": "2021-08-20",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "140dx97IbJbQhIMd7AaHeb",
+      "name": "love nwantiti (ah ah ah) [feat. Joeboy & Kuami Eugene] [Remix]",
+      "release_date": "2020-02-13",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "19sesLqKhLkzkFVYOh4wSD",
+      "name": "Fem voy\u00e9",
+      "release_date": "2022-02-21",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "1AYVe8KmW5Sh1fNeI3bUiT",
+      "name": "Tou l\u00e9 jou",
+      "release_date": "2022-06-24",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "1CCES5F70iAo8Mp54uFe9s",
+      "name": "Take Bamboo",
+      "release_date": "2021-09-26",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "1CrzvQGhcMeKL9d24L7Sxy",
+      "name": "#DMTS",
+      "release_date": "2021-06-04",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "1IcAQ51mU6KbX2oNW9H7tp",
+      "name": "Papa pa t\u00e9 la",
+      "release_date": "2022-01-03",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "1JvMPB1mkcrQsnasBGMBYd",
+      "name": "No love",
+      "release_date": "2023-06-30",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "1K4JRAKYEpjQZhmAQI6qYC",
+      "name": "Danm danm",
+      "release_date": "2021-05-14",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "1L5exNFLNhkkkCXfjlH75u",
+      "name": "They Will Never Know",
+      "release_date": "2020-12-02",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "1MSpYYbQ6Ifr3tnCRMZUir",
+      "name": "Ten aller",
+      "release_date": "2020-01-24",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "1NoizYl3FbCTBh7imel3HU",
+      "name": "Reunion island 2022 part.2",
+      "release_date": "2022-08-24",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "1Rlm7o3skUT67f75g0MuxR",
+      "name": "Paloma",
+      "release_date": "2021-04-02",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "1S2TIiGuSNYK0HYmsyyyR9",
+      "name": "Bla bla bla",
+      "release_date": "2022-06-10",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "1SRw5p2lVAi7RGlHEmZg66",
+      "name": "Favorite Song",
+      "release_date": "2023-02-17",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "1U0PqGdtaeGDWqwOAalBYn",
+      "name": "Doucement",
+      "release_date": "2021-01-22",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "1VOn2rRxe7JBweoK4SINHe",
+      "name": "ONGBAK 2",
+      "release_date": "2021-04-01",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "1WoriEWSVD2vKC9BU2TzYg",
+      "name": "Mi amor",
+      "release_date": "2022-01-24",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "1galZ3g8xd3nBtPHtqa19d",
+      "name": "La foudre",
+      "release_date": "2022-04-08",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "1iBWjQ9af9NnUd5xnQDB3k",
+      "name": "Charm",
+      "release_date": "2023-04-27",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "1io07ZrUd7Fp8f3ExshTC1",
+      "name": "Dou Dou",
+      "release_date": "2021-10-10",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "1mNvijqTFRqisyURrtrhwa",
+      "name": "Y Que Fue?",
+      "release_date": "2020-07-29",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "1mSdbey7RstGLY2udgXv74",
+      "name": "Essence (feat. Justin Bieber & Tems)",
+      "release_date": "2021-08-13",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "1mbA1wMausD6dFJwAZhs0N",
+      "name": "Cest Bon",
+      "release_date": "2022-10-07",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "1wADwLSkYhrSmy4vdy6BRn",
+      "name": "soso",
+      "release_date": "2022-07-14",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "1xWKujbLszrfyBHLsktsOI",
+      "name": "Lamour et la passion",
+      "release_date": "2021-04-29",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "1xePJkVtApbRPAh5cgRImS",
+      "name": "M Pa La Ank\u00f2",
+      "release_date": "2021-06-18",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "1ydZd1VcY2CwwbuFIF0vit",
+      "name": "Love vou twop",
+      "release_date": "2021-04-23",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "1yzIPjogtjSjt1lCDuiJSx",
+      "name": "Fwison\u00e9",
+      "release_date": "2020-11-19",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "20KrRS1MJLpxQ99SvpJRtQ",
+      "name": "CDM",
+      "release_date": "2022-09-16",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "22uNvUrqJOrI49NhKKpgYr",
+      "name": "Blas\u00e9e",
+      "release_date": "2020-07-15",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "22woBfokG4WRalwDO5wlKh",
+      "name": "Pum Fat",
+      "release_date": "2023-09-15",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "258QqB2zhweDE2ZLEtT1GU",
+      "name": "Laisse tomber",
+      "release_date": "2022-02-04",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "26b3oVLrRUaaybJulow9kz",
+      "name": "People",
+      "release_date": "2022-12-06",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "2CbcLXjaBmGExSbbq2Xn3E",
+      "name": "Toxic",
+      "release_date": "2021-04-09",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "2DHEoJNacTzMwYPbrGU4gl",
+      "name": "Pourquoi tremblent ils ?",
+      "release_date": "2020-09-07",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "2H88Kxs8ckt4vFXUDsIsrf",
+      "name": "One Life",
+      "release_date": "2022-08-14",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "2MlOUXmcofMackX3bxfSwi",
+      "name": "Jerusalema (feat. Nomcebo Zikode)",
+      "release_date": "2020-01-24",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "2POhFt7cVOzqLYNuLOfQH0",
+      "name": "Coeur Noir",
+      "release_date": "2023-03-03",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "2QcTf5lLMrrWTiElDInpTb",
+      "name": "I love you",
+      "release_date": "2023-12-08",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "2RnkJgwCzgvQU3MUysO1fG",
+      "name": "Kolo Kolo",
+      "release_date": "2022-09-08",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "2SPIuusw1t6yGGiLsYertJ",
+      "name": "Best Life",
+      "release_date": "2020-12-14",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "2SWqPlni7LUPmMXNRKczFj",
+      "name": "In Love",
+      "release_date": "2022-11-10",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "2VE4EgAvL0LzX2BIxijqbZ",
+      "name": "Sans parler",
+      "release_date": "2022-04-12",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "2VUuJnHiCShOZd3XCWnYTN",
+      "name": "QDM",
+      "release_date": "2022-04-06",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "2WigMwGJysIh9fRnSJvpjn",
+      "name": "KU LO SA - A COLORS SHOW",
+      "release_date": "2022-06-10",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "2YB3aHdfTB6SZpYp1iBCfI",
+      "name": "10 / 10",
+      "release_date": "2021-09-24",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "2Z38O5BBV3tmZE1Ijk7rEQ",
+      "name": "Ou two jen",
+      "release_date": "2023-07-14",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "2ZLcrPOWX3wTnj2h4NdEWx",
+      "name": "None",
+      "release_date": "2023-11-03",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "2ahdWh9C9d3cz31kEYXr5M",
+      "name": "La cl\u00e9",
+      "release_date": "2021-12-23",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "2bGWKRLRQ4HzP9qNCbFbmk",
+      "name": "Diad\u00e8me",
+      "release_date": "2021-09-24",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "2btk5GEqRr2Wwyk4pPEAte",
+      "name": "Left Right",
+      "release_date": "2022-09-07",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "2d9sh26IEyYOGWGPp3HdXB",
+      "name": "Honey Damoiseau",
+      "release_date": "2023-03-03",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "2f8WCvl5Qx2vJXo6DlLfMI",
+      "name": "Stronger",
+      "release_date": "2023-11-01",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "2fovnpipNfOTsEpi210iWm",
+      "name": "KING",
+      "release_date": "2022-02-17",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "2hoUmK8N3DZvNnBaF7Wllq",
+      "name": "Plus de love",
+      "release_date": "2020-07-02",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "2jMVf1SxW4sKe3GB0Y9jKF",
+      "name": "Ka ou ka di",
+      "release_date": "2021-05-14",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "2kaH2Z8ezDUKf6fNw250rZ",
+      "name": "UNAVAILABLE (feat. Musa Keys)",
+      "release_date": "2023-03-30",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "2mnIKtHo3NSvLlZXhw1I44",
+      "name": "TONTON",
+      "release_date": "2023-01-06",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "2qWwuCVeMjF9mUT0S5Iqvl",
+      "name": "Bandana",
+      "release_date": "2022-08-04",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "2s1lS0DxcxTB8Y6oFgVKqW",
+      "name": "Tu le sais",
+      "release_date": "2021-07-23",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "2smDVXQFS3NNinZZO4i1TZ",
+      "name": "Ti doudou",
+      "release_date": "2021-04-09",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "2uj7OACDZUQIvAfKAwtHES",
+      "name": "Jolie madame (feat. Ronisia)",
+      "release_date": "2021-04-09",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "2vmfvSoZBFAt9hhRoEByLi",
+      "name": "Volv\u00ed",
+      "release_date": "2021-08-03",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "2woO3Les5RufDxMedleACF",
+      "name": "None",
+      "release_date": "2020-02-28",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "2wpAJGK92V9CjYddeui1Mb",
+      "name": "Kilo",
+      "release_date": "2020-05-22",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "2wzrkGLKgMbkRYRw8bo0HX",
+      "name": "PROTOCOLE - A COLORS SHOW",
+      "release_date": "2023-11-16",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "2xG9MTahbJg4AUoJNbtTio",
+      "name": "Mardi gras",
+      "release_date": "2021-12-22",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "302utfPKbmblUkEBqLr8wb",
+      "name": "Blabla",
+      "release_date": "2022-12-09",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "30WpoaLVDKtlnNnzoEcN2p",
+      "name": "None",
+      "release_date": "2020-10-09",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "32qVD4jRMDDoia0NuSiqCA",
+      "name": "Blessed Love",
+      "release_date": "2021-07-07",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "33piDi5whXV52HXML5th6A",
+      "name": "Rendez-vous",
+      "release_date": "2023-01-27",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "34aM5tjxyXx0JKF7BEBU9z",
+      "name": "Elle me hante",
+      "release_date": "2020-01-10",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "35ovElsgyAtQwYPYnZJECg",
+      "name": "Lift Me Up - From Black Panther: Wakanda Forever - Music From and Inspired By",
+      "release_date": "2022-10-28",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "35tOhZAmnBQ582rIgMSnrR",
+      "name": "Aymie (R\u00e9ponse \u00e0 Tayc)",
+      "release_date": "2020-11-06",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "360oH1CqXe9XXzbbi6hvyr",
+      "name": "None",
+      "release_date": "2021-02-26",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "36IXjhbi7m7KGBWLRy1mXE",
+      "name": "Kosto",
+      "release_date": "2023-07-07",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "36kxeIpVhh359b9n7GZbB5",
+      "name": "Oublie Dehors",
+      "release_date": "2023-07-26",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "37K3AkTYJxKg3L4Su14nd5",
+      "name": "Kalipsxau",
+      "release_date": "2021-09-24",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "3ByU4ml81xfxeLuOVAnAVK",
+      "name": "Drift (Remix)",
+      "release_date": "2023-12-21",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "3COvo3dmKoJSMe60yWFKBf",
+      "name": "Side Shit",
+      "release_date": "2021-12-01",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "3D29kjUyWxsT3jUUTtARVQ",
+      "name": "DIE",
+      "release_date": "2022-07-01",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "3D4RCfghyCv0WDe3ICk7bF",
+      "name": "Douce comme laloco",
+      "release_date": "2023-06-01",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "3DZJQP0BrrpSWKPT8KXMQh",
+      "name": "Tou Sa Ki Fo",
+      "release_date": "2023-06-09",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "3DoQq88a7kscvVGYKWW65a",
+      "name": "Oh Lawd",
+      "release_date": "2021-04-09",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "3EMCirXKIv5oztM29ZqqDe",
+      "name": "MON P\u00c9CH\u00c9",
+      "release_date": "2022-12-19",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "3GhXkfRxetzKG68TRr9EBa",
+      "name": "Pal\u00e9",
+      "release_date": "2022-05-12",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "3HntoALO84z82ZIF3vJwHl",
+      "name": "VIR\u00c9 FEY",
+      "release_date": "2023-10-20",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "3IQT2MM49GkXfHF9eemaw5",
+      "name": "Soweto",
+      "release_date": "2022-05-06",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "3JcJZDblGWSvyOKuctgvaH",
+      "name": "Aymeric",
+      "release_date": "2023-11-02",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "3KEct75TAMM6KM3RCyOF8I",
+      "name": "Altamontes Victory",
+      "release_date": "2023-09-01",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "3MjlGhIZ4rXwwFxuX5fMIH",
+      "name": "MAMAKITA",
+      "release_date": "2020-08-07",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "3NLhKzG3abdgcYYkcI3eK6",
+      "name": "Gou (feat. Maurane Voyer)",
+      "release_date": "2021-12-03",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "3PTtRFs2KlvrJeBas9lRNC",
+      "name": "Dis moi je taime",
+      "release_date": "2022-03-04",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "3Q3IJhQAeb8SpPsat3DOlE",
+      "name": "Lanmou Eternel",
+      "release_date": "2023-12-27",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "3QZ0iZsciyfyQfV0qEQgLI",
+      "name": "Love & Lov\u00e9",
+      "release_date": "2021-12-10",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "3RN7OlUay6Atp5cFjrbkPe",
+      "name": "Turn Me On (with Jada Kingdom)",
+      "release_date": "2023-06-02",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "3YyOqBoXZDyyjigmqXf4e1",
+      "name": "Je lai vu - Bouyon Kings Mixtape",
+      "release_date": "2021-10-22",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "3baPniPXS0iEII8rDUJdYP",
+      "name": "Monalisa",
+      "release_date": "2022-05-19",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "3eqwBUWgebO3QOkyNhAXrD",
+      "name": "Va dire \u00e0 ton ex",
+      "release_date": "2020-10-30",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "3fX4PrdvLsr3uatsElEOE3",
+      "name": "Bouclier",
+      "release_date": "2023-12-22",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "3gU73chQ8mscpYDEEemDt1",
+      "name": "JOLIE MADAME",
+      "release_date": "2023-08-29",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "3h3xeg5OGNYVM0U9rOAc6j",
+      "name": "Touch It",
+      "release_date": "2021-05-05",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "3im7T2q63a1razKvpV8pao",
+      "name": "As\u00e9",
+      "release_date": "2022-10-28",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "3ketN3dth18vSJ1T3HIztN",
+      "name": "B. D\u2019OR (feat. Wizkid)",
+      "release_date": "2021-12-14",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "3l55QcQXIw3kq0bcgUP9oq",
+      "name": "TOUT DOUCEMENT",
+      "release_date": "2021-12-03",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "3oJ2vqPcNXeywOzmXDORj6",
+      "name": "D\u00e9lire (feat. Tiakola)",
+      "release_date": "2023-06-23",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "3pYVYAketTHTEZnH6wih1x",
+      "name": "KOUPAB",
+      "release_date": "2021-07-05",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "3qbORtchROy5DjRoYFsz69",
+      "name": "Next To Me (feat. Toni-Ann Singh)",
+      "release_date": "2022-11-30",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "3qhlB30KknSejmIvZZLjOD",
+      "name": "End of Beginning",
+      "release_date": "2022-09-16",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "3r5fGWOFozVnOPW4FSdjzP",
+      "name": "Banga",
+      "release_date": "2023-09-08",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "3rmqNsOiGqqvFNTmGlzl4R",
+      "name": "Ta Ta Ta",
+      "release_date": "2022-08-24",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "3t7hYVVDzf1VDUz0pu5Zy1",
+      "name": "Baddest Boy",
+      "release_date": "2021-11-12",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "3vBJU79UelzWSRkWGGvkXW",
+      "name": "Corps \u00e0 corps",
+      "release_date": "2021-02-14",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "3vJTx5MxrN32jX0ps8INn3",
+      "name": "We Ready",
+      "release_date": "2023-01-19",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "3vPH1S7tMhhJQ0i8zw5WFU",
+      "name": "Hot in You",
+      "release_date": "2022-03-11",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "425rx1A9RwVH9ovUiVLUSd",
+      "name": "Bague au doigt",
+      "release_date": "2022-11-25",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "43UYBtZk6zPfxL1Lrfq5gd",
+      "name": "MATHUSALEM",
+      "release_date": "2023-03-10",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "46Dqe6BoMWUOuY8G108Fup",
+      "name": "Tennessee",
+      "release_date": "2022-11-25",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "46x1ej5pWnySjN0mb16pc5",
+      "name": "Duo",
+      "release_date": "2022-09-20",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "48EskZ7QxOS6xHSYh4cSZr",
+      "name": "Believe",
+      "release_date": "2020-12-26",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "49waTr10EzDOMYcfAuqB64",
+      "name": "Ensemble",
+      "release_date": "2022-04-27",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "4AR6tIRMfQ054EpRbpkeDl",
+      "name": "Rooftop",
+      "release_date": "2021-09-24",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "4FhDpfs1aAGPcxRAT9ZGHL",
+      "name": "Avec ou sans toi",
+      "release_date": "2021-02-24",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "4Fo2WmGzP6g4yYpxO0Bzke",
+      "name": "Tombolo",
+      "release_date": "2022-04-01",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "4JaiYhTtUQN4TkwafnrEjn",
+      "name": "MAYDAY",
+      "release_date": "2023-05-12",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "4KGKnSCyp6XlbYtroVMBia",
+      "name": "Bobo",
+      "release_date": "2023-11-10",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "4KwqEjk8p2z2jN3qFR6qcj",
+      "name": "xtrois",
+      "release_date": "2023-06-16",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "4Lk9PYDhAucTZMyccvt66Z",
+      "name": "Tested, Approved & Trusted",
+      "release_date": "2023-08-24",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "4Lv6Jh52ZV2T7Zfr9KMsul",
+      "name": "FOREVER",
+      "release_date": "2023-01-12",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "4ObR3tttaRp4RAF9cqibDJ",
+      "name": "La Vie",
+      "release_date": "2022-10-28",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "4Q8w1kHToe3Fzogvo2gmIF",
+      "name": "Dou dou",
+      "release_date": "2021-07-08",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "4R5dJ1ywXRTQ6KzdBCwJ3Y",
+      "name": "GUNSHOT",
+      "release_date": "2022-02-25",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "4RoKNqyZ9622tcAeNPNv5k",
+      "name": "City Boys",
+      "release_date": "2023-08-24",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "4SBlid1ReVlUlNnPZYk7Ye",
+      "name": "Malhonnete",
+      "release_date": "2022-01-28",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "4T5Sq0JSkiPAcTqlwRQsqM",
+      "name": "Prends-moi la main (feat. Mikl)",
+      "release_date": "2021-04-09",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "4TlMYfcdFwROCYqbXEsL1Y",
+      "name": "Oldschool",
+      "release_date": "2023-05-12",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "4URp0jryWwigmzyxuYpLoi",
+      "name": "Oui",
+      "release_date": "2021-06-04",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "4X8q83Q6mAjZPH7FVQ7xa6",
+      "name": "Promesse",
+      "release_date": "2021-09-24",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "4XSANNb9El3vw5Orqb0L6P",
+      "name": "Sa gang",
+      "release_date": "2022-07-01",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "4ZAvlThuGv7LMV2o2lElXg",
+      "name": "Termin\u00e9",
+      "release_date": "2022-05-13",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "4aPQETKguZhtbhmSlqjCjK",
+      "name": "The Program",
+      "release_date": "2023-02-18",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "4b5i7OZo2JtXQk7CZHRHoA",
+      "name": "Sa ka vann",
+      "release_date": "2023-08-18",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "4bvdZallXMVkgZewGl9w08",
+      "name": "La League",
+      "release_date": "2021-03-03",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "4cVnXm3iHSlOYRtHZcEEbj",
+      "name": "THIS YEAR (Blessings) - French Remix",
+      "release_date": "2023-04-14",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "4dX9e0P0DckAkjgkaORbqy",
+      "name": "Phenomenal",
+      "release_date": "2022-07-22",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "4eZZofkV1OQ9GDqAgHqNpA",
+      "name": "Buga (Lo Lo Lo)",
+      "release_date": "2022-05-03",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "4fp8tQIHLN07WGj16hVyoH",
+      "name": "AB Money",
+      "release_date": "2022-05-27",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "4iJyoBOLtHqaGxP12qzhQI",
+      "name": "Peaches (feat. Daniel Caesar & Giveon)",
+      "release_date": "2021-03-19",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "4j8DdqFRFSJoDSNlh1MddP",
+      "name": "Fake Love",
+      "release_date": "2022-02-14",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "4jyZRIiSAEkziHwhZsfmXc",
+      "name": "Terminator (feat. Young Jonn)",
+      "release_date": "2023-07-06",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "4kCPo0gqB0qqtz4XZhikkL",
+      "name": "Caline",
+      "release_date": "2022-10-14",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "4kTF7OQVjTSZ5zdRqo8zxx",
+      "name": "Dieu merci",
+      "release_date": "2020-10-08",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "4lzfYLjJRvmQNjFgMQ4TU8",
+      "name": "On sen ira (Remix Kompa)",
+      "release_date": "2020-03-03",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "4moodqGELYeoH8KJuJAMJy",
+      "name": "Sonje Mwen",
+      "release_date": "2023-07-12",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "4qGP4DI9dHe9ZHWlCVccUn",
+      "name": "Jack Sparrow",
+      "release_date": "2023-02-10",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "4tXLj5UVpzdva0qTANUrER",
+      "name": "CORDIALEMENT",
+      "release_date": "2023-09-15",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "4tr4oHjFijp0EgISHYDIXe",
+      "name": "Sip (Alcohol)",
+      "release_date": "2021-09-24",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "4twuN7mtx2b1IklKgapWLB",
+      "name": "Dimension",
+      "release_date": "2023-04-21",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "4uQpMdCTtbQA07YnBxtTVm",
+      "name": "Love",
+      "release_date": "2020-06-25",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "4udjRyc7ZdL2FBxHvXEG6p",
+      "name": "Oh Baby",
+      "release_date": "2022-03-18",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "4v4zQRI0LARHVF4qeY8X94",
+      "name": "Rayken X T-way (Badman)",
+      "release_date": "2023-07-13",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "4v9cohT8ERXNMbYs34JI7V",
+      "name": "Mauvaise",
+      "release_date": "2023-09-22",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "4w5Y9Akn6b7FjH6c3vpbKB",
+      "name": "Loin",
+      "release_date": "2023-01-20",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "4xCFHoSZjzetjFGQadXlgR",
+      "name": "Joli c\u0153ur",
+      "release_date": "2023-04-07",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "4zJSgChLU8mrLKDT5m6RFf",
+      "name": "Papillon (feat. Kalash)",
+      "release_date": "2022-03-18",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "4zafV1Egm29N12s2Ocj4GD",
+      "name": "Solitaire",
+      "release_date": "2022-07-08",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "53pQcvODlT67mmxJwVKvu1",
+      "name": "JOURN\u00c9E",
+      "release_date": "2023-12-08",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "57hfbNwAYXznJHgAGnxHya",
+      "name": "Bless Mo Life",
+      "release_date": "2023-03-03",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "58rmKwJJfKyHEGE9Yc66R1",
+      "name": "Prends ton temps",
+      "release_date": "2020-07-15",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "595MEwZxYtuyGd3Qg5njYH",
+      "name": "4 Saisons",
+      "release_date": "2023-06-30",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "59L8x0xy8njj75vzVCPMqg",
+      "name": "FULANITO",
+      "release_date": "2021-06-03",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "59kiIInKlEAbiW0be0Rb6Y",
+      "name": "Baby Mama",
+      "release_date": "2020-07-03",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "5AvM2vEnA5yETo2j5ZBa7a",
+      "name": "Sexy Gayana - Edit",
+      "release_date": "2022-03-01",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "5BOfwzK5yI9sL2uit0fHIG",
+      "name": "La guitare suit la m\u00e9lo",
+      "release_date": "2023-09-28",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "5Bnh17R2tIfcNCwQ0HR1RD",
+      "name": "PVDV",
+      "release_date": "2022-01-25",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "5CLYzDxJYv4peFe0Cjg9K5",
+      "name": "K\u00e8 Aw",
+      "release_date": "2021-10-22",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "5DS9LiyEdw2zY8bM6kjjgM",
+      "name": "Infinity (feat. Omah Lay)",
+      "release_date": "2020-10-07",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "5FUaCiNAIDDXkUCxrg2FWe",
+      "name": "Le gars dune autre",
+      "release_date": "2022-02-09",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "5Gv89SZih6lHvHpKB1mIhU",
+      "name": "Ganja",
+      "release_date": "2021-10-22",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "5HM5trJxTouv3eUVcbW8sh",
+      "name": "Sensational (feat. Davido & Lojay)",
+      "release_date": "2023-10-20",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "5InXsLC4jKaubWvrtz9rPf",
+      "name": "Twaka",
+      "release_date": "2021-03-12",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "5JAZhegcwQXX2dCv5OXA2Y",
+      "name": "Bien s\u00fbr",
+      "release_date": "2021-06-12",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "5Kmn4O3hHLivwe6GbYNNP9",
+      "name": "Le Sang",
+      "release_date": "2022-04-29",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "5R9g2Gpoyu2XQLBVeGqiKm",
+      "name": "Angelo",
+      "release_date": "2022-10-21",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "5RPuPEZ0HiXPTnzwqfJMa8",
+      "name": "Switch It Up (feat. Koffee)",
+      "release_date": "2020-08-28",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "5RjI9GyLQFudzrjmuGSL3P",
+      "name": "Man Le Juste Few Jouie",
+      "release_date": "2023-01-28",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "5SqR7dxbJiTSadTaVEhZ04",
+      "name": "Elles ont trop jou\u00e9 avec mon c\u0153ur",
+      "release_date": "2020-12-14",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "5TxKVNYYA1oljv98ggjeLk",
+      "name": "Contr\u00f4le",
+      "release_date": "2022-05-20",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "5UE2ij3ca8bF3iWP5Kdt6q",
+      "name": "All My Love",
+      "release_date": "2023-06-08",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "5Y9I5DXjZR7NcVIQex9eqU",
+      "name": "Amor",
+      "release_date": "2021-02-14",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "5ZtK8XAVnoaGdBXZWCEVCY",
+      "name": "Lonely At The Top",
+      "release_date": "2023-06-15",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "5b8sddKfAUweZ9M7XuRWW0",
+      "name": "Sentimentaal",
+      "release_date": "2020-07-15",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "5bSeIISxf9qsORBjc4BATA",
+      "name": "Ma Petite",
+      "release_date": "2021-05-28",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "5c549LWiKCWGvcDsZwMN6v",
+      "name": "Soundgasm",
+      "release_date": "2021-06-10",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "5cqLFudVQryezmVFmmyRJN",
+      "name": "D\u00e9gaine (feat. Damso)",
+      "release_date": "2022-03-09",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "5grHV3CTG3cccJ3p2YRm2I",
+      "name": "Reine",
+      "release_date": "2020-06-19",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "5hAuI8tcJ0iKxrq748Iyaf",
+      "name": "Aie - Bouyon",
+      "release_date": "2022-07-03",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "5hP0MDHlDMwgZq9EhtmGZv",
+      "name": "WWU",
+      "release_date": "2022-03-04",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "5iMBpJ6cLVO6Sjp42JjU45",
+      "name": "200 KM/H",
+      "release_date": "2022-12-08",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "5icNOlzG5QLduH2XiMjP1s",
+      "name": "Entrer dans ma vie",
+      "release_date": "2020-07-24",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "5iwsC32iiJ1IqJgcg6vkiI",
+      "name": "Mon soleil",
+      "release_date": "2021-06-02",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "5jWUF7c0QqmmmFshJg1E8j",
+      "name": "Jump Around",
+      "release_date": "2023-05-26",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "5kYcmyTVwXoLSQpsBF0J03",
+      "name": "Doliprane",
+      "release_date": "2023-06-10",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "5l9GFByKQ00gfUHFHlhEgN",
+      "name": "Bad Bitches",
+      "release_date": "2022-09-30",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "5m7hHjCdJCgijVnN7DB5vs",
+      "name": "Ti Fr\u00e8",
+      "release_date": "2020-11-27",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "5mhM7bfzv52bzfCzlq8vH1",
+      "name": "Ngozi",
+      "release_date": "2023-07-21",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "5nUBfGJDdFb8a49xz9wytb",
+      "name": "Bient\u00f4t L\u00e0 - Zouk Kompa Remix",
+      "release_date": "2022-12-09",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "5pAKHjF8lRmKfZDJf6fq1I",
+      "name": "Baby Mama",
+      "release_date": "2021-04-09",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "5pzPeMJ0y9D7CuPgCNRRSk",
+      "name": "On My Way (Side Life)",
+      "release_date": "2022-01-28",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "5qrVpQxyOouuRJtJkRp8UZ",
+      "name": "DECEPTICONS",
+      "release_date": "2021-12-31",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "5sujyeL3l7ItrtTh9aZeHJ",
+      "name": "Ma woman",
+      "release_date": "2021-03-12",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "5ucj3NylUSpDcoL0Qi1jPd",
+      "name": "Love",
+      "release_date": "2021-02-12",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "5uiSL5KX6qdvNnaDvpAKHq",
+      "name": "Super Bae",
+      "release_date": "2022-02-10",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "5ww2BF9slyYgNOk37BlC4u",
+      "name": "La Bachata",
+      "release_date": "2022-05-26",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "5xriTc82DdSAGToWcixBKf",
+      "name": "Casanova",
+      "release_date": "2020-11-06",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "5zq5fYXIE7X842DD5HBiiB",
+      "name": "Talibans II",
+      "release_date": "2023-07-20",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "62TkgooANkeT2nbFDz2XkF",
+      "name": "Ma Belle",
+      "release_date": "2022-06-24",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "65tb0hiEP94CEwpyICKBNK",
+      "name": "Forty",
+      "release_date": "2022-01-09",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "688WOIP0lxEyE3UT72cnMP",
+      "name": "YODA || 808CLUB",
+      "release_date": "2022-11-23",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "68qmxsDoceO78L7Z6gNbY3",
+      "name": "Everybody Falla",
+      "release_date": "2022-04-29",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "69WH5IxwG2vps9lYSuBJKe",
+      "name": "Hood",
+      "release_date": "2021-10-19",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "69rFDYwypeey2F9cDEL3da",
+      "name": "3 on E",
+      "release_date": "2020-10-23",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "69tsRNfsJlYKupCIQJp4Hk",
+      "name": "17",
+      "release_date": "2021-05-25",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "69x1DmzqQGz7hBTNOvMv7b",
+      "name": "Biberon",
+      "release_date": "2021-02-22",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "6ARHgZNPRSFgXfNlnUxmi0",
+      "name": "Tout est flou - Radio Edit",
+      "release_date": "2020-09-25",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "6ARJHbYGKNatxHVghTkWWp",
+      "name": "Joli b\u00e9b\u00e9",
+      "release_date": "2020-09-11",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "6CkigxhhafXtAlhs40M4mS",
+      "name": "Bend down",
+      "release_date": "2023-01-27",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "6EnfbMj5Ui3jkIw8CDaYIW",
+      "name": "Wi Deh Yah",
+      "release_date": "2022-01-27",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "6HIRKsNIYD3MkBvFcfly6S",
+      "name": "Va l\u00e0-bas",
+      "release_date": "2021-06-04",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "6HTJgY7iWWlVLSDHsfHePf",
+      "name": "Jefe",
+      "release_date": "2021-12-03",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "6HgVSXZgilAlM4pvr3ySVY",
+      "name": "Laisse moi taimer",
+      "release_date": "2020-07-13",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "6HgWWaMu31KdOpEG5l28BG",
+      "name": "All My Life (feat. J. Cole)",
+      "release_date": "2023-05-12",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "6IUCprnmXs0cClA8pf7j8Z",
+      "name": "Bandit",
+      "release_date": "2021-09-16",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "6IdcyYfBz9LG3SWIKVyNgh",
+      "name": "Arranca (feat. Omega)",
+      "release_date": "2023-03-10",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "6IgaGWyJmRII7F2hz8xbwZ",
+      "name": "Il ou elle - Remix",
+      "release_date": "2022-02-28",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "6KY8rRCiiXiiFoeqLggmFE",
+      "name": "Dali Nguwe (feat. Nkosazana Daughter, Basetsana and Obeey Amor)",
+      "release_date": "2021-12-03",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "6M7ABETxLdgHEYOuNSGN26",
+      "name": "M\u00c9DICATION",
+      "release_date": "2023-06-01",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "6NgjdJrK7Bpyvsm8yDtx4H",
+      "name": "Godly",
+      "release_date": "2020-11-19",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "6PFvV6kCYNE4BHukjvg6ti",
+      "name": "ton ombre",
+      "release_date": "2022-06-10",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "6PnFZsKD6bZeNUluvpe77Z",
+      "name": "Top Boy",
+      "release_date": "2021-05-14",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "6PotZZvqO8SNTaLhapuYOt",
+      "name": "Tole Galva",
+      "release_date": "2022-09-15",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "6PuoOcPrw9UULFb3Wv28jV",
+      "name": "Kamikaze",
+      "release_date": "2023-01-20",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "6QmrrqK0Fk1nKoTKx5KIdH",
+      "name": "Touch\u00e9 dans le coeur",
+      "release_date": "2021-03-11",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "6RYqeGocsesKaVpa9fo5QC",
+      "name": "La VI s\u00e9 on b\u00e8l kado",
+      "release_date": "2020-12-07",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "6T6GXHOF5bhQ2uEBI8vh4b",
+      "name": "My Everything",
+      "release_date": "2021-07-23",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "6TMLxFS2epyJLmI1jAJ7om",
+      "name": "Quoi quil arrive",
+      "release_date": "2020-09-23",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "6Y4qKEXe1koK67ubhB5Jzl",
+      "name": "Oubli\u00e9",
+      "release_date": "2020-09-05",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "6YXKWDzApCClFLG2Q4E9Lc",
+      "name": "Capitaine",
+      "release_date": "2022-09-14",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "6ZSXbBz7FeFzxTKYCa18Rq",
+      "name": "Toxic",
+      "release_date": "2023-04-28",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "6akxK2X8fIzED2i5lePZZf",
+      "name": "AK47",
+      "release_date": "2023-06-30",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "6bbO7aLYkMzrXr5uf3N5FC",
+      "name": "Pas la la",
+      "release_date": "2020-06-05",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "6dilPsFJWBb7UiyLVOYY7n",
+      "name": "R\u00e9sign\u00e9e",
+      "release_date": "2023-01-13",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "6eUErq5q9324kko3T9DyYk",
+      "name": "Bang Bang",
+      "release_date": "2021-04-09",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "6fd1SP0LKdgcUAUO9NXHGw",
+      "name": "Loup noir - A COLORS SHOW",
+      "release_date": "2021-03-15",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "6gc4MOrOElugiJh2I1uL1N",
+      "name": "Miss & Mr",
+      "release_date": "2022-04-22",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "6hHrXwuCgYzikW20akODMk",
+      "name": "Intouchable",
+      "release_date": "2023-12-08",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "6iN7yxYZNRFF92ZmjS6DVT",
+      "name": "Cache-cache",
+      "release_date": "2021-08-20",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "6jqWhc7jabS9byKFpDIfns",
+      "name": "Stay High",
+      "release_date": "2022-01-14",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "6m27Jfn6T5jqSOf00d4Flf",
+      "name": "No Wata",
+      "release_date": "2023-01-22",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "6m70gILFez0tvkx5dCFPbZ",
+      "name": "Acc\u00e9l\u00e8re",
+      "release_date": "2023-07-28",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "6nLdg1lpE3dHLmNam1aoA6",
+      "name": "Dior",
+      "release_date": "2021-11-26",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "6pkEmfAAlRbk436L43lYif",
+      "name": "Gwo model",
+      "release_date": "2021-02-12",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "6pvNqQtJnUcaW7jPjyzcKt",
+      "name": "Fanm S\u00e9 Dyab",
+      "release_date": "2021-06-07",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "6q7ZOFBLhZYL5KueV7BbpK",
+      "name": "R\u00e9sign\u00e9e - Remix",
+      "release_date": "2023-06-30",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "6rb3wFQ66EWR7DcPG0oEE1",
+      "name": "We Caa Done (feat. Drake)",
+      "release_date": "2023-01-06",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "6sYRs13gerx3RfXXrEY2s9",
+      "name": "Kilos",
+      "release_date": "2023-05-12",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "6sutxiq0dIw77z0rCB3Ekk",
+      "name": "CANADA",
+      "release_date": "2022-01-06",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "6uyWNMmULqDxmLziqm9D2l",
+      "name": "VVH$",
+      "release_date": "2020-12-17",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "6wL9pSXJ4roDSEoBpYyQy7",
+      "name": "Bobo",
+      "release_date": "2021-05-27",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "6wNO2D0n0WeDLFm0V4T5b8",
+      "name": "Daddy",
+      "release_date": "2023-01-25",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "6wuMo4ZR83PhlhXhJ1S3VY",
+      "name": "GWAGWALADA",
+      "release_date": "2023-02-15",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "6x4Lxr3upD3MQsvxi6gePp",
+      "name": "Youre The One I Love (with Rvssian)",
+      "release_date": "2021-12-10",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "6z0GwK274ToNmvxfyYPuHw",
+      "name": "Petit g\u00e9nie",
+      "release_date": "2023-08-04",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "71EKIFqUvCAT1WK1g4tnBa",
+      "name": "FEM",
+      "release_date": "2020-09-10",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "71FrGl0XcpL3VId65tB5mg",
+      "name": "Recairei - Ao Vivo",
+      "release_date": "2020-04-17",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "72fQ0yoG8z3tgodWXTtZjg",
+      "name": "CROCODILE TEETH (bonus track)",
+      "release_date": "2022-02-25",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "75cpASksL0l3Wf5Yf00EZX",
+      "name": "La brume",
+      "release_date": "2020-02-21",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "75kJOIJ51DjbMWf4yqGejQ",
+      "name": "O.V.W.A",
+      "release_date": "2020-02-28",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "77PEDiFYGg9nRDbRvVt3iO",
+      "name": "Popular",
+      "release_date": "2021-01-08",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "77l8LK0gvmPIwCJ90eYYjD",
+      "name": "La guitare",
+      "release_date": "2021-08-28",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "77owk8tLB3viGzZUIBIley",
+      "name": "Night and Day",
+      "release_date": "2021-04-16",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "78cYGQUXUNS5LZuNRzeqk7",
+      "name": "M\u00e9lodie (Tatami)",
+      "release_date": "2022-01-28",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "794czLwx4ZNky1ltmguo8u",
+      "name": "TKT PAS",
+      "release_date": "2023-11-12",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "79iWsaDnvfHiwQQ1MdPER2",
+      "name": "Festival",
+      "release_date": "2022-07-12",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "7A4Ii8h0mzenkPi2foEb7e",
+      "name": "Se Pa Pou Dat (feat. Alan Cav\u00e9) - Remix",
+      "release_date": "2022-02-25",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "7C4A0X9DAZ5QBeBXS84L5E",
+      "name": "Opinel",
+      "release_date": "2021-07-23",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "7CUN0vUHWCCC6k0q7VetJe",
+      "name": "Lighter",
+      "release_date": "2020-08-28",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "7DeTpbIedWLGfhCbLMDRvX",
+      "name": "Drunk With Me",
+      "release_date": "2021-03-03",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "7ELft1cx8anhsXE405kckI",
+      "name": "M3lo",
+      "release_date": "2022-05-27",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "7FR7l3gsiH2YsvXU5xw7bj",
+      "name": "Freaky Gyal",
+      "release_date": "2022-02-04",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "7GEQfVYmsRCJJysbl4olix",
+      "name": "Baby Birkin",
+      "release_date": "2023-02-14",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "7HDZ05ro9prmjcPGAzn275",
+      "name": "Un sort",
+      "release_date": "2021-05-14",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "7HM3WyOHG3Nm6Ck5aZaFKF",
+      "name": "Ojoro",
+      "release_date": "2020-04-30",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "7KVJ0OMNVw01hhzbt30h3v",
+      "name": "Job",
+      "release_date": "2022-08-23",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "7LzpbhQyI2HIyk73V8UE6r",
+      "name": "Call Me If",
+      "release_date": "2020-07-31",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "7aQWrIsNNLXTO2BS5GoJfE",
+      "name": "PAPA",
+      "release_date": "2023-12-01",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "7bq25arq8mV4LEENYYqYwA",
+      "name": "Gwan Gou",
+      "release_date": "2022-04-29",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "7cFvjnUGC3Ah0lT4Ok1axP",
+      "name": "Blessings",
+      "release_date": "2020-12-04",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "7cdZLWUqqx3bbLBl0HUCCM",
+      "name": "Aime encore",
+      "release_date": "2023-06-30",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "7dNKk2V4bD0MXdBhh1PLmR",
+      "name": "Buzz",
+      "release_date": "2022-05-20",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "7daUMh2P96MNQvJ8MOFIOW",
+      "name": "Ride It",
+      "release_date": "2021-04-09",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "7gXQpl662hsWEiJQjWJqPF",
+      "name": "Pas sans toi - #UnZoukAvecVous",
+      "release_date": "2022-09-04",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "7hCjc1qAwLR87Pk0Kf9wwM",
+      "name": "Je fais ma vie",
+      "release_date": "2020-12-03",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "7hXVuIDByxraIPwLRuggXF",
+      "name": "GRATTE CIEL",
+      "release_date": "2023-01-13",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "7iD3LM5BcWm5yZbNPpIhnE",
+      "name": "nwayi",
+      "release_date": "2023-06-16",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "7jHzQ8tNuURyvImjW7Xxw4",
+      "name": "Salines",
+      "release_date": "2023-06-11",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "7jXxvqVkXg4dQ9zFJMBN0U",
+      "name": "Lamour de ma vie",
+      "release_date": "2021-07-16",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "7lUM5LOV31VPzzwMucVq5z",
+      "name": "Ay Papi",
+      "release_date": "2021-12-09",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "7o7uPZZpvIrHD2dq6NdyiB",
+      "name": "Au f\u00e9minin",
+      "release_date": "2022-04-15",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "7pwoEsCWELhGg03eWFsfKX",
+      "name": "Voyage (Awa)",
+      "release_date": "2023-05-26",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "7uJiMLC0YxqfzG7tCozCV3",
+      "name": "Kol\u00e9",
+      "release_date": "2022-07-22",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "7uTbHvV7Sd0lH7jtmXg6ef",
+      "name": "Chalala",
+      "release_date": "2020-07-15",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "7uifQO5WcO2x15mdA6W50L",
+      "name": "Shu-Peru",
+      "release_date": "2023-05-11",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "7vdq8RlxxuhB1GFIN9FIlI",
+      "name": "No me ama",
+      "release_date": "2020-07-17",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "7wpyrkjEgz7W1vNYDxMKrF",
+      "name": "GYALIS",
+      "release_date": "2021-01-04",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "7x2S2gxKOw26xMpmtaszfB",
+      "name": "Comme \u00e7a",
+      "release_date": "2023-03-03",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "7x4DqJWHGLIMSrAGcvlhLf",
+      "name": "Combien",
+      "release_date": "2021-04-30",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "7yzsshdL0bXr1fNWJ4RP28",
+      "name": "Jamais",
+      "release_date": "2020-10-09",
+      "dest_pl_id": "4V8O33t0hSCnK4ABozG6xc",
+      "dest_label": "2020-2023"
+    },
+    {
+      "id": "017erFbOyCrdz0yburnVGZ",
+      "name": "youre a star",
+      "release_date": "2025-10-03",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "02rhOZPBzu4vTcq8PoUuIW",
+      "name": "Bloqu\u00e9",
+      "release_date": "2025-01-01",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "045iM3VLHRaRL9t2FJyC6i",
+      "name": "Dahdah",
+      "release_date": "2025-06-06",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "05Ep8Pzxcu7aU1pFrAndLd",
+      "name": "WYFL RIDDIM",
+      "release_date": "2026-03-05",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "05Jx31Ltj1T4htSxzA7OZZ",
+      "name": "Hyst\u00e9rique",
+      "release_date": "2025-03-20",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "064PAJi1GbVANsjK0rmg2X",
+      "name": "R\u00e9cidiviste",
+      "release_date": "2025-02-28",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "06skI7eSnKfGJ65Hj6jWrl",
+      "name": "GROSSE B\u00c9CANE",
+      "release_date": "2026-01-28",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "07sYXimjZRpQNevYyeInca",
+      "name": "Muckaz",
+      "release_date": "2025-12-17",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0AayJppYJYhrfk3wf4aWsj",
+      "name": "Ano Dat Alone",
+      "release_date": "2026-01-05",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0ClQIYle3RZ5X65xjjI2td",
+      "name": "Greatness Inside Out",
+      "release_date": "2024-05-01",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0FxV2wrRn84KSHNLllhaqp",
+      "name": "Your Direction - Chromeo Remix",
+      "release_date": "2026-02-27",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0GT9PnlYJwrCuapttXK5gJ",
+      "name": "You Casse, You Pay",
+      "release_date": "2026-01-09",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0ITEeroRO4pP8KIvQtpv28",
+      "name": "Medicine",
+      "release_date": "2026-03-04",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0IYt30GZFCylZFdTA46J3u",
+      "name": "Terrain glissant",
+      "release_date": "2025-03-16",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0JxeXDk8BPtOFOHutDwC11",
+      "name": "Tight Tight",
+      "release_date": "2026-01-23",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0KQgnz1CwlDqajn2SXZCzZ",
+      "name": "Start Dissin",
+      "release_date": "2025-09-12",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0KyUzP1RHc0x5ZXUt3JbNf",
+      "name": "Sx Symbol",
+      "release_date": "2026-01-29",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0L0k4jiW12OvpX4DbryqHF",
+      "name": "Port authority",
+      "release_date": "2026-02-27",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0LO8LdBsAhZTW2MMtKZWv3",
+      "name": "Comme dhab",
+      "release_date": "2025-04-18",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0N81OHIzduhjgXTu3kNqP8",
+      "name": "War Queen",
+      "release_date": "2025-10-24",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0OkY3Ten3vKViMsITM1fyu",
+      "name": "Si tu ten vas",
+      "release_date": "2025-01-31",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0P2CkrsEP0e98iVgYtAUUX",
+      "name": "Mauvais Gar\u00e7ons",
+      "release_date": "2024-04-19",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0QgxlcdUM6wUniw0ppYQlG",
+      "name": "Satanana (feat. DRE-A)",
+      "release_date": "2024-08-23",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0Rb0e3DPB2PluJQflNDAEd",
+      "name": "3 SYRUPS (feat. Lil Yachty, Camo!, Dc2trill, Draft Day, Honest)",
+      "release_date": "2026-02-27",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0UBfw0XZUzGsqY7CeqI2sc",
+      "name": "H24",
+      "release_date": "2024-12-21",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0Vh4cYw0m2xqUzihLHpK61",
+      "name": "Labor Of Love",
+      "release_date": "2025-09-02",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0VueZHw6jT3nA1X7df4fCR",
+      "name": "Champagne k\u00e9 fraises",
+      "release_date": "2025-04-18",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0XczPtF9mvVPqau0WUqJAT",
+      "name": "me & you",
+      "release_date": "2026-02-27",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0XnCGeWNVJW1ky6zQ6NwlJ",
+      "name": "Nou C\u00e9libat\u00e8",
+      "release_date": "2025-01-22",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0bcqN1JS9Z6ZClCPI8BDei",
+      "name": "Qalb",
+      "release_date": "2026-01-29",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0bqOf2AaPI7Sqpc39q8Y2b",
+      "name": "Encore une fois",
+      "release_date": "2025-11-07",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0cin8CLb7J5p3yJmoI56M5",
+      "name": "goyard",
+      "release_date": "2025-09-19",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0crWo0TVXa684TyegfP2p3",
+      "name": "Mongulu - Afro House Edit",
+      "release_date": "2025-09-09",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0etAJ7ppXtAgmshmkwT0Je",
+      "name": "Kilometer - A-Trak Remix",
+      "release_date": "2025-10-24",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0fCVyiyZCYz7RIfjoXTpgW",
+      "name": "Headliner",
+      "release_date": "2024-06-30",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0fXr3Ap6hmBusgf9cusGhc",
+      "name": "Freestyle 357",
+      "release_date": "2024-06-19",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0i8BSCd7iN5Ck6jtUl04Tf",
+      "name": "TAN [Feat. Bktherula & TiaCorine]",
+      "release_date": "2026-03-06",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0iRUtCl9l0qYdO3eLJV3wL",
+      "name": "Badness Upgrade 2.0",
+      "release_date": "2025-12-09",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0iwBzyOvJUTcxkEdiTVmAs",
+      "name": "Full Plastique",
+      "release_date": "2024-08-23",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0jNo0Z3zU6Rkt5wdjIQYie",
+      "name": "Laisse Moi Gout\u00e9",
+      "release_date": "2026-01-30",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0kscTb6Bbb1iBfumPsabKf",
+      "name": "CHF",
+      "release_date": "2025-06-12",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0lMeF3t2Lp76RHngmCTzxm",
+      "name": "Tu Es Laid",
+      "release_date": "2024-12-23",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0mBgsYqx3lkL6Ok8OpMSt3",
+      "name": "SHATTAMENTALE",
+      "release_date": "2026-02-18",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0nrt6IqlWd2q5AOYNDmCEA",
+      "name": "p4pier",
+      "release_date": "2024-06-25",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0nzLXQufkRxo1aslz36gJp",
+      "name": "DEAD PRESIDENTS (ALBUM VERSION)",
+      "release_date": "2026-02-20",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0oJtICIgw8eoJkMOriYjAP",
+      "name": "Lonyo!",
+      "release_date": "2025-08-08",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0ojEeHjnGMrmlSJl9RGjrd",
+      "name": "ANTELOPE ONIGIRI",
+      "release_date": "2026-03-06",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0oocBgFurWpMjPfChQaU0R",
+      "name": "Bestie",
+      "release_date": "2025-10-03",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0qYTBMl8ou0YXMunuCQ8aa",
+      "name": "CONSENTEMENT",
+      "release_date": "2026-02-02",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0s98n6udKCwZCvP2onZnI1",
+      "name": "Allez retour",
+      "release_date": "2025-12-26",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0sF0n0BkRpBW8H6jbGNKpl",
+      "name": "\u00c0 la mode (feat. Konieur)",
+      "release_date": "2026-01-30",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0sH7M5s2bEWFRe7v7VRemW",
+      "name": "BIG FEELING",
+      "release_date": "2025-06-27",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0sbsEv0IqIps5PCRRG5Qul",
+      "name": "Faux pas",
+      "release_date": "2025-02-28",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0t7d6wbJLS2A31yqlHFew7",
+      "name": "M\u00e9lanine",
+      "release_date": "2024-06-14",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0vPetGzu5SviGGcJ9vLQQv",
+      "name": "Artist Life",
+      "release_date": "2026-02-19",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0vqn83gxRRty97jHU2zhxp",
+      "name": "Facts",
+      "release_date": "2026-02-27",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0wF4zw5b5xo2zGKkWCbuPR",
+      "name": "SAN AYEN",
+      "release_date": "2025-07-03",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0xGnKFE2ySSVNu9slx5AsA",
+      "name": "Too Bad",
+      "release_date": "2026-01-05",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0xRgf8NDpNWgyp46U09iZx",
+      "name": "Douce Fleur",
+      "release_date": "2026-02-14",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0xz7ixGInfMaVBUphFymj4",
+      "name": "Against The World",
+      "release_date": "2025-09-12",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0yDV55hFjQbmhB0oBayuES",
+      "name": "Shatta & la gaiet\u00e9",
+      "release_date": "2025-04-04",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "10WWosq6z75o3WGRjL4v2D",
+      "name": "Paradise (with Bipolar Sunshine)",
+      "release_date": "2025-05-16",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "110UrbttBGnylCs1icY5JX",
+      "name": "Ma Bella",
+      "release_date": "2024-09-19",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "11iFBZTiJZv1DkG3Wi2yRk",
+      "name": "Bobby Schmurda",
+      "release_date": "2025-10-03",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "12STQE6jL68yjGk63UCmPn",
+      "name": "my man",
+      "release_date": "2025-08-15",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "13Z2JpNwN54a5WXacGYtLs",
+      "name": "Made It On Our Own",
+      "release_date": "2026-02-27",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "15GaON7K5FhndXJWKCA1X0",
+      "name": "Watch Bracelet Ring Chain (WYFL)",
+      "release_date": "2026-02-10",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "17NLXL91ilTSQWEBRVbBGY",
+      "name": "TABOO",
+      "release_date": "2026-03-06",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "17lQCngPjOFEgHwprsVYif",
+      "name": "Rosalie",
+      "release_date": "2024-01-19",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "181ewh1drrXlAr8MYRiP6J",
+      "name": "Silver Lining (with Sauce Walka)",
+      "release_date": "2025-09-19",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "18ryjitSmdkGDUVppbPH8r",
+      "name": "Who Nah Behave",
+      "release_date": "2026-01-05",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1BSMV4VRi2jJFc8R1YGPta",
+      "name": "\u2060Morocco",
+      "release_date": "2025-11-28",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1BpS9FmfbNuMeufyBJgM2u",
+      "name": "Termin\u00e9 - Summer Version",
+      "release_date": "2025-07-11",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1CfKxmlYpzBuXtcLYAGlz6",
+      "name": "Brand New Me",
+      "release_date": "2025-09-03",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1CpxwBZITPEAlKQHVwVHWy",
+      "name": "Puni Police",
+      "release_date": "2025-01-29",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1E1hkvBtMYCVNIx0DdiFkM",
+      "name": "Sale \u00c9poque",
+      "release_date": "2024-02-02",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1G3wwhqfJWQNvwqGLGQ4QO",
+      "name": "SOLID SNAKE",
+      "release_date": "2026-02-27",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1J2PYA6KVbGFhIWNrSDbtd",
+      "name": "Gr\u00e9goire",
+      "release_date": "2026-01-23",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1JpHDbmCTcf5pN1FBjYpkn",
+      "name": "French Zess",
+      "release_date": "2025-06-27",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1MTM3zSGU0ZLVOoVFHbO3q",
+      "name": "PIRATE FR\u20ac\u20ac$T\u00a5L\u00a3",
+      "release_date": "2026-01-16",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1OUDurqAECCE7W9DVqs7Ob",
+      "name": "PUKE SOMETHING",
+      "release_date": "2025-10-10",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1QGAdoS1PXlApAdMUeTibH",
+      "name": "SEX MODEL",
+      "release_date": "2025-09-19",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1RBqcIWrMPXYrWcVRUeURV",
+      "name": "No Flunk",
+      "release_date": "2025-12-27",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1VT7Vxpj4uWqBwDTkzkPuJ",
+      "name": "Expensive (feat. Planet Giza)",
+      "release_date": "2025-09-19",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1VaIjlmLYaQVzMzvth8h4f",
+      "name": "5.9.3",
+      "release_date": "2024-03-15",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1VeDrlbLw18quxCqWfEFEi",
+      "name": "Tant pis pour elle",
+      "release_date": "2025-09-05",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1XJbMMx1TwVIFc2JnCeu4b",
+      "name": "Maudit",
+      "release_date": "2024-02-16",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1Xq5biBbeIbR5U2qFpyzHo",
+      "name": "When The Night",
+      "release_date": "2025-10-24",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1YHJEMUuWnJJiCmN8cPxGL",
+      "name": "Amerigo",
+      "release_date": "2026-02-06",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1YK7nJJpxCCdFESpaQZvD6",
+      "name": "DIMA RAVE",
+      "release_date": "2025-09-25",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1Z3dbaVuci8dtyMFpYXh06",
+      "name": "ONE MORE TIME",
+      "release_date": "2025-08-15",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1c7i0QliKMH9SSpgPSTHDo",
+      "name": "TAMBOU",
+      "release_date": "2025-08-01",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1cjew28uwhfSNPdAMOizxy",
+      "name": "Stamina",
+      "release_date": "2024-05-24",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1d5sIc2QcHgSMYvGcnsLhe",
+      "name": "FLAMMABLE",
+      "release_date": "2026-02-27",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1dbnMK6t2B51VCvgyUmBK1",
+      "name": "BBK",
+      "release_date": "2026-03-05",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1ek7T2W5nlvxIfDFPQA7R5",
+      "name": "BIG DOGS",
+      "release_date": "2026-03-06",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1fxXLLaGdjkRhOpNjjWK9U",
+      "name": "G\u00e9n\u00e9ration Couvre Feu",
+      "release_date": "2026-02-27",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1g74g6us9IvYoDRueVd8VG",
+      "name": "sa\u00efgon",
+      "release_date": "2026-01-12",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1hjlSleWCzt6WUqlc1vDue",
+      "name": "Fabienne Youyoutte",
+      "release_date": "2025-06-27",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1iHiWDDsJLsFENoKrfmY0p",
+      "name": "Ensemble",
+      "release_date": "2025-10-24",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1iHjzUtlNskhq9T6TBBXo4",
+      "name": "Ail\u00e9/Ma Ville",
+      "release_date": "2024-12-05",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1k51Q6GFWBbsaWlBB2gnzo",
+      "name": "Gimme Dat (feat. Wizkid)",
+      "release_date": "2025-04-25",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1kUJ7401ShEYzAgdTfg2Dp",
+      "name": "Dont Remind Me (with Anderson .Paak)",
+      "release_date": "2025-10-10",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1kqBTGpxaC5kGz3rPlr1TF",
+      "name": "PINACOLADA",
+      "release_date": "2024-08-15",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1lhLyzCqpGXkZchEJoaWGf",
+      "name": "Venus (Sunshine People) - DJ Gregory Remix",
+      "release_date": "2025-10-24",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1m7zzVskxd6T1LXfpn5765",
+      "name": "Joli Djo",
+      "release_date": "2026-01-30",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1mBlAPx3o1upduoTYXwgcZ",
+      "name": "Ready for the Ride",
+      "release_date": "2026-02-27",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1mtB8yJVWHNhrnJYZGgl8D",
+      "name": "Bla bla bla",
+      "release_date": "2025-05-23",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1n4Y7LSSZ38HgEdpPpivpg",
+      "name": "Post Sex Clarity",
+      "release_date": "2025-09-19",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1ptVzPtHuFH4tEUvVxnLhx",
+      "name": "Texto",
+      "release_date": "2024-11-08",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1qbmS6ep2hbBRaEZFpn7BX",
+      "name": "Man I Need",
+      "release_date": "2025-08-15",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1rmTOaMKdlHiu6QCJc0FlZ",
+      "name": "JSP",
+      "release_date": "2026-01-29",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1sVq2KVMtqFBmq5lFq1IBM",
+      "name": "WARNING BOUYON",
+      "release_date": "2025-04-18",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1szzVifajwa80g3xsYdWIY",
+      "name": "I Shot the Sheriff",
+      "release_date": "2026-02-27",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1tAd9VYVekTTNSOESqBX1j",
+      "name": "AIR FORCE 1",
+      "release_date": "2025-02-07",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1vE3zkJhahSWRcDBPFQN9R",
+      "name": "Mlonje: Voices Joined",
+      "release_date": "2026-02-18",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1vR9OZ1yycpGCqNBvs3imp",
+      "name": "MOCHE",
+      "release_date": "2025-07-25",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1x89dD1bENfCHL6MiZurDI",
+      "name": "Cocoa Tea",
+      "release_date": "2024-11-15",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1xkLsWNjxINSozZNnli0Yl",
+      "name": "Common",
+      "release_date": "2026-03-05",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1xmCo4OMjdx0KnNv5wpXxe",
+      "name": "Addictive",
+      "release_date": "2026-02-03",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1xmZtRjAg0RssJtzisLaNN",
+      "name": "Horizon",
+      "release_date": "2026-02-13",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "1yCuloYO2IJNmKoMwWjlno",
+      "name": "Youve Changed",
+      "release_date": "2026-03-05",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "20G4h3RA2F3JHC1VNwjiFp",
+      "name": "MONACO - REMIX",
+      "release_date": "2025-02-20",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "20UnbY4JAUTbSCf38TKDdz",
+      "name": "Play Me",
+      "release_date": "2025-07-22",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "20mEy3uJz5iXawPy8RncV0",
+      "name": "GMFU",
+      "release_date": "2025-09-26",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "22B2SJU5ciiRU1BJZmp0en",
+      "name": "Como Te Llama",
+      "release_date": "2025-06-13",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "22c6Yop5YVEAhw8UG6O1W1",
+      "name": "My Muse",
+      "release_date": "2025-10-24",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "23DKdmAEr3pGD6aPout0gu",
+      "name": "Mister Plata",
+      "release_date": "2025-06-06",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "24LZjnwdJ7jn8aiW3Ym70D",
+      "name": "Alchimie",
+      "release_date": "2024-04-05",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "25vbDjzyJh5m4uBGqa2a1b",
+      "name": "Like Rihanna - RMX",
+      "release_date": "2025-04-04",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "26jz7UNrFKOWvfQvaOHxA4",
+      "name": "Luffy",
+      "release_date": "2025-02-14",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "29tZwv4tNUssmSCYplbwzY",
+      "name": "Sobre",
+      "release_date": "2026-02-27",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2AiOVibrmBMgLY2VvX7aqq",
+      "name": "Ah Voil\u00e0",
+      "release_date": "2025-07-25",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2CK0zYlAlmY9riBYulNtJz",
+      "name": "Soft - WYFL Riddim",
+      "release_date": "2026-01-29",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2DZtnUeyZYou75TF1sqEKp",
+      "name": "Execution Time",
+      "release_date": "2025-12-17",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2Ej8NC038zqaamEInjJ4hC",
+      "name": "Bye to de Old Me",
+      "release_date": "2025-01-27",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2GConwKmFDwy5A7070KF3x",
+      "name": "Pa Pal\u00e9 Ba Mwen",
+      "release_date": "2025-10-10",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2IAWJRLUn1ugdJqMmzXAKZ",
+      "name": "Zoo",
+      "release_date": "2026-02-27",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2JiS4oDwqUDb7Hgu816INJ",
+      "name": "GANGSTA - Maureen Version",
+      "release_date": "2025-10-03",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2Kt4ULa9FC5tC4azqF97uD",
+      "name": "JUS",
+      "release_date": "2024-02-24",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2Kuif785CxqZdTQ7RZ1w3R",
+      "name": "Sc\u00e9l\u00e9rat",
+      "release_date": "2025-03-27",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2L4TCE9ejbMa5agBBFvOVp",
+      "name": "Barbe \u00e0 papa",
+      "release_date": "2025-04-18",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2LCj8Cjh8ms2k2EJ6KAmxf",
+      "name": "Shek It",
+      "release_date": "2024-08-09",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2MDzjN4OP7OujYfTjzWOWl",
+      "name": "120 U",
+      "release_date": "2026-02-09",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2Nmb5GTCRMnpBqn0uQC4Bm",
+      "name": "Pond Turtle",
+      "release_date": "2025-12-22",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2NxC4Al8njgSGGVRcHZ1LS",
+      "name": "An Pa L\u00e9 Love",
+      "release_date": "2025-01-10",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2OMyqskf50FJhPwwpIFssN",
+      "name": "What We Do",
+      "release_date": "2025-05-09",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2PZmA8d6uxFzRMcEtNPxGf",
+      "name": "ABABA",
+      "release_date": "2025-07-25",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2RfqfnNQCNAJcgFHPBpExB",
+      "name": "Grateful",
+      "release_date": "2025-09-19",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2S0CMcdX1jUeMDZFxMsSfM",
+      "name": "Tout",
+      "release_date": "2024-03-08",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2TqAEU7L1O3a5tPvXZFB9z",
+      "name": "Krake",
+      "release_date": "2024-07-13",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2Vmb54sq94SOhDobcf4gxp",
+      "name": "B.B.B.",
+      "release_date": "2026-02-27",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2XhatQ5NqfdqZMLCegWnbD",
+      "name": "We Don\u2019t Get Along (with Marshmello)",
+      "release_date": "2026-03-06",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2aMwNY49uzxRtXGaxI9kMS",
+      "name": "Sonne",
+      "release_date": "2024-11-22",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2am8pqQX9aLn4rlFeRH8dd",
+      "name": "La piraterie",
+      "release_date": "2025-03-13",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2bVOWSnCsLiT25BWlP0WCK",
+      "name": "Old News (Chopped Not Slopped)",
+      "release_date": "2026-02-20",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2dspNoeuWvdwy5mgGLjZfM",
+      "name": "On Di Road",
+      "release_date": "2024-01-19",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2ejejLrNJxjI9B7AWztqho",
+      "name": "100",
+      "release_date": "2024-01-05",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2fTBermokTIqUr3jZTCrqY",
+      "name": "BBL",
+      "release_date": "2024-01-12",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2gHR5q97zJDWThbaNfVqOZ",
+      "name": "Valsa",
+      "release_date": "2026-02-27",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2gTyreU3YwkMm8CF1tYM8p",
+      "name": "G.O.A.T - Wyfl Riddim",
+      "release_date": "2026-01-23",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2iZ9yiTcL1iywzSUZxlJrZ",
+      "name": "other side.",
+      "release_date": "2026-02-13",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2iqF4C3733rvJy0QL4WExS",
+      "name": "44D",
+      "release_date": "2026-02-19",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2jsuU9tcRdHzruH7PcgwZx",
+      "name": "Rosetta Stone",
+      "release_date": "2025-10-03",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2lAXVK9fpkm8pRPffqhvGB",
+      "name": "INNA COMBINATION",
+      "release_date": "2026-03-06",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2lztJsiPFxbzXgWoJxTvMf",
+      "name": "Cocono",
+      "release_date": "2024-09-04",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2m0S0wcHghSpdCHmg8YBX7",
+      "name": "Cvni",
+      "release_date": "2025-01-24",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2miptNhVu6KAZk5aaSUB3Y",
+      "name": "La famine",
+      "release_date": "2024-10-18",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2n0fnxOm6u1HDiKz8dXR1g",
+      "name": "DADA",
+      "release_date": "2026-01-16",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2ofMsovltZ6Nn6wQz1ZphY",
+      "name": "Helicopters",
+      "release_date": "2026-02-26",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2p1Hln4wQ3g0z8toNp2QYm",
+      "name": "Rapunzel",
+      "release_date": "2026-02-04",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2p3GvLX0ljtIZau3tyiunM",
+      "name": "DOUS KON SIWO",
+      "release_date": "2025-10-03",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2qHYQULQh8bN0bb31JKXeG",
+      "name": "Tolere w",
+      "release_date": "2024-09-24",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2qMymtxoafC1JRtiiXUVFN",
+      "name": "Cry about it! (feat. Ravyn Lenae)",
+      "release_date": "2025-10-03",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2qbcOoBBiQpGC2icOTefYM",
+      "name": "Senb\u00f2t",
+      "release_date": "2025-04-07",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2qwfmIVFejK7K3wcPy9iKE",
+      "name": "NOTRE DAME (feat. Ang\u00e8le)",
+      "release_date": "2024-06-29",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2u9S9JJ6hTZS3Vf22HOZKg",
+      "name": "NOKIA",
+      "release_date": "2025-02-14",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2v83vqnKuCmPr3G6vykIpF",
+      "name": "PUANT",
+      "release_date": "2025-12-19",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2vhsyF9jRy2w8KjRv1yydr",
+      "name": "Resurrecci\u00f3n",
+      "release_date": "2025-06-20",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2vrLrBRtTkU6nCf51LvnWP",
+      "name": "Makeup Bag, Pt. 1",
+      "release_date": "2026-02-25",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2xdwvqpwRQUzz1l2cL9hOZ",
+      "name": "DOPAMINE",
+      "release_date": "2025-12-21",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2xwHV4dxOdyZTeJU8BWavC",
+      "name": "Manawa",
+      "release_date": "2024-09-06",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2yA4i62oihLO9DmCFeDj2H",
+      "name": "SAH47",
+      "release_date": "2026-02-12",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2yskKhqtDAHJ73obmJh8tf",
+      "name": "Everyday",
+      "release_date": "2024-05-02",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2zhmlsguDARe5S6lSMXjs6",
+      "name": "Cest gagn\u00e9",
+      "release_date": "2026-02-26",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "2zpcE21SuB8FsuwcYZMArD",
+      "name": "Nowhere 2",
+      "release_date": "2026-01-30",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "30ATdWI8XmkfBHKYG1IOtq",
+      "name": "Comme bon me semble (euros,dollars,cryptos)",
+      "release_date": "2025-11-27",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "30q0of7xCOBS0wAxaB6d0E",
+      "name": "Boniche",
+      "release_date": "2025-11-28",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "31xmZLEMq7hSGqaoelv9jJ",
+      "name": "MI MAS LA - Karata",
+      "release_date": "2024-01-09",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "33aOtS134ourFh9cLtx0rs",
+      "name": "Point To Prove",
+      "release_date": "2026-02-26",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "34YSnLmFdpHP8ZAAN60UeK",
+      "name": "PRENDS SOIN DE TOI",
+      "release_date": "2026-01-22",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "35b9XfuOF3D7VskrjlWkIL",
+      "name": "NEXT",
+      "release_date": "2024-05-29",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "39kautnewu4Nl1ioN6oUPa",
+      "name": "Discipline",
+      "release_date": "2025-05-27",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3BP4lkOtjbark2pkKJyyS9",
+      "name": "Full Sang Froid",
+      "release_date": "2025-01-17",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3C1rUtw6tW9dfVPar8CMLf",
+      "name": "PACKAPUNCH (feat. Danny Brown)",
+      "release_date": "2024-06-07",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3CIerUEipkNTFLxzNERZXd",
+      "name": "Hungry",
+      "release_date": "2026-02-19",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3CpYc8sEJUAgusqSZZKzi3",
+      "name": "nobody has to know (with Ronald Isley)",
+      "release_date": "2026-03-04",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3DzyChVBA7YeWkozAAZh2d",
+      "name": "Bif",
+      "release_date": "2024-09-20",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3G5iyDPHbIHUL4AhC6rEs4",
+      "name": "Abu Dhabi",
+      "release_date": "2026-02-26",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3JN8aItsGqTWapuekI8vxM",
+      "name": "Aura Salad",
+      "release_date": "2026-02-20",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3JW9hNUjUN51X9jZyn2HVV",
+      "name": "Ngishutheni",
+      "release_date": "2025-04-23",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3KdG5FhkeuI78KAU7uhHQN",
+      "name": "Bana",
+      "release_date": "2025-04-26",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3LH9ppFxCUnQOKkLANVRZI",
+      "name": "No Gyal",
+      "release_date": "2026-01-21",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3NPiV3ByzZk0fZKU9U2wbf",
+      "name": "CLEAN CLEAN",
+      "release_date": "2025-01-10",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3PI3afCymQJr6znPvwdDtR",
+      "name": "SENSATION",
+      "release_date": "2024-12-04",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3QRbV3SNGjXI1Q0ZmHkIYS",
+      "name": "Chipeur",
+      "release_date": "2025-12-05",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3RmFPuTTAjSQ2pbEd2j9oA",
+      "name": "Loser",
+      "release_date": "2025-09-03",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3RupLC2JoBIBN8jHvxARnR",
+      "name": "Kaizen",
+      "release_date": "2025-03-31",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3SFwmEaJBYxuTxocvPJn3S",
+      "name": "Money Time",
+      "release_date": "2025-12-22",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3SN3FRj0CVGlNNSxPu2S2j",
+      "name": "Money Feeling",
+      "release_date": "2026-02-20",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3SZ14XUbmDDPin9xqbfNiU",
+      "name": "FR",
+      "release_date": "2025-09-30",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3TcZhoJxZwBrgXlItLXFrM",
+      "name": "PLP VME",
+      "release_date": "2024-12-06",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3UddsIXYPCyFh4HMd5YxSD",
+      "name": "GASSAMA",
+      "release_date": "2025-02-13",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3VsRmRzYpLv4YpjSwbeP8J",
+      "name": "One Stop",
+      "release_date": "2026-03-03",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3WaU3osw4jLsX1wi3x2YuE",
+      "name": "Ohlavie",
+      "release_date": "2024-09-20",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3XqzjRAH5VSxibxndQ8G28",
+      "name": "Bla bla bla",
+      "release_date": "2026-02-20",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3Yk8bCBVWxiwKRhSwMhRRJ",
+      "name": "Story",
+      "release_date": "2025-11-28",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3ZiWgz2aAhQOWbXwAwdA7Z",
+      "name": "Gid\u00e9 mwen",
+      "release_date": "2025-11-21",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3ZoxtSqrE3llBn4laBbmap",
+      "name": "We Can Love",
+      "release_date": "2025-07-04",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3a1sPiGnrO6eBIqPWsv3VJ",
+      "name": "\u00c9CRASE LE RIDDIM",
+      "release_date": "2025-08-28",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3aAaM7HdWoXHjB2RHLoteu",
+      "name": "Pa Nowmal",
+      "release_date": "2024-01-17",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3apWtfUz5z9uwvqHm91eaG",
+      "name": "PARTY ANIMAL",
+      "release_date": "2026-01-10",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3bLv5xvPDnSlIebugPc7sQ",
+      "name": "Spicy",
+      "release_date": "2025-06-27",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3bx3DCKp72PX1OV4T6bhzV",
+      "name": "Nuh Give It Away",
+      "release_date": "2025-01-24",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3c0FDe2YIUwq5bg8njzRDu",
+      "name": "Badness",
+      "release_date": "2026-01-23",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3cSBNPAxl5sBTELSuKftrs",
+      "name": "Je serai l\u00e0",
+      "release_date": "2025-06-06",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3cV9qAS9BHsoZvb0ilzsgP",
+      "name": "YENKI \u00c8VEW",
+      "release_date": "2025-05-02",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3ctpm1SToAyU1C6249069G",
+      "name": "Its You",
+      "release_date": "2026-01-30",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3dEG2MQ0Bdd7lOqyG3GLFI",
+      "name": "Diamond Miner",
+      "release_date": "2025-07-08",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3eR3VsYl5y3yaWGMVkwiqp",
+      "name": "Comme une Latina",
+      "release_date": "2025-06-20",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3euDkolyqirQM6DK9HBO8C",
+      "name": "WYFL",
+      "release_date": "2025-11-25",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3fwjyWXsDiTFnyNpbheCf8",
+      "name": "FABRICS (feat. Jungle Jack)",
+      "release_date": "2024-11-22",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3iy4yl1YHHRlgZJbIKTnn0",
+      "name": "BARATO",
+      "release_date": "2025-10-10",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3kBBMN02iOntaQXMjcB4Gm",
+      "name": "Val\u00e8r",
+      "release_date": "2025-03-21",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3kdCHoLAbTyxerjFGg1YUy",
+      "name": "Bestest Pum Pum",
+      "release_date": "2026-02-06",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3kwvOPHIYbhlTN8TFqu1x6",
+      "name": "Oh My Babe",
+      "release_date": "2026-02-23",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3l1DBhNfMm9XgbuNqwVHbZ",
+      "name": "Mala (Actif #3)",
+      "release_date": "2026-02-27",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3mII8L37EaQs92kupm3Lta",
+      "name": "Slim Dolly",
+      "release_date": "2026-02-06",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3om5DCk22cCGm5ckz3c3HU",
+      "name": "Slowly",
+      "release_date": "2025-08-22",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3pFdhpYQzszSLMms5qy1sr",
+      "name": "PROBLEME",
+      "release_date": "2025-11-23",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3sBcPYKrTWbD8Csxw0wxjp",
+      "name": "Ping Pong",
+      "release_date": "2025-08-22",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3sCinQALcMKnL6b6nYDnMb",
+      "name": "Where Do We Go",
+      "release_date": "2026-03-06",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3sK8wGT43QFpWrvNQsrQya",
+      "name": "DtMF",
+      "release_date": "2025-01-05",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3tGAwQkqKMkvIL4ZG415XT",
+      "name": "B\u00c9SAME MUCHO (feat. Gregory Porter, DELIA)",
+      "release_date": "2026-02-28",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3tPYn1ZloX3n0CgIrQ2eQR",
+      "name": "Time",
+      "release_date": "2026-03-05",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3thVkctyXSdakgHHWI823R",
+      "name": "Come Over (Possibly)",
+      "release_date": "2025-11-12",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3unBVqwHGrOUHmPJiH2x6a",
+      "name": "Expensive",
+      "release_date": "2026-01-10",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3vJxspQ5ZqrCpZgV1FX9wf",
+      "name": "Kriss Vecc",
+      "release_date": "2025-06-18",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3wbM2tWR7I21HCYvPZgWJP",
+      "name": "Teworist Gyal",
+      "release_date": "2025-09-25",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3xWMrwAQInIynG2TMhnRb1",
+      "name": "TA MWEN",
+      "release_date": "2026-01-28",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3zBFeT9Rt13mU1o1mw3cAO",
+      "name": "Dans la danse",
+      "release_date": "2026-02-27",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3zCNlPM3yar4j37WfCQG2v",
+      "name": "Amo aller Amos",
+      "release_date": "2024-11-06",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "3zcJdhQE4xXqvbd2r7TMgt",
+      "name": "Swaay",
+      "release_date": "2026-01-23",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "40CR8Fb13bKFSPOV7cxDPg",
+      "name": "Petit c\u0153ur",
+      "release_date": "2024-09-27",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "40lonv25VaTFHGrY9AvmWT",
+      "name": "Elles veulent twerker !",
+      "release_date": "2025-02-06",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "40o9V7T7meiJzMZxc3HKxk",
+      "name": "Diamants mappellent",
+      "release_date": "2025-10-17",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "419Ea8DED7cszLAlzXYReB",
+      "name": "Stateside + Bladee",
+      "release_date": "2025-10-10",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "42oZTy1vXVyBPEaxAFWueD",
+      "name": "Blue Lights - Havoc Remix",
+      "release_date": "2026-03-06",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "44KIBnrWTiWzXmntyVYNqm",
+      "name": "Opps",
+      "release_date": "2026-01-23",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "458u353fkPaERY2SoOGPl3",
+      "name": "BOSS UP",
+      "release_date": "2025-10-24",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "45oOc9i3JNWCAWEAUZ53g9",
+      "name": "Paparazzi",
+      "release_date": "2025-11-28",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "474AXTMcsGWJCES9xG7sFd",
+      "name": "Twop Souss",
+      "release_date": "2025-05-16",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "47N21fn8V8IN392MGlicT5",
+      "name": "Second Sleep",
+      "release_date": "2025-09-26",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "47Rtl2vYmAYEIt2fWvKq49",
+      "name": "Baby I",
+      "release_date": "2026-03-06",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4A7sqEXxjEFQIUuBKV9wOT",
+      "name": "Freestyle Kendji",
+      "release_date": "2025-05-28",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4ACXNhBX0xIL2Nky1e3SMD",
+      "name": "EDF Riddim Remix",
+      "release_date": "2025-11-28",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4BTem6E6GHtoyUwyRYLlUW",
+      "name": "Sans conditions",
+      "release_date": "2024-06-28",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4CG8nHro2yHULZmmiZwRgV",
+      "name": "Alpha Dog",
+      "release_date": "2025-09-12",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4CRzqRadmJx0YqTarHtW5i",
+      "name": "Weh Yuh Like",
+      "release_date": "2026-01-13",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4CbUThHHbcUsvgNS5SOE0Q",
+      "name": "The 343 Loop",
+      "release_date": "2026-03-06",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4DNTHdu4F7eTNuhyLQvEzG",
+      "name": "Bottega",
+      "release_date": "2025-05-02",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4DREBgUie15tAPq9KQqe2c",
+      "name": "Laho II",
+      "release_date": "2025-04-25",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4DZxjqSarSYTUfltch35dU",
+      "name": "Infinite",
+      "release_date": "2026-02-27",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4ECXqXLZKsX5ZZO16Tx7fw",
+      "name": "SOTI MADA",
+      "release_date": "2025-05-21",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4F0HLL7aFNZHL8tH2hDnvB",
+      "name": "HENNY POP",
+      "release_date": "2026-01-09",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4GpEFAaY1Z4GvO3uyZbSD2",
+      "name": "Je taime beaucoup",
+      "release_date": "2025-04-30",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4GycBrFRB5s5ZhaZQT5n8p",
+      "name": "Discret",
+      "release_date": "2024-03-15",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4Ja6acose2dn4okt9hdVBd",
+      "name": "Badman Sous",
+      "release_date": "2025-06-27",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4LyAkRVy7fYNeOU0afdJJI",
+      "name": "Bone Aw",
+      "release_date": "2025-11-28",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4MwlRAtdteJ8QbLDlRACVM",
+      "name": "Congo Connection (feat. Youssoupha)",
+      "release_date": "2026-03-06",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4NXaqIhAJ7yDbW2rDYOhMi",
+      "name": "TERRE DE CHAMPIONS",
+      "release_date": "2025-02-01",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4OL0WYxE7zb20MlSFgJgho",
+      "name": "PLEASURE X PAIN",
+      "release_date": "2025-07-23",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4PDOnGdtXZQ2ZpgBphfjiC",
+      "name": "Callipyge",
+      "release_date": "2026-03-03",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4SVfBEmfhYZmWT0L2uFotp",
+      "name": "F\u00e9d\u00e9raux",
+      "release_date": "2025-09-12",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4UA7p7ndurcpEBQxGyTAnQ",
+      "name": "Abim\u00e9",
+      "release_date": "2024-03-29",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4VxTzYm00mg82MuoT35Ja7",
+      "name": "CHANEL",
+      "release_date": "2025-10-24",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4WJpqMbWiiCQL7YJ7ZPoN3",
+      "name": "\u00c0 TERRE",
+      "release_date": "2026-02-13",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4WKy8W8iH4IEEzenQq8b5P",
+      "name": "PEUR DOUBLIER",
+      "release_date": "2024-05-01",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4WLQU5Rc12MiwxMOh8jo93",
+      "name": "Made From Love (with Queen Omega)",
+      "release_date": "2026-02-27",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4WYbYaibpIWj1FLbMUH2Yb",
+      "name": "Showa",
+      "release_date": "2024-03-11",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4WabBsw8o8lgMmJeSNirUz",
+      "name": "Thelma et Louise",
+      "release_date": "2025-10-10",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4WpYCtyJOQTr5LRSlcfwkw",
+      "name": "Mauvaise \u00c9l\u00e8ve",
+      "release_date": "2024-05-31",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4YPOplh4glirQhau0shF5u",
+      "name": "take it",
+      "release_date": "2025-09-17",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4YmS7BALpAU0h4EAF4fYuh",
+      "name": "SPEED DEMON",
+      "release_date": "2025-09-05",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4ZZZqHNebHX4LxhF2kvMPZ",
+      "name": "Oxygen",
+      "release_date": "2024-02-14",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4c5OvdLWYMe6SEN8ONQzZw",
+      "name": "HATE ME",
+      "release_date": "2026-02-27",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4c7hkB8y91eb35KlPFtpCS",
+      "name": "God Is The Greatest",
+      "release_date": "2025-01-31",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4carkTTHLzq8QPRaVHY7YH",
+      "name": "Turn Up",
+      "release_date": "2026-01-09",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4ciEjdE84s5FLLwLtB2oPX",
+      "name": "OBS\u00c9D\u00c9",
+      "release_date": "2025-05-30",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4dltu45ktEnn3eubBC7fd5",
+      "name": "TEC_9",
+      "release_date": "2026-02-13",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4fC4pkTrE2HwVdcM69JvXL",
+      "name": "Perspective of Purpose (feat. Keyon Harrold)",
+      "release_date": "2026-03-06",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4fcnTLnOTqRZTUJmAtRd4Y",
+      "name": "Probl\u00e8me",
+      "release_date": "2024-05-20",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4jHlkBevTbKytGjyMaEADH",
+      "name": "Mauvais choix - Bonus track",
+      "release_date": "2025-01-08",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4l6yCNpuAZhQabqtlZcP96",
+      "name": "La vie doux",
+      "release_date": "2025-06-26",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4mNttG8qiVh4BKrMUrUhCI",
+      "name": "Minimum \u00e7a",
+      "release_date": "2024-08-09",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4pACtAVffmWj3KHWb2MXvM",
+      "name": "Wish",
+      "release_date": "2026-03-04",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4ptjJWxq1i6q4jVMkQClBD",
+      "name": "Shatta r\u00e9tro",
+      "release_date": "2026-03-06",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4rLKmKo0tutkAbMqi7fMQt",
+      "name": "Sylvani",
+      "release_date": "2025-09-19",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4sDXudO7gpCFqsxFUuMb7E",
+      "name": "Batch\u00e9 a boy",
+      "release_date": "2025-02-17",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4sauvuTeW8V7TMcZOc55xG",
+      "name": "STORYTIME",
+      "release_date": "2025-11-19",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4t4rGgiVX7woTmlnW9SHJ7",
+      "name": "Residuals",
+      "release_date": "2024-04-11",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4uBrD2pjjwPmG47qRHBNV0",
+      "name": "Dolla Doul\u00e8",
+      "release_date": "2025-05-28",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4uFJVgEMZmG8CAUxoliS29",
+      "name": "T\u00e8t Kol\u00e9",
+      "release_date": "2025-05-16",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4uokP7DOEf7LKERqIEsHat",
+      "name": "Ma partition",
+      "release_date": "2024-08-07",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4vqIcTctLixrnffboAMpJn",
+      "name": "PHONY [Feat. Juicy J, Key Nyata & A$AP Ferg]",
+      "release_date": "2026-03-06",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4xXNxKLHojcnFlmM4OrNk4",
+      "name": "Paid Friendship (feat. Dejamck)",
+      "release_date": "2025-05-23",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4yj9WM6YoBq4Klxlp3xEZG",
+      "name": "Ring Ring",
+      "release_date": "2025-03-21",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "4zQF4Kv6Zekub7zNljCAyZ",
+      "name": "Hygiene de vie",
+      "release_date": "2026-01-16",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "52Tq0iqfLn1gD9NrID3tqB",
+      "name": "Ton ami",
+      "release_date": "2024-01-12",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "532fSaooOuzPyrVsMEDUUu",
+      "name": "Dembele Yamal",
+      "release_date": "2026-01-22",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "53DQPXHsNXlE7xnNmt3WwI",
+      "name": "Aller-retour",
+      "release_date": "2025-01-10",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "54z2sEnHGrpoo4TbIkZZjU",
+      "name": "@RealCandaceO \u2026Tell Us More!",
+      "release_date": "2025-09-21",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "552I5C4ryM8kV3gCAAeIFj",
+      "name": "Type Yangu",
+      "release_date": "2026-01-19",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "55lijDD6OAjLFFUHU9tcDm",
+      "name": "WHERE IS MY HUSBAND!",
+      "release_date": "2025-09-19",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "561zKMoLcvjc2oYqtJ80hu",
+      "name": "Whine #impoli",
+      "release_date": "2025-03-20",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "56QxZwyDyYOqgpd8Bh7UU6",
+      "name": "Ageism",
+      "release_date": "2025-07-08",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "56gnILTaV61USjCnM5XrsN",
+      "name": "Poison",
+      "release_date": "2024-05-31",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "56if1SxJq4TUlOuozSPc8G",
+      "name": "South Side",
+      "release_date": "2025-08-01",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "57Ad116xowLoSasvt5L5H9",
+      "name": "Bun Bun",
+      "release_date": "2026-02-20",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "57AsFn5AIsEftgoi4eO0lW",
+      "name": "Mo\u00ebt",
+      "release_date": "2025-03-28",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "57R1wSr2MZ4zuwHwR02ayd",
+      "name": "NE FAITES PAS LA GUERRE",
+      "release_date": "2026-03-06",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "58BeXIqGxQNHiPUdFWWwRL",
+      "name": "LV",
+      "release_date": "2025-11-07",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "599Nc6Pvse1zKk015VHH3S",
+      "name": "Pas le temps pour toi",
+      "release_date": "2025-05-18",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5BlUOZzmAhdksyj5YOmGBU",
+      "name": "La b\u00e9atitude",
+      "release_date": "2025-09-01",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5BuzzbP1ZMsg9w0U0ZQjb7",
+      "name": "44FREESTYLE",
+      "release_date": "2026-02-24",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5BwcOGxss3yjlEru57ZY4Y",
+      "name": "Starburst",
+      "release_date": "2025-09-23",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5CVH4yjJy1Nhr1G51UBG7e",
+      "name": "the one",
+      "release_date": "2025-09-19",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5CvTRkjCIQgCB9r7I2Hiwe",
+      "name": "International - DJ Jazzy Jeff & Kaidi Tatham Instrumental Remix",
+      "release_date": "2026-03-06",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5EsJYZGTKHoLISqRCPnD08",
+      "name": "Likkle Buddy",
+      "release_date": "2026-02-27",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5Ev173W9xOpRmw1E16eZ7d",
+      "name": "Portal",
+      "release_date": "2025-05-16",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5FpLnoxdlDWQXVrJ5hiKHV",
+      "name": "Likkle Bit",
+      "release_date": "2025-12-19",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5Gcjb2eQswhu82cipZa34v",
+      "name": "MUTT THAT BIH [Feat. 1900Rugrat & Key Nyata]",
+      "release_date": "2026-03-06",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5GyaXqMfcIGHfmTUITFacS",
+      "name": "With You (feat. Omah Lay)",
+      "release_date": "2025-04-18",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5ICIwnGeEzb16IXN9f47bF",
+      "name": "No Regula",
+      "release_date": "2025-08-08",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5IGiajTHuSYRvVHw7v9WYC",
+      "name": "LA VICTOIRE SERA BELLE",
+      "release_date": "2026-01-23",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5JX6IPg5g8Pbswf3qRL9FV",
+      "name": "Eighteen",
+      "release_date": "2025-09-03",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5JZRkF8jUu4KJGlG5AEH3o",
+      "name": "Ti Zozio",
+      "release_date": "2024-02-08",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5JgNxMf1Z9oksGKidbFAUq",
+      "name": "Shake It To The Max (FLY)",
+      "release_date": "2024-12-03",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5KLcneIW83fSsGZZJPCDd6",
+      "name": "Pas de soleil",
+      "release_date": "2024-11-15",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5L5nECGuHCwJXtSHUlbyqu",
+      "name": "Ba ba bakshot",
+      "release_date": "2026-02-26",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5LZVbHdSs86jxeW5PPfYTz",
+      "name": "ANDALE - Sped Up",
+      "release_date": "2025-10-31",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5N12ol4GuC1KELiNJFHAOU",
+      "name": "Apex (WYFL Riddim)",
+      "release_date": "2026-01-12",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5OCjtxa5T8soJUDbWNpFQV",
+      "name": "Jusquau bout du monde",
+      "release_date": "2024-06-29",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5OgtenAcTfhyOA2BGOqjgp",
+      "name": "HACES FALTA",
+      "release_date": "2026-02-27",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5QtHiCtmc2XIL5nO9AEp39",
+      "name": "Sa ka fet",
+      "release_date": "2026-02-06",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5T0mnzMsyHtmWB7Kou51Ph",
+      "name": "Gorgeous",
+      "release_date": "2025-09-26",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5TTVPES1GhmkTWOOU1HNvR",
+      "name": "Mission Impossible - Raw",
+      "release_date": "2026-02-27",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5WcQ5AwCp9mSqpsul6ccx4",
+      "name": "Big Daddy",
+      "release_date": "2025-11-21",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5X448hyF2Ey2eQFaeBrpxg",
+      "name": "Oh When",
+      "release_date": "2025-12-09",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5Xe0yAyycB72fw965ten9s",
+      "name": "Tabou Combo Festival 2024 Terre de Blues, Marie-Galan",
+      "release_date": "2026-02-27",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5XiCX6AWYaYo9xI4rZr5JI",
+      "name": "Palavir\u00e9",
+      "release_date": "2026-03-06",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5Y4U7pPpdzVmvDFUt2aY5v",
+      "name": "Trapeur Loveur",
+      "release_date": "2025-05-27",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5YWCEIwAHhBtZyduc2dWzf",
+      "name": "L\u2019hiver vient #1",
+      "release_date": "2026-02-13",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5YeouyhjK6i19rNXLYoXH2",
+      "name": "Mama Told Me",
+      "release_date": "2026-01-30",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5Zjo4jPVhdrzprwROHZIdX",
+      "name": "Freddie",
+      "release_date": "2026-02-20",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5aZ7WRJ4HjM8Q9cjH9b6h4",
+      "name": "Open Up",
+      "release_date": "2025-07-11",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5bSn1V1Ry9FlTGo3bGX7RY",
+      "name": "Z\u00e9yo",
+      "release_date": "2024-06-14",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5btyVHST7prD4XeZUKO6hD",
+      "name": "NOS RUELLES #2",
+      "release_date": "2026-02-16",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5cUaTjwisbRgEKHripJACa",
+      "name": "Bann Bouwo",
+      "release_date": "2025-02-14",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5cbDTZG8lBJqVVa2zqROPI",
+      "name": "Taxes",
+      "release_date": "2025-09-26",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5cm14CAW08aad9lbdQN5yI",
+      "name": "Cause There Is No Time",
+      "release_date": "2026-03-06",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5dEs9XWVKHYfkLYLMAu6LA",
+      "name": "C\u0153ur sur messagerie",
+      "release_date": "2025-03-16",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5dQZMgCDgq0CeQ76s8vPPS",
+      "name": "SHATTA CRIMINEL",
+      "release_date": "2025-08-14",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5eBhs4ethVM65azitjNAFv",
+      "name": "Dog",
+      "release_date": "2026-03-02",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5eCPnWP9XVgmcdVnUd6ozJ",
+      "name": "No Behavior",
+      "release_date": "2026-01-21",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5eUr8J7em3z7oncIstF31J",
+      "name": "Bullet",
+      "release_date": "2025-05-02",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5fhjUTzVj1kI5wxFf7op6U",
+      "name": "Opa",
+      "release_date": "2026-01-23",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5ftdv3iD1HgxPLuNMTaXlg",
+      "name": "Champagne",
+      "release_date": "2025-08-20",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5gjy8tWgpHinzIvuwjRpls",
+      "name": "Sha La La Laah",
+      "release_date": "2025-12-29",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5gmAqkqPYGHiMmaWdv5qwL",
+      "name": "Mst Mec Sentimentalement Toxic",
+      "release_date": "2025-11-28",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5hPr1THWrdI70T3UwT1GiT",
+      "name": "ONLYFANS",
+      "release_date": "2026-01-07",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5hkZTHqHJ3BP1X8DhryBex",
+      "name": "Who Dem",
+      "release_date": "2026-01-02",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5htngFzF21Yi8WDyjyeywh",
+      "name": "5 \u00e9toiles",
+      "release_date": "2026-01-23",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5hvyS23Ya468Sp4VeL48U5",
+      "name": "Unhinged",
+      "release_date": "2025-10-15",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5j7mEjt9YzWhE5hBQmKlkZ",
+      "name": "Kitem Ale",
+      "release_date": "2024-03-29",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5kkoXpJPaSYf3kmxIKgeeR",
+      "name": "John Cena (Wyfl Riddim)",
+      "release_date": "2026-02-02",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5ljcCEJCDBVcM6R5Xcguzf",
+      "name": "Trapstar",
+      "release_date": "2024-09-27",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5mOyjyY5Z7xC2v4qzAfDA9",
+      "name": "FEELS LIKE",
+      "release_date": "2025-08-22",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5nELNKYYeUdias1RHBFqcK",
+      "name": "Racism Is A Killa",
+      "release_date": "2026-02-24",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5nX34wrZT1NwgGxboF85Af",
+      "name": "Cest toi",
+      "release_date": "2024-09-20",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5ohaehTCqi0VyCQuDmCc6x",
+      "name": "Everything Allocated",
+      "release_date": "2026-02-20",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5ovrQcYA4HMsYY1VYQNiLZ",
+      "name": "Noon",
+      "release_date": "2026-02-27",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5pu4iOtETaIZiJb0LEYqcD",
+      "name": "Byen pliss ki zanmi",
+      "release_date": "2025-01-29",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5quebmCoVu6n9Phgqzew03",
+      "name": "Maudit",
+      "release_date": "2026-02-06",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5rBBVYaOqtFS1Dx6MVpr5O",
+      "name": "if you wanna party, come over to my house",
+      "release_date": "2026-03-02",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5rRnOsPhrX6eE3usDVFPnJ",
+      "name": "Fais tout doux",
+      "release_date": "2026-03-06",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5ru5UnMC867LvGneHo2knC",
+      "name": "Mentalit\u00e9 block",
+      "release_date": "2025-05-21",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5u3dq5xwjzWln3SV4QjYuj",
+      "name": "Antidote",
+      "release_date": "2025-08-27",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5u9zXoKoacS0yrARnZ1MYI",
+      "name": "Le Monde est \u00e0 nous",
+      "release_date": "2026-03-03",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5um4nj9RUwgk1GTWjjYgkJ",
+      "name": "M\u00e9lancolique",
+      "release_date": "2026-01-23",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5waTXjl4V7YBw1Bo4CsjlM",
+      "name": "Circus Circus Free$tyle",
+      "release_date": "2026-02-20",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5xRfJvwjSdvLHqpXGWPhJI",
+      "name": "Yo Bniti",
+      "release_date": "2025-07-18",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5yMpzzE1F4qHV0WiCpNCPv",
+      "name": "DESTIN",
+      "release_date": "2026-02-13",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5z46Jo6PQMz2kDmJuKknhV",
+      "name": "NOS",
+      "release_date": "2025-10-10",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "5z58pyHjgkTe88zrWG85uV",
+      "name": "BRRR",
+      "release_date": "2025-07-03",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "60bjCj1YcWijAnkabVJUMu",
+      "name": "ZEUDOG IS BACK #3 (Heat)",
+      "release_date": "2026-01-29",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "62O7y8OPglCh7J70MMAowI",
+      "name": "Serment - Radio edit",
+      "release_date": "2024-05-17",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6412GdrNsf0bUbxISEJNgw",
+      "name": "Cr\u00e9ole Work",
+      "release_date": "2025-11-21",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "64sL2LCaQKiOCyHIx2wdsl",
+      "name": "I feel like Blade",
+      "release_date": "2025-08-23",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "66Hb03vOTngWNHVdw5kzwh",
+      "name": "Fauves dans la nuit",
+      "release_date": "2025-03-16",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "68bUhC14d5rEG6XffHDIrq",
+      "name": "Underground Dwellers",
+      "release_date": "2025-09-04",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6AAanmuKQ91qu8uElHBALL",
+      "name": "LE FLEUVE",
+      "release_date": "2026-02-20",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6Cky1I20BmMBNLk8eTwCnU",
+      "name": "Intro - Remasteris\u00e9 2023",
+      "release_date": "2025-10-24",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6CziqHZn5NKGop0J2GAj4T",
+      "name": "MENTI",
+      "release_date": "2024-10-21",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6E93ZLOnHqzzyYhGCvfBW6",
+      "name": "Fuck yo",
+      "release_date": "2025-03-03",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6EBuEdDjd87vuwaV6kS7HF",
+      "name": "R.O.R.D Ruff on DI Road",
+      "release_date": "2024-01-11",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6F1cqsSrK1sN50qiWhO8Wf",
+      "name": "Ah Eh",
+      "release_date": "2025-09-10",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6H7vZRmTPhi7wvSCaYCR53",
+      "name": "Premi\u00e8re fois",
+      "release_date": "2026-02-27",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6HQFxxX9d7HailblPX0Nxy",
+      "name": "PIRATE RADIO",
+      "release_date": "2025-09-11",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6IayRy7xW9P2PZAtJFFDf4",
+      "name": "\u00c0 genoux",
+      "release_date": "2025-01-10",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6IiePgqXnyYYhInadRG1aU",
+      "name": "Peyia",
+      "release_date": "2025-09-19",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6LdIS1qUJYXBms7rAcKQ3z",
+      "name": "Wallpaper",
+      "release_date": "2025-09-17",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6M7BZPrQGch9O1DvliQ7SI",
+      "name": "Pull Up",
+      "release_date": "2025-12-17",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6MGDifi2vBHgHLpqCUmX16",
+      "name": "Anticipate",
+      "release_date": "2025-06-02",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6MO6jOYSBio7diMCMrqmyg",
+      "name": "TAGADA",
+      "release_date": "2025-02-19",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6NOrpcicPUh2eaj8bAD44u",
+      "name": "Baby (Is it a Crime)",
+      "release_date": "2025-02-07",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6NSA90AziTadCdrhZar1FX",
+      "name": "Mo La",
+      "release_date": "2024-06-14",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6NeCDCWbY6IJAFCXftjO1p",
+      "name": "Expensive Structure",
+      "release_date": "2025-12-16",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6PW7IX53uKCB1woGe0Uak5",
+      "name": "Everyday",
+      "release_date": "2025-09-19",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6TCBzqWhnxL0KznrOkElwC",
+      "name": "Toi et Moi",
+      "release_date": "2026-02-25",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6TKir8w5zri5jpSZ1t4UtH",
+      "name": "TANA",
+      "release_date": "2025-08-15",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6UDIAiCcFEc90fheppNisI",
+      "name": "La Cama",
+      "release_date": "2026-03-05",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6UGjFHbb3MPNxkaAlovwrF",
+      "name": "Jme demande",
+      "release_date": "2026-02-13",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6US5ckvpkICMbKb3lAvHLX",
+      "name": "SRT FULL NWAR",
+      "release_date": "2026-02-01",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6UTXf9k0H3JDus2ZZDwGpC",
+      "name": "Favourite Girl",
+      "release_date": "2024-05-02",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6VflG4mpZSlpKnqNRL3NO9",
+      "name": "The Moon Cave (feat. Asha Puthli, Bobby Womack, Dave Jolicoeur, Jalen Ngonda and Black Thought)",
+      "release_date": "2026-02-27",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6VjqIvOKnV8zA4rOkN7oaq",
+      "name": "ONE TRACK MIND",
+      "release_date": "2026-02-19",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6WIYsFjqKRJKXWZHlQ2dbd",
+      "name": "TGD",
+      "release_date": "2026-02-27",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6WatFBLVB0x077xWeoVc2k",
+      "name": "Si Antes Te Hubiera Conocido",
+      "release_date": "2024-06-21",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6XaN4trfoMvRFEy8HoB4nC",
+      "name": "Who\u2019s Dat Girl",
+      "release_date": "2025-10-17",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6XjDF6nds4DE2BBbagZol6",
+      "name": "Gata Only",
+      "release_date": "2024-02-02",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6YrrPQKh3KALqe09btWykW",
+      "name": "La Base",
+      "release_date": "2024-06-14",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6ZBXya9ewPZa6zXDRfPhog",
+      "name": "WAHALA (feat. Olamide)",
+      "release_date": "2024-04-19",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6ZDg091pi9NXiM7aOgS50b",
+      "name": "Azoukiinkiin",
+      "release_date": "2024-10-02",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6aBKaRjVcJ5EWgQW3HgIPS",
+      "name": "Tump It (WYFL Riddim)",
+      "release_date": "2026-01-30",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6ae1CLDhZj3oo3C7Hbju3J",
+      "name": "Thickiana",
+      "release_date": "2025-12-16",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6azDEvRtcsuiiCuB7lGgzH",
+      "name": "Mistral gagnant",
+      "release_date": "2025-12-05",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6e0mrjKeAMZQoaEz5W7z0z",
+      "name": "Succomber",
+      "release_date": "2024-04-05",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6eaDk6GM6qUEdYvl3G5l4F",
+      "name": "Hotta",
+      "release_date": "2026-03-06",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6fK447YISZ58hWlkyANs5i",
+      "name": "Derni\u00e8re Escale",
+      "release_date": "2024-03-13",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6gxGg4j7i3Ba7F2x0yi8br",
+      "name": "STAMPEDE",
+      "release_date": "2026-02-19",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6hEbPMGzE6oI6mNlmzZdZa",
+      "name": "Midnight City",
+      "release_date": "2025-10-24",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6hUcmxDN79X3ypX4Gz4bFQ",
+      "name": "Ma life",
+      "release_date": "2025-12-19",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6hdhsPJna8CqfVuIgAbSxx",
+      "name": "Cest quoi \u00e7a",
+      "release_date": "2024-02-16",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6hwr77xh6hKUwLYJAJ94ej",
+      "name": "Plus Haut Reloaded",
+      "release_date": "2026-02-12",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6j039F1GAbxnO4un1630wK",
+      "name": "matcha bros",
+      "release_date": "2026-02-27",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6l5TkgYtbLJwYrHUEPNiZa",
+      "name": "NO PEACE",
+      "release_date": "2025-08-08",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6lTDVdNnqUx0KSNq2VPlIm",
+      "name": "LE MAL DE TOI",
+      "release_date": "2025-06-13",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6mGrhP18EKk0WqQ8G9g17T",
+      "name": "Leave Me Alone",
+      "release_date": "2024-09-06",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6mLmySn4RT9PIO7e5V5woE",
+      "name": "Booty",
+      "release_date": "2025-10-10",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6mZtcDKqMyUOcG0qi11zeE",
+      "name": "The Greatest Bend Over",
+      "release_date": "2024-12-02",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6nDMmbV5YIjDTCdrY8l8tA",
+      "name": "Together - Mosimann Remix",
+      "release_date": "2026-02-27",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6oOuCS6uz4Vw54CGexK57j",
+      "name": "FEEL SOMETHING",
+      "release_date": "2025-06-26",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6pcXJ39XevPFNqXuUDClsf",
+      "name": "Bite The Bait",
+      "release_date": "2025-09-26",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6qR5YGunNSASaabs4kJB9V",
+      "name": "Yamaha",
+      "release_date": "2025-08-15",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6qrEueih5tRonBGlosysGC",
+      "name": "#g\u00e9n\u00e9rationkartel",
+      "release_date": "2026-01-24",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6rFtizFQZw5CjMOgqN8hLD",
+      "name": "Mon enfer",
+      "release_date": "2026-02-28",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6rTge3gYWYkluC9MsXDZoV",
+      "name": "Another Baby!",
+      "release_date": "2025-08-15",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6riFXOjtDKBoPrelvHu4Ml",
+      "name": "Feel Good",
+      "release_date": "2026-02-13",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6sW4DL65owAWH5Ps03N36z",
+      "name": "My Girl",
+      "release_date": "2025-02-14",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6uFo6782OVn1nmVeZY5hyD",
+      "name": "Wyfl Freestyle",
+      "release_date": "2026-03-04",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6usDKzKjMvHl9qUvl8K00c",
+      "name": "Shatta Piano",
+      "release_date": "2024-06-07",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6w3Sn7CAirceTJMUNMoEGh",
+      "name": "NAPALM",
+      "release_date": "2026-02-11",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6w8kcJNEIaRjfvRYPHsmnk",
+      "name": "RIP KP",
+      "release_date": "2025-09-12",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6wRA4ZODTUFBAX61GuBfla",
+      "name": "SYM",
+      "release_date": "2026-02-10",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6wbcndycs7Qpk3oTe0mEHC",
+      "name": "VALISE",
+      "release_date": "2024-12-13",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6xV7Be6XEvkSnighmh2Tzj",
+      "name": "Sugar On My Tongue",
+      "release_date": "2025-07-21",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6xrDSwUTjEbFDmEaAjUQab",
+      "name": "la boss",
+      "release_date": "2026-02-20",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "6zaeVCwnf3A9S8R7QfDHQW",
+      "name": "NO CAP",
+      "release_date": "2025-08-06",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "709ZIqPHyFOpx2QdjmeWAM",
+      "name": "Dracula",
+      "release_date": "2025-09-26",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "70GTNgFb4oAReeYd08kcuI",
+      "name": "TON MEC",
+      "release_date": "2024-02-01",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "70puvfYeWuVer3WfhkWg2E",
+      "name": "GRAV\u00c9",
+      "release_date": "2025-09-16",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "710GunkOOUdN58GYbZkm6I",
+      "name": "R\u00e9volution 77",
+      "release_date": "2025-09-26",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "71TLIurDbrVGVIYPnhOUtk",
+      "name": "Pon The Tip",
+      "release_date": "2025-12-09",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "72z3Pw3j7nTB5KDk32t5M8",
+      "name": "Lossa",
+      "release_date": "2026-02-06",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "756ErmT4AiOj7uQjFna3r6",
+      "name": "Code 97",
+      "release_date": "2024-05-17",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "76ysjp6ucODxnylcGajvhQ",
+      "name": "Dans le sud",
+      "release_date": "2026-03-06",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "77OJdtx1NDBybpWWlc4p7c",
+      "name": "ALL MY LIFE",
+      "release_date": "2026-02-20",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "78mO0eDnwsoIoSvCfOYPo4",
+      "name": "Find Out",
+      "release_date": "2026-03-06",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "7ARCBzzYB7ZSxHpDvTLZHR",
+      "name": "Whats Peace?",
+      "release_date": "2026-03-06",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "7BaKftv6PK1JUxe3kQa5vJ",
+      "name": "YPLM",
+      "release_date": "2026-03-03",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "7CT6uTCmVIMnFR9VVag8Hr",
+      "name": "Pac-Man",
+      "release_date": "2026-02-27",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "7FOxq0s8sR1zvJu5IwtWcm",
+      "name": "TEAM ROCKET",
+      "release_date": "2025-08-20",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "7FQHzAp0aBPljNddzAvCul",
+      "name": "MANICOU",
+      "release_date": "2025-02-01",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "7FjMZuEl4ZLnCejELj55Tk",
+      "name": "unreal",
+      "release_date": "2026-03-04",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "7HmolFL9dtWw9UqRZJFSmN",
+      "name": "Mal \u00e0 la T\u00eate",
+      "release_date": "2026-02-06",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "7Hr0GFgE5i5oXtUru3snaR",
+      "name": "Grandiose",
+      "release_date": "2025-05-09",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "7J4dPn4Xg9Op0e8N2tjqkX",
+      "name": "What You Want",
+      "release_date": "2026-02-27",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "7LZkMeX1k8PXQJ0SVYn1A5",
+      "name": "Funds (feat. ODUMODUBLVCK & Chike)",
+      "release_date": "2024-12-13",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "7Lm9XYwzCEqw3jtAX9mPsx",
+      "name": "Transport",
+      "release_date": "2025-12-17",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "7MrE1M9mK0uNTe3ra6ftR5",
+      "name": "KALI",
+      "release_date": "2025-05-14",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "7cimkUWFo4kPhN95oxyT2u",
+      "name": "C\u00e9tait mieux avant",
+      "release_date": "2025-10-08",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "7dpPH25jaKKvKDJcYDgF6d",
+      "name": "Universal Soldier",
+      "release_date": "2026-03-06",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "7el28jBYWhh06a8YjDju6C",
+      "name": "SOUVIENS-TOI",
+      "release_date": "2024-02-23",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "7erLSTH18TZxvojDfEeYJC",
+      "name": "Helping Hand",
+      "release_date": "2025-07-24",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "7erf1kYPB5vHWekC5FtGSY",
+      "name": "Crazy People",
+      "release_date": "2025-08-22",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "7grCr7XxX27RLmDGCOijtB",
+      "name": "Bad suh",
+      "release_date": "2025-11-21",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "7hcQVlPWpJRxBfkDWmh5F8",
+      "name": "Fast Food",
+      "release_date": "2026-02-27",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "7jSwDyHWOaBPU4h1XKDUZa",
+      "name": "Pa Janm As\u00e9",
+      "release_date": "2024-10-04",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "7lZAVKwXTXcxp2RPF1R2U6",
+      "name": "We On Dat",
+      "release_date": "2025-07-11",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "7m1wmlxtoyhf3FdgaPWvNW",
+      "name": "ALLIGATOR",
+      "release_date": "2026-02-27",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "7mdvPu1ZAOIgMzr3sfpAqk",
+      "name": "My Darling",
+      "release_date": "2025-03-26",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "7msfmSm4KbVnIds5DvsGzT",
+      "name": "Joy is Coming",
+      "release_date": "2024-12-14",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "7n230rktXRPtO02Krn7Zb1",
+      "name": "Wouaw",
+      "release_date": "2025-03-28",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "7opukfjVL6mVuylYYt4wUR",
+      "name": "le bus",
+      "release_date": "2024-06-28",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "7pA7CZIJUpcD5X0QpLlESx",
+      "name": "UFO",
+      "release_date": "2025-09-23",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "7qmIlliODMVbsI3dSbVDmS",
+      "name": "Zo",
+      "release_date": "2024-05-24",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "7sg1Ex8YJcVFjNG5AFCtrw",
+      "name": "Yuh Style (WYFL Riddim)",
+      "release_date": "2026-02-01",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "7vuIiqyxVwbJFLRY3IaQVa",
+      "name": "Doudou",
+      "release_date": "2024-12-13",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "7wCmjw8eBPYuzu9Zik5eEk",
+      "name": "FUN",
+      "release_date": "2025-12-18",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "7wI4jzM1fIGoysnGJSpHZY",
+      "name": "Ballerina (with Rema, Skillibeng, & Disco Neil)",
+      "release_date": "2026-02-27",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "7xVqYW5CeDJ9MSeFEdAwvf",
+      "name": "LA REVANCHE DU VAURIEN",
+      "release_date": "2025-09-25",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "7ydBAQDadVjNvpvsZEcQcc",
+      "name": "VOYAGE",
+      "release_date": "2026-02-06",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "7zPIPJKmtJxK6CpVOntCxL",
+      "name": "Boucan",
+      "release_date": "2024-11-22",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "7zwNOwAg7mhUSidOudjsbc",
+      "name": "Many men",
+      "release_date": "2025-09-12",
+      "dest_pl_id": "5gcHhadfjHQ30mI1Sstloo",
+      "dest_label": "2024+"
+    },
+    {
+      "id": "0FuPFP4xs20ylzweezroRG",
+      "name": "Alkpote",
+      "release_date": "2013-10-07",
+      "dest_pl_id": "6JOT1me3bHoYIBnhyojEjY",
+      "dest_label": "2010s"
+    },
+    {
+      "id": "0SjQBdIddPvKSWxr8vk6QX",
+      "name": "Dumebi",
+      "release_date": "2019-03-22",
+      "dest_pl_id": "6JOT1me3bHoYIBnhyojEjY",
+      "dest_label": "2010s"
+    },
+    {
+      "id": "0WyyLYeae8ZrImkI0a2w9W",
+      "name": "Bougie",
+      "release_date": "2019-02-15",
+      "dest_pl_id": "6JOT1me3bHoYIBnhyojEjY",
+      "dest_label": "2010s"
+    },
+    {
+      "id": "1DrlLvlYd1FIjNavRm6NdX",
+      "name": "Back Pocket",
+      "release_date": "2015-10-09",
+      "dest_pl_id": "6JOT1me3bHoYIBnhyojEjY",
+      "dest_label": "2010s"
+    },
+    {
+      "id": "2VSVqP3S7BYJwW5Rguf35k",
+      "name": "Bab ank\u00f4",
+      "release_date": "2018-04-20",
+      "dest_pl_id": "6JOT1me3bHoYIBnhyojEjY",
+      "dest_label": "2010s"
+    },
+    {
+      "id": "2cdGwpciGk2GyMMBaKKO37",
+      "name": "Movay",
+      "release_date": "2019-10-22",
+      "dest_pl_id": "6JOT1me3bHoYIBnhyojEjY",
+      "dest_label": "2010s"
+    },
+    {
+      "id": "2uwjigcnpHPhLsLbhKdgZ3",
+      "name": "Lanmou an Kreyol",
+      "release_date": "2019-02-14",
+      "dest_pl_id": "6JOT1me3bHoYIBnhyojEjY",
+      "dest_label": "2010s"
+    },
+    {
+      "id": "39rHfrVqCX6A55GF7uOZSC",
+      "name": "1612",
+      "release_date": "2014-08-26",
+      "dest_pl_id": "6JOT1me3bHoYIBnhyojEjY",
+      "dest_label": "2010s"
+    },
+    {
+      "id": "3FskQrDXcY24ur2fCvz35O",
+      "name": "Ye",
+      "release_date": "2018-01-26",
+      "dest_pl_id": "6JOT1me3bHoYIBnhyojEjY",
+      "dest_label": "2010s"
+    },
+    {
+      "id": "4dVpf9jZjcORqGTLUaeYj9",
+      "name": "Plain Jane",
+      "release_date": "2017-08-18",
+      "dest_pl_id": "6JOT1me3bHoYIBnhyojEjY",
+      "dest_label": "2010s"
+    },
+    {
+      "id": "4hhtZrqLVAkMGT5OytJ3ip",
+      "name": "International Bandana",
+      "release_date": "2019-10-23",
+      "dest_pl_id": "6JOT1me3bHoYIBnhyojEjY",
+      "dest_label": "2010s"
+    },
+    {
+      "id": "506GmvjUSbTBOfUDoBp3Lr",
+      "name": "Promise",
+      "release_date": "2019-12-19",
+      "dest_pl_id": "6JOT1me3bHoYIBnhyojEjY",
+      "dest_label": "2010s"
+    },
+    {
+      "id": "56HnJIjgi41kpjh6L3Y1Ca",
+      "name": "Risky",
+      "release_date": "2019-10-23",
+      "dest_pl_id": "6JOT1me3bHoYIBnhyojEjY",
+      "dest_label": "2010s"
+    },
+    {
+      "id": "5IgjP7X4th6nMNDh4akUHb",
+      "name": "Under The Influence",
+      "release_date": "2019-10-04",
+      "dest_pl_id": "6JOT1me3bHoYIBnhyojEjY",
+      "dest_label": "2010s"
+    },
+    {
+      "id": "5PpQUE7foM7QROjgn9L9e2",
+      "name": "Tonokenu",
+      "release_date": "2016-11-04",
+      "dest_pl_id": "6JOT1me3bHoYIBnhyojEjY",
+      "dest_label": "2010s"
+    },
+    {
+      "id": "5aJI7OzC1n3XKVLgYAxgwj",
+      "name": "PIMP",
+      "release_date": "2016-05-06",
+      "dest_pl_id": "6JOT1me3bHoYIBnhyojEjY",
+      "dest_label": "2010s"
+    },
+    {
+      "id": "5c4GNor1YPxRlNNUju7eMx",
+      "name": "Only You (feat. Mya)",
+      "release_date": "2019-08-30",
+      "dest_pl_id": "6JOT1me3bHoYIBnhyojEjY",
+      "dest_label": "2010s"
+    },
+    {
+      "id": "5fl9iJbPf5ZPenmUJxH2k9",
+      "name": "Beastly",
+      "release_date": "2012-02-02",
+      "dest_pl_id": "6JOT1me3bHoYIBnhyojEjY",
+      "dest_label": "2010s"
+    },
+    {
+      "id": "60ikLb85vSEVkZKnNyuFic",
+      "name": "Go Dance",
+      "release_date": "2019-10-11",
+      "dest_pl_id": "6JOT1me3bHoYIBnhyojEjY",
+      "dest_label": "2010s"
+    },
+    {
+      "id": "6Achs8F7i8sMC2f73S0h4n",
+      "name": "Lanmou eternel",
+      "release_date": "2019-10-13",
+      "dest_pl_id": "6JOT1me3bHoYIBnhyojEjY",
+      "dest_label": "2010s"
+    },
+    {
+      "id": "6XM53PbvlzhuNtJZtpl7RP",
+      "name": "In My Bed",
+      "release_date": "2019-12-13",
+      "dest_pl_id": "6JOT1me3bHoYIBnhyojEjY",
+      "dest_label": "2010s"
+    },
+    {
+      "id": "6wbBjUxEWItz27TddQPNPa",
+      "name": "A Tribe Called Red",
+      "release_date": "2013-01-01",
+      "dest_pl_id": "6JOT1me3bHoYIBnhyojEjY",
+      "dest_label": "2010s"
+    },
+    {
+      "id": "70ecf4Oq9bZOAyS6mRkOAo",
+      "name": "Gang",
+      "release_date": "2019-06-07",
+      "dest_pl_id": "6JOT1me3bHoYIBnhyojEjY",
+      "dest_label": "2010s"
+    },
+    {
+      "id": "78OdnOhPOk19xYhGAKgjCO",
+      "name": "La belle vie",
+      "release_date": "2014-11-15",
+      "dest_pl_id": "6JOT1me3bHoYIBnhyojEjY",
+      "dest_label": "2010s"
+    },
+    {
+      "id": "7HydrZ0ETV67X4ZE4phoyA",
+      "name": "Obi Agye Me Dofo",
+      "release_date": "2012-01-20",
+      "dest_pl_id": "6JOT1me3bHoYIBnhyojEjY",
+      "dest_label": "2010s"
+    },
+    {
+      "id": "7k4t7uLgtOxPwTpFmtJNTY",
+      "name": "Tusa",
+      "release_date": "2019-11-07",
+      "dest_pl_id": "6JOT1me3bHoYIBnhyojEjY",
+      "dest_label": "2010s"
+    },
+    {
+      "id": "7wcyO1rrH3Ru4t659IjG41",
+      "name": "Crushed Up",
+      "release_date": "2019-01-18",
+      "dest_pl_id": "6JOT1me3bHoYIBnhyojEjY",
+      "dest_label": "2010s"
+    },
+    {
+      "id": "7zfkSuXjTysqv0GLsS3DPK",
+      "name": "Full proposition",
+      "release_date": "2019-10-18",
+      "dest_pl_id": "6JOT1me3bHoYIBnhyojEjY",
+      "dest_label": "2010s"
+    },
+    {
+      "id": "0IjSyfUbYJWJiowsRiJLHB",
+      "name": "Do Mangue a Manga",
+      "release_date": "2002-04-01",
+      "dest_pl_id": "5GfthFCDQX6WGtlfRQy1HJ",
+      "dest_label": "2000s"
+    },
+    {
+      "id": "1h2xVEoJORqrg71HocgqXd",
+      "name": "Superstition - Single Version",
+      "release_date": "2002-10-29",
+      "dest_pl_id": "5GfthFCDQX6WGtlfRQy1HJ",
+      "dest_label": "2000s"
+    },
+    {
+      "id": "1tReJgdNi6l0om8K4wTqKy",
+      "name": "Bons Moments",
+      "release_date": "2005-01-01",
+      "dest_pl_id": "5GfthFCDQX6WGtlfRQy1HJ",
+      "dest_label": "2000s"
+    },
+    {
+      "id": "38mEkC7bO5wn9fMxspN3S6",
+      "name": "Rampage",
+      "release_date": "2009-03-10",
+      "dest_pl_id": "5GfthFCDQX6WGtlfRQy1HJ",
+      "dest_label": "2000s"
+    },
+    {
+      "id": "4ubEFVBds6djMM89XffNOp",
+      "name": "Epiphany",
+      "release_date": "2007-09-25",
+      "dest_pl_id": "5GfthFCDQX6WGtlfRQy1HJ",
+      "dest_label": "2000s"
+    },
+    {
+      "id": "533epXl9IuayeBgfZ53IL9",
+      "name": "Ma Zermi",
+      "release_date": "2006-10-24",
+      "dest_pl_id": "5GfthFCDQX6WGtlfRQy1HJ",
+      "dest_label": "2000s"
+    },
+    {
+      "id": "5519RhpzObr9Mn3iqoeodJ",
+      "name": "Come and Get Your Love",
+      "release_date": "2003-01-01",
+      "dest_pl_id": "5GfthFCDQX6WGtlfRQy1HJ",
+      "dest_label": "2000s"
+    },
+    {
+      "id": "1gtFojL9s98pM2Nu9Izhwc",
+      "name": "Galaxy",
+      "release_date": "1999-12-07",
+      "dest_pl_id": "4svldxXjOSM2B5Bu5hlgjq",
+      "dest_label": "1990s"
+    },
+    {
+      "id": "2t7wgMfu0gTnVz9bYqydNQ",
+      "name": "Hexagonal",
+      "release_date": "1998-11-02",
+      "dest_pl_id": "4svldxXjOSM2B5Bu5hlgjq",
+      "dest_label": "1990s"
+    },
+    {
+      "id": "3m1kNNQNcedhXWJJYYbuSS",
+      "name": "Comme un animal",
+      "release_date": "1998-01-01",
+      "dest_pl_id": "4svldxXjOSM2B5Bu5hlgjq",
+      "dest_label": "1990s"
+    },
+    {
+      "id": "40RuYWv8Rv9Xb8rTqIF5kK",
+      "name": "Move On",
+      "release_date": "1991-01-01",
+      "dest_pl_id": "4svldxXjOSM2B5Bu5hlgjq",
+      "dest_label": "1990s"
+    },
+    {
+      "id": "4KEZrvI5Sq3w6odmRDkDGo",
+      "name": "Jai vu",
+      "release_date": "1999",
+      "dest_pl_id": "4svldxXjOSM2B5Bu5hlgjq",
+      "dest_label": "1990s"
+    },
+    {
+      "id": "54866GmfReXQgzjq999tIk",
+      "name": "Triomphe",
+      "release_date": "1998-11-23",
+      "dest_pl_id": "4svldxXjOSM2B5Bu5hlgjq",
+      "dest_label": "1990s"
+    },
+    {
+      "id": "5inewLLtAL5eSSGghCSiGl",
+      "name": "Prenons notre temps",
+      "release_date": "1997-12-15",
+      "dest_pl_id": "4svldxXjOSM2B5Bu5hlgjq",
+      "dest_label": "1990s"
+    },
+    {
+      "id": "5tjFtfGhmq1emybxdG6gIl",
+      "name": "Apparently Nothin - Soul River",
+      "release_date": "1991-01-01",
+      "dest_pl_id": "4svldxXjOSM2B5Bu5hlgjq",
+      "dest_label": "1990s"
+    },
+    {
+      "id": "6awfCGczQ1Plv1bo0owRle",
+      "name": "Hyst\u00e9rique",
+      "release_date": "1996-01-01",
+      "dest_pl_id": "4svldxXjOSM2B5Bu5hlgjq",
+      "dest_label": "1990s"
+    },
+    {
+      "id": "70kkpxxm38yuriLRFhYE5W",
+      "name": "Get Yourself Together Pt 1 & Pt 2",
+      "release_date": "1991-01-01",
+      "dest_pl_id": "4svldxXjOSM2B5Bu5hlgjq",
+      "dest_label": "1990s"
+    },
+    {
+      "id": "7ygp7PFQu9oYlV72tSd2Wz",
+      "name": "Living On The Ceiling",
+      "release_date": "1982-01-01",
+      "dest_pl_id": "2HIBRiqksgQj45YXRPbYub",
+      "dest_label": "pre-1990"
+    }
+  ]
+}
