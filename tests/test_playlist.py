@@ -8,7 +8,7 @@ from unittest.mock import patch
 import pytest
 from freezegun import freeze_time
 
-from spotfm import utils
+from spotfm import sqlite, utils
 from spotfm.spotify.artist import Artist
 from spotfm.spotify.playlist import Playlist
 from spotfm.spotify.track import Track
@@ -64,6 +64,7 @@ class TestPlaylistUpdateFromDb:
     def test_update_from_db_success(self, temp_database, monkeypatch):
         """Test successful update from database."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
 
         # Insert test data
         conn = sqlite3.connect(str(temp_database))
@@ -87,6 +88,7 @@ class TestPlaylistUpdateFromDb:
     def test_update_from_db_not_found(self, temp_database, monkeypatch):
         """Test update from database when playlist not found."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
 
         playlist = Playlist("nonexistent")
         result = playlist.update_from_db()
@@ -97,6 +99,7 @@ class TestPlaylistUpdateFromDb:
     def test_update_from_db_reads_snapshot_id(self, temp_database, monkeypatch):
         """Test that update_from_db reads snapshot_id when column exists."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
 
         conn = sqlite3.connect(str(temp_database))
         cursor = conn.cursor()
@@ -123,8 +126,10 @@ class TestPlaylistUpdateFromApi:
     def test_update_from_api_success(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
         """Test successful update from API."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
 
         mock_spotify_client.playlist.return_value = {
             "id": "playlist123",
@@ -193,6 +198,7 @@ class TestPlaylistUpdateFromApi:
     def test_update_from_api_sanitizes_name(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
         """Test that playlist name is sanitized."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
 
         mock_spotify_client.playlist.return_value = {
@@ -216,6 +222,7 @@ class TestPlaylistUpdateFromApi:
     def test_update_from_api_paginated_results(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
         """Test handling paginated playlist items."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
 
         mock_spotify_client.playlist.return_value = {
@@ -281,6 +288,7 @@ class TestPlaylistUpdateFromApi:
     ):
         """Test that relinked tracks use the original track ID from linked_from."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
 
         mock_spotify_client.playlist.return_value = {
@@ -341,6 +349,7 @@ class TestPlaylistUpdateFromApi:
     def test_update_from_api_filters_null_tracks(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
         """Test that null tracks are filtered out."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
 
         mock_spotify_client.playlist.return_value = {
@@ -400,6 +409,7 @@ class TestPlaylistUpdateFromApi:
     ):
         """Test that update_from_api returns early when snapshot_id matches (unchanged playlist)."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
 
         # Setup: Populate DB with playlist, tracks, albums, artists (all needed for DB hydration)
@@ -460,6 +470,7 @@ class TestPlaylistUpdateFromApi:
     ):
         """Test update_from_api when snapshot_id column exists in database."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
 
         # Setup: Add snapshot_id column and populate DB including full track/album/artist data
@@ -510,6 +521,7 @@ class TestPlaylistSyncToDb:
     def test_sync_to_db_success(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
         """Test syncing playlist to database."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
 
         playlist = Playlist("playlist123")
@@ -547,6 +559,7 @@ class TestPlaylistSyncToDb:
     def test_sync_to_db_removes_old_tracks(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
         """Test that sync_to_db removes tracks that are no longer in the playlist."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
 
         # First sync: playlist with 3 tracks
@@ -600,6 +613,7 @@ class TestPlaylistSyncToDb:
     def test_sync_to_db_handles_duplicate_tracks(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
         """Test that sync_to_db handles playlists with the same track multiple times."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
 
         # Playlist with track1 added twice (same track, different added_at timestamps)
@@ -639,6 +653,7 @@ class TestPlaylistSyncToDb:
         from spotfm.spotify.playlist import reset_snapshot_id_column_cache
 
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
         reset_snapshot_id_column_cache()
 
@@ -684,6 +699,7 @@ class TestSnapshotIdColumnCache:
         from spotfm.spotify import playlist as playlist_module
 
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
 
         # Populate cache by checking column existence
         playlist_module._check_snapshot_id_column()
@@ -722,8 +738,10 @@ class TestPlaylistGetTracks:
     def test_get_tracks_success(self, temp_database, temp_cache_dir, monkeypatch, mock_spotify_client):
         """Test getting tracks from playlist."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
         monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
 
         playlist = Playlist("playlist123")
         playlist.raw_tracks = [("track1", "2024-01-01"), ("track2", "2024-01-02")]

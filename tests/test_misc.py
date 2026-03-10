@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from spotfm import utils
+from spotfm import sqlite, utils
 from spotfm.spotify import misc
 
 
@@ -16,6 +16,7 @@ class TestFindRelinkedTracks:
     def test_find_relinked_tracks_none_found(self, temp_database, monkeypatch):
         """Test when no relinked tracks are found."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
 
         # Setup database with a playlist
         conn = sqlite3.connect(temp_database)
@@ -49,6 +50,7 @@ class TestFindRelinkedTracks:
     def test_find_relinked_tracks_with_relinked_track(self, temp_database, monkeypatch):
         """Test finding a relinked track."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
 
         # Setup database with a playlist
         conn = sqlite3.connect(temp_database)
@@ -93,6 +95,7 @@ class TestFindRelinkedTracks:
     def test_find_relinked_tracks_excludes_playlists(self, temp_database, monkeypatch):
         """Test that excluded playlists are not checked."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
 
         # Setup database with two playlists
         conn = sqlite3.connect(temp_database)
@@ -116,6 +119,7 @@ class TestFindRelinkedTracks:
     def test_find_relinked_tracks_handles_null_tracks(self, temp_database, monkeypatch):
         """Test that null tracks are handled gracefully."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
 
         # Setup database with a playlist
         conn = sqlite3.connect(temp_database)
@@ -138,6 +142,7 @@ class TestFindRelinkedTracks:
     def test_find_relinked_tracks_handles_pagination(self, temp_database, monkeypatch):
         """Test that pagination is handled correctly."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
 
         # Setup database with a playlist
         conn = sqlite3.connect(temp_database)
@@ -198,6 +203,7 @@ class TestFindRelinkedTracks:
     def test_find_relinked_tracks_handles_fetch_error(self, temp_database, monkeypatch):
         """Test that errors fetching original track are handled gracefully."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
 
         # Setup database with a playlist
         conn = sqlite3.connect(temp_database)
@@ -234,6 +240,7 @@ class TestFindRelinkedTracks:
     def test_find_relinked_tracks_skips_same_metadata(self, temp_database, monkeypatch):
         """Test that relinked tracks with identical metadata are not reported."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
 
         # Setup database with a playlist
         conn = sqlite3.connect(temp_database)
@@ -274,6 +281,7 @@ class TestFindRelinkedTracks:
     def test_find_relinked_tracks_outputs_to_csv(self, temp_database, tmp_path, monkeypatch):
         """Test that results are written to CSV file."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
 
         # Setup database with a playlist
         conn = sqlite3.connect(temp_database)
@@ -400,6 +408,7 @@ class TestCountTracks:
     def test_count_tracks_no_pattern(self, temp_database, monkeypatch):
         """Test counting all tracks without a pattern."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
 
         # Setup database with playlists and tracks
         conn = sqlite3.connect(temp_database)
@@ -421,6 +430,7 @@ class TestCountTracks:
     def test_count_tracks_single_pattern_as_list(self, temp_database, monkeypatch):
         """Test counting tracks with a single pattern passed as list."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
 
         conn = sqlite3.connect(temp_database)
         cursor = conn.cursor()
@@ -440,6 +450,7 @@ class TestCountTracks:
     def test_count_tracks_single_pattern_as_string(self, temp_database, monkeypatch):
         """Test counting tracks with a single pattern passed as string."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
 
         conn = sqlite3.connect(temp_database)
         cursor = conn.cursor()
@@ -459,6 +470,7 @@ class TestCountTracks:
     def test_count_tracks_multiple_patterns(self, temp_database, monkeypatch):
         """Test counting tracks with multiple patterns."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
 
         conn = sqlite3.connect(temp_database)
         cursor = conn.cursor()
@@ -479,6 +491,7 @@ class TestCountTracks:
     def test_count_tracks_no_matching_playlists(self, temp_database, monkeypatch):
         """Test counting tracks when no playlists match the pattern."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
 
         conn = sqlite3.connect(temp_database)
         cursor = conn.cursor()
@@ -494,6 +507,7 @@ class TestCountTracks:
     def test_count_tracks_deduplicates_across_playlists(self, temp_database, monkeypatch):
         """Test that tracks appearing in multiple matching playlists are counted once."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
 
         conn = sqlite3.connect(temp_database)
         cursor = conn.cursor()
