@@ -75,11 +75,7 @@ A Python library and CLI tool for Spotify and Last.FM API interaction. Focuses o
 3. **`sync_to_db` in discover context** — `Track.get_tracks()` and `Playlist.get_tracks()` default to `sync_to_db=True`. Any caller that needs to check "is this track new before writing it?" **must pass `sync_to_db=False`** (e.g. `discover_from_playlists`). Forgetting this causes all tracks to appear pre-existing and discover silently adds nothing.
 4. **SQL Injection Risk**: F-strings used in queries (TODO: migrate to parameterized)
 5. **Global DB Connection**: `spotfm/sqlite.py` uses module-level singleton with atexit cleanup
-6. **Duplicate Detection**: Two distinct modes — always check which is needed:
-   - `find-duplicate-ids`: exact same Spotify track ID in 2+ playlists (same recording)
-   - `find-duplicate-names`: fuzzy title similarity via rapidfuzz; matched tracks often have **different** IDs (same song, different versions/singles)
-   - `remove-playlist-dupes -p <id>`: removes exact-ID dupes from a playlist (operates on SQLite + Spotify API)
-   - `hacks/remove_backlog_dupes.py`: removes name-dupes from IR-Backlog by parsing dupes.csv; use `--dry-run` first
+6. **Duplicate Detection**: Operates on SQLite only, no API calls (optimization)
 
 ## Development Practices
 

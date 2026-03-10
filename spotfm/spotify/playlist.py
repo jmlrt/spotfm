@@ -239,14 +239,6 @@ class Playlist:
                 genres.append(genre)
         return Counter(genres)
 
-    def remove_tracks(self, track_ids, client):
-        """Remove tracks from this playlist in batches."""
-        batch_size = 50  # Spotify API limit
-        batches = [track_ids[i : i + batch_size] for i in range(0, len(track_ids), batch_size)]
-        for i, batch in enumerate(batches):
-            logging.info(f"Removing batch {i + 1}/{len(batches)}: {len(batch)} tracks from {self.id}")
-            client.playlist_remove_all_occurrences_of_items(self.id, batch)
-
     def add_tracks(self, tracks, client):
         tracks_id = [track.id for track in tracks]
         batch_size = 50  # Spotify API limit for playlist add items

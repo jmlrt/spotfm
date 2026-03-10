@@ -1,7 +1,4 @@
 # .pre-commit-config.yaml
-default_language_version:
-  python: python3.14
-
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
@@ -11,9 +8,7 @@ repos:
       - id: check-toml
       - id: check-yaml
       - id: check-ast
-        language_version: python3.14
       - id: debug-statements
-        language_version: python3.14
       - id: no-commit-to-branch
         args: [--branch, main, --branch, master]
         stages: [pre-commit]

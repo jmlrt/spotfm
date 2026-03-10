@@ -4,23 +4,6 @@
 
 ### 🔴 HIGH PRIORITY
 
-#### Audit Log for Playlist Mutations
-- Write a persistent audit log file for all mutating spotify commands (tracks/playlists added, removed, moved)
-  - **Motivation**: When a bug like the `discover_from_playlists` pre-sync bug causes silent data issues, there is currently no way to reconstruct what happened after the fact to assess impact and fix it manually
-  - **Log location**: `~/.spotfm/audit.log` (append-only, one JSON-line per event)
-  - **Events to capture** (with timestamp, command name, playlist id/name, track ids):
-    - `track_added` — track added to a playlist (`discover_from_playlists`, `add` commands)
-    - `track_removed` — track removed from a playlist
-    - `playlist_synced` — playlist synced to DB (record snapshot_id, track count delta)
-    - `playlist_removed` — playlist removed/unmanaged
-  - **Format** (JSON-lines for easy `grep` / `jq` post-processing):
-    ```json
-    {"ts": "2026-03-09T12:00:00Z", "cmd": "discover_from_playlists", "event": "track_added", "playlist_id": "3iu...", "track_ids": ["4ab...", "7cd..."]}
-    ```
-  - **Implementation**: thin `audit.log(event, **kwargs)` helper in `spotfm/audit.py`; called from `misc.py` after successful mutations; no external dependencies
-  - **Files**: `spotfm/audit.py` (new), `spotfm/spotify/misc.py`, `spotfm/cli.py` (log path config)
-  - **Effort**: Small (~2-3 hours)
-
 #### Logging Improvements
 - Add progress & summary logging to spotify commands by default
   - Desired output examples:

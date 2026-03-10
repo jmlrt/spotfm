@@ -266,60 +266,6 @@ def count_tracks(playlists_patterns=None):
     ).fetchone()[0]
 
 
-def remove_playlist_dupes(client, target_playlist_id):
-    """Remove tracks from target playlist that also exist in other playlists.
-
-    Queries the local DB to find exact ID duplicates (same Spotify track ID in
-    target playlist AND at least one other playlist), removes them via the Spotify
-    API, then cleans up the local DB.
-
-    Args:
-        client: Client wrapper object or Spotify client instance (needs playlist-modify-* scope)
-        target_playlist_id: Playlist ID to clean duplicates from
-    """
-    rows = sqlite.query_db_select(
-        sqlite.DATABASE,
-        "SELECT DISTINCT track_id FROM playlists_tracks WHERE playlist_id = ? AND track_id IN (SELECT track_id FROM playlists_tracks WHERE playlist_id != ?)",
-        (target_playlist_id, target_playlist_id),
-    )
-    track_ids = [row[0] for row in rows]
-
-    if not track_ids:
-        print("No duplicate tracks found.")
-        return
-
-    result = sqlite.query_db_select(sqlite.DATABASE, "SELECT name FROM playlists WHERE id = ?", (target_playlist_id,))
-    playlist_name = result[0][0] if result else target_playlist_id
-
-    print(f"Removing {len(track_ids)} duplicate tracks from '{playlist_name}'")
-
-    playlist = Playlist(target_playlist_id)
-    # Support both wrapper objects and raw spotipy clients
-    spotify_client = getattr(client, "client", client)
-
-    try:
-        playlist.remove_tracks(track_ids, spotify_client)
-    except Exception as e:
-        logging.error(f"Failed to remove tracks from Spotify API: {e}")
-        print("Error: Failed to remove tracks from playlist. DB not updated.")
-        raise
-
-    con = sqlite.get_db_connection(sqlite.DATABASE)
-    cur = con.cursor()
-    # Batch the delete to avoid exceeding SQLite's bound-parameter limit
-    chunk_size = 900
-    for i in range(0, len(track_ids), chunk_size):
-        chunk = track_ids[i : i + chunk_size]
-        placeholders = ",".join(["?"] * len(chunk))
-        cur.execute(
-            f"DELETE FROM playlists_tracks WHERE playlist_id = ? AND track_id IN ({placeholders})",
-            [target_playlist_id, *chunk],
-        )
-    con.commit()
-
-    print(f"Done. Removed {len(track_ids)} tracks from '{playlist_name}'.")
-
-
 def find_relinked_tracks(client, excluded_playlist_ids=None, output_file=None):
     """Find tracks that are relinked by Spotify's market-based replacement.
 
