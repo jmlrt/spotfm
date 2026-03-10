@@ -30,19 +30,15 @@ def _non_negative_int(value):
 
 
 def recent_scrobbles(user, limit, scrobbles_minimum, period, period_minimum, interactive):
-    current_count = None  # fetched lazily
+    current_count = user.get_playcount()
+    scrobble_count_to_save = current_count  # Track what state to save
 
-    if limit is not None:
-        # Explicit --limit: fetch that many scrobbles regardless of state
-        print(f"Fetching last {limit} scrobbles.")
+    state = read_lastfm_state()
+    if state is None:
+        # First run: initialize state with current count, fetch --limit scrobbles
+        print(f"Initializing scrobble tracking. Fetching up to {limit} recent scrobbles.")
     else:
-        # No --limit: use state to compute new scrobbles since last run
-        current_count = user.get_playcount()
-        state = read_lastfm_state()
-        if state is None:
-            print("Initializing scrobble tracking. No scrobbles fetched on first run (use --limit to fetch).")
-            save_lastfm_state(current_count)
-            return
+        # Subsequent runs: fetch all new scrobbles since last run
         last_scrobble_count = None
         if isinstance(state, dict):
             last_scrobble_count = state.get("last_scrobble_count")
@@ -50,11 +46,13 @@ def recent_scrobbles(user, limit, scrobbles_minimum, period, period_minimum, int
             print("Invalid previous state. Re-initializing scrobble tracking.")
             save_lastfm_state(current_count)
             return
-        limit = current_count - last_scrobble_count
-        if limit <= 0:
+        computed_limit = current_count - last_scrobble_count
+        if computed_limit <= 0:
             print("No new scrobbles since last run.")
             save_lastfm_state(current_count)
             return
+        # Fetch all new scrobbles on subsequent runs
+        limit = computed_limit
         print(f"Fetching {limit} new scrobbles (was {last_scrobble_count}, now {current_count}).")
 
     # Get scrobbles generator
@@ -66,9 +64,7 @@ def recent_scrobbles(user, limit, scrobbles_minimum, period, period_minimum, int
         lines = sorted(set(scrobbles))
         if not lines:
             print("No results to open in editor.")
-            if current_count is None:
-                current_count = user.get_playcount()
-            save_lastfm_state(current_count)
+            save_lastfm_state(scrobble_count_to_save)
             return
 
         editor = os.environ.get("VISUAL") or os.environ.get("EDITOR", "vim")
@@ -89,9 +85,7 @@ def recent_scrobbles(user, limit, scrobbles_minimum, period, period_minimum, int
         for scrobble in scrobbles_gen:
             print(scrobble)
 
-    if current_count is None:
-        current_count = user.get_playcount()
-    save_lastfm_state(current_count)
+    save_lastfm_state(scrobble_count_to_save)
 
 
 def count_tracks(playlists_pattern=None):
@@ -210,9 +204,9 @@ def main():
     lastfm_parser.add_argument(
         "-l",
         "--limit",
-        default=None,
+        default=50,
         type=_positive_int,
-        help="Fetch the last N scrobbles regardless of state (default: unset; without --limit, fetches all new scrobbles since last run)",
+        help="Number of recent scrobbles to fetch on first run (default: 50; on subsequent runs, all new scrobbles are fetched and --limit is ignored)",
     )
     lastfm_parser.add_argument(
         "-s",
