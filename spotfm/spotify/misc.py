@@ -185,14 +185,19 @@ def remove_tracks_from_file(client, playlist_id, file_path):
 
     # Use Playlist(id) directly to avoid overhead of get_playlist (which loads full playlist metadata)
     playlist = Playlist(normalized_playlist_id)
-    playlist.remove_tracks(track_ids, client.client)
+    # Only delete from DB tracks that were successfully removed from Spotify
+    successfully_removed = playlist.remove_tracks(track_ids, client.client)
+
+    if not successfully_removed:
+        logging.warning(f"No tracks were successfully removed from playlist {normalized_playlist_id}")
+        return
 
     # Remove from local DB playlists_tracks (not tracks table — preserve negative cache)
-    # Use batched DELETEs with IN clause for efficiency
-    chunk_size = 900  # SQLite bind parameter limit is 999; batch to be safe
+    # Use batched DELETEs with IN clause for efficiency and to avoid excessively large SQL statements
+    chunk_size = 900
     queries = []
-    for i in range(0, len(track_ids), chunk_size):
-        chunk = track_ids[i : i + chunk_size]
+    for i in range(0, len(successfully_removed), chunk_size):
+        chunk = successfully_removed[i : i + chunk_size]
         # Sanitize all values for SQL safety
         safe_playlist_id = utils.sanitize_string(normalized_playlist_id)
         safe_track_ids = ",".join(f"'{utils.sanitize_string(tid)}'" for tid in chunk)
@@ -201,7 +206,7 @@ def remove_tracks_from_file(client, playlist_id, file_path):
         )
     if queries:
         sqlite.query_db(sqlite.DATABASE, queries)
-    logging.info(f"Removed {len(track_ids)} tracks from playlist {normalized_playlist_id}")
+    logging.info(f"Removed {len(successfully_removed)} tracks from playlist {normalized_playlist_id}")
 
 
 def discover_from_playlists(client, discover_playlist_id, sources_playlists_ids):

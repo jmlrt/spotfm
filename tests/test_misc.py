@@ -687,3 +687,42 @@ class TestRemoveTracksFromFile:
         mock_spotify_client.playlist_remove_all_occurrences_of_items.assert_called_once()
         call_args = mock_spotify_client.playlist_remove_all_occurrences_of_items.call_args[0]
         assert call_args[1] == ["track1"]  # URL parsed to track ID
+
+    def test_remove_tracks_from_file_empty_file(
+        self, temp_database, temp_cache_dir, tmp_path, monkeypatch, mock_spotify_client
+    ):
+        """Test that empty/whitespace-only files don't trigger API calls or DB mutations."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
+        monkeypatch.setattr(utils, "CACHE_DIR", temp_cache_dir)
+
+        # Setup database
+        conn = sqlite3.connect(temp_database)
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO playlists VALUES ('playlist123', 'Test Playlist', 'user123', '2024-01-01')")
+        cursor.execute("INSERT INTO playlists_tracks VALUES ('playlist123', 'track1', '2024-01-01T00:00:00Z')")
+        conn.commit()
+        conn.close()
+
+        # Create file with only blank lines and whitespace
+        file_path = tmp_path / "empty.txt"
+        file_path.write_text("\n\n  \n\t\n")
+
+        # Create mock client
+        client = MagicMock()
+        client.client = mock_spotify_client
+
+        # Call the function
+        misc.remove_tracks_from_file(client, "playlist123", str(file_path))
+
+        # Verify no API calls were made
+        mock_spotify_client.playlist_remove_all_occurrences_of_items.assert_not_called()
+
+        # Verify no DB changes were made
+        conn = sqlite3.connect(temp_database)
+        cursor = conn.cursor()
+        remaining = cursor.execute("SELECT track_id FROM playlists_tracks WHERE playlist_id = 'playlist123'").fetchall()
+        conn.close()
+
+        assert len(remaining) == 1
+        assert remaining[0][0] == "track1"
