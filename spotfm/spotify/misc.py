@@ -179,7 +179,7 @@ def remove_tracks_from_file(client, playlist_id, file_path):
         if not parsed_id or not parsed_id.strip():
             continue
         parsed_id = parsed_id.strip()
-        # Validate that parsed ID is alphanumeric (valid Spotify track IDs are 22 alphanumeric characters)
+        # Validate that parsed ID is alphanumeric (valid Spotify track IDs are alphanumeric strings)
         # Reject IDs with special characters or spaces that indicate parsing errors
         if not parsed_id.isalnum():
             logging.warning(f"Skipping invalid track ID: {parsed_id}")
@@ -204,17 +204,17 @@ def remove_tracks_from_file(client, playlist_id, file_path):
     # Remove from local DB playlists_tracks (not tracks table — preserve negative cache)
     # Use batched DELETEs with IN clause for efficiency and to avoid excessively large SQL statements
     chunk_size = 900
-    queries = []
+    con = sqlite.get_db_connection(sqlite.DATABASE)
+    cur = con.cursor()
     for i in range(0, len(successfully_removed), chunk_size):
         chunk = successfully_removed[i : i + chunk_size]
-        # Sanitize all values for SQL safety
-        safe_playlist_id = utils.sanitize_string(normalized_playlist_id)
-        safe_track_ids = ",".join(f"'{utils.sanitize_string(tid)}'" for tid in chunk)
-        queries.append(
-            f"DELETE FROM playlists_tracks WHERE playlist_id = '{safe_playlist_id}' AND track_id IN ({safe_track_ids})"
+        # Use parameterized query: ? for playlist_id, ? for each track in the IN clause
+        placeholders = ",".join("?" * len(chunk))
+        cur.execute(
+            f"DELETE FROM playlists_tracks WHERE playlist_id = ? AND track_id IN ({placeholders})",
+            [normalized_playlist_id, *chunk],
         )
-    if queries:
-        sqlite.query_db(sqlite.DATABASE, queries)
+    con.commit()
     logging.info(f"Removed {len(successfully_removed)} tracks from playlist {normalized_playlist_id}")
 
 
