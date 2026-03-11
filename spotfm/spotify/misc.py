@@ -168,19 +168,40 @@ def remove_tracks_from_file(client, playlist_id, file_path):
         playlist_id: ID of the playlist to remove tracks from
         file_path: Path to file containing track IDs (one per line)
     """
-    track_ids = [utils.parse_url(tid) for tid in utils.manage_tracks_ids_file(file_path)]
-    playlist = Playlist.get_playlist(playlist_id, client.client, refresh=False)
+    # Normalize playlist_id once for consistent use with both Spotify API and DB
+    normalized_playlist_id = utils.parse_url(playlist_id)
+
+    # Parse and filter out empty/whitespace-only IDs to avoid invalid API/DB operations
+    raw_track_ids = utils.manage_tracks_ids_file(file_path)
+    track_ids = [
+        parsed_id for parsed_id in (utils.parse_url(tid) for tid in raw_track_ids) if parsed_id and parsed_id.strip()
+    ]
+
+    if not track_ids:
+        logging.info(
+            f"No valid track IDs found in file {file_path}; nothing to remove from playlist {normalized_playlist_id}"
+        )
+        return
+
+    # Use Playlist(id) directly to avoid overhead of get_playlist (which loads full playlist metadata)
+    playlist = Playlist(normalized_playlist_id)
     playlist.remove_tracks(track_ids, client.client)
 
     # Remove from local DB playlists_tracks (not tracks table — preserve negative cache)
+    # Use batched DELETEs with IN clause for efficiency
+    chunk_size = 900  # SQLite bind parameter limit is 999; batch to be safe
     queries = []
-    for track_id in track_ids:
+    for i in range(0, len(track_ids), chunk_size):
+        chunk = track_ids[i : i + chunk_size]
+        # Sanitize all values for SQL safety
+        safe_playlist_id = utils.sanitize_string(normalized_playlist_id)
+        safe_track_ids = ",".join(f"'{utils.sanitize_string(tid)}'" for tid in chunk)
         queries.append(
-            f"DELETE FROM playlists_tracks WHERE playlist_id = '{playlist_id}' AND track_id = '{utils.sanitize_string(track_id)}'"
+            f"DELETE FROM playlists_tracks WHERE playlist_id = '{safe_playlist_id}' AND track_id IN ({safe_track_ids})"
         )
     if queries:
         sqlite.query_db(sqlite.DATABASE, queries)
-    logging.info(f"Removed {len(track_ids)} tracks from playlist {playlist_id}")
+    logging.info(f"Removed {len(track_ids)} tracks from playlist {normalized_playlist_id}")
 
 
 def discover_from_playlists(client, discover_playlist_id, sources_playlists_ids):

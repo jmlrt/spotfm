@@ -148,6 +148,9 @@ def spotify_cli(args, config):
             if not args.playlists or not args.file:
                 print("Error: remove-tracks-from-playlist requires both -p/--playlists and -f/--file")
                 return
+            if len(args.playlists) != 1:
+                print(f"Error: remove-tracks-from-playlist accepts exactly one playlist (got {len(args.playlists)})")
+                return
             client_read_write = spotify_client.Client(
                 config["spotify"]["client_id"],
                 config["spotify"]["client_secret"],
