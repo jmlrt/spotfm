@@ -47,7 +47,7 @@ A Python library and CLI tool for Spotify and Last.FM API interaction. Focuses o
 - `spotfm/spotify/track.py` - Track model with lifecycle tracking
 - `spotfm/spotify/album.py`, `artist.py`, `playlist.py` - Entity models
 - `spotfm/spotify/dupes.py` - Duplicate detection (ID and fuzzy match)
-- `spotfm/spotify/misc.py` - High-level commands (discover, add, count)
+- `spotfm/spotify/misc.py` - High-level commands (discover, add, remove, count)
 - `spotfm/sqlite.py` - SQLite singleton connection management
 - `spotfm/utils.py` - Config, caching, string sanitization
 
@@ -70,7 +70,8 @@ A Python library and CLI tool for Spotify and Last.FM API interaction. Focuses o
    - See SPEC.md §5 for detailed rate limiting and parallelization strategy
 2. **Spotify API Migration** (Feb 2026): Batch endpoints removed; now using individual endpoints
    - All Track/Album/Artist fetching uses individual API calls
-   - Playlist add_tracks uses batch_size=50 (Spotify API limit for playlist operations)
+   - Playlist add_tracks uses batch_size=50 (Spotify API limit for add operations)
+   - Playlist remove_tracks uses batch_size=100 (Spotify API limit for remove operations)
    - Exception handling distinguishes KeyError/ValueError (unavailable) from unexpected errors
 3. **`sync_to_db` in discover context** — `Track.get_tracks()` and `Playlist.get_tracks()` default to `sync_to_db=True`. Any caller that needs to check "is this track new before writing it?" **must pass `sync_to_db=False`** (e.g. `discover_from_playlists`). Forgetting this causes all tracks to appear pre-existing and discover silently adds nothing.
 4. **SQL Injection Risk**: F-strings used in queries (TODO: migrate to parameterized)

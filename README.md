@@ -70,6 +70,9 @@ spfm spotify discover-from-playlists
 # Add tracks from a file (one per line, format: "artist - track")
 spfm spotify add-tracks-from-file tracks.txt
 
+# Remove tracks from a playlist (one per line, track ID or Spotify URL)
+spfm spotify remove-tracks-from-playlist -p <playlist_id> -f remove.txt
+
 # Count total tracks across playlists
 spfm spotify count-tracks
 
