@@ -852,3 +852,87 @@ class TestPlaylistAddTracks:
 
         # Should not raise, just print error
         playlist.add_tracks([track], mock_spotify_client)
+
+
+@pytest.mark.unit
+class TestPlaylistRemoveTracks:
+    """Tests for Playlist.remove_tracks method."""
+
+    def test_remove_tracks_single_batch(self, mock_spotify_client):
+        """Test removing tracks in single batch."""
+        playlist = Playlist("playlist123")
+        track_ids = ["track1", "track2"]
+
+        result = playlist.remove_tracks(track_ids, mock_spotify_client)
+
+        mock_spotify_client.playlist_remove_all_occurrences_of_items.assert_called_once_with(
+            "playlist123", ["track1", "track2"]
+        )
+        assert result == track_ids
+
+    def test_remove_tracks_multiple_batches(self, mock_spotify_client):
+        """Test removing tracks across multiple batches."""
+        playlist = Playlist("playlist123")
+
+        # Create 250 track IDs to exceed batch_size of 100
+        track_ids = [f"track{i}" for i in range(1, 251)]
+
+        playlist.remove_tracks(track_ids, mock_spotify_client)
+
+        # Should make 3 calls: 100 + 100 + 50
+        assert mock_spotify_client.playlist_remove_all_occurrences_of_items.call_count == 3
+
+    def test_remove_tracks_batch_size_100(self, mock_spotify_client):
+        """Test that batches are limited to 100 items."""
+        playlist = Playlist("playlist123")
+
+        # Create 150 track IDs
+        track_ids = [f"track{i}" for i in range(1, 151)]
+
+        playlist.remove_tracks(track_ids, mock_spotify_client)
+
+        # Should make 2 calls: 100 + 50
+        assert mock_spotify_client.playlist_remove_all_occurrences_of_items.call_count == 2
+
+        # Verify call arguments
+        calls = mock_spotify_client.playlist_remove_all_occurrences_of_items.call_args_list
+        assert len(calls[0][0][1]) == 100  # First batch has 100 items
+        assert len(calls[1][0][1]) == 50  # Second batch has 50 items
+
+    def test_remove_tracks_handles_errors(self, mock_spotify_client):
+        """Test that errors are caught and return empty list."""
+        playlist = Playlist("playlist123")
+
+        track_ids = ["track1"]
+
+        mock_spotify_client.playlist_remove_all_occurrences_of_items.side_effect = TypeError("Test error")
+
+        # Should not raise, return empty list for failed batch
+        result = playlist.remove_tracks(track_ids, mock_spotify_client)
+        assert result == []
+
+    def test_remove_tracks_partial_failure(self, mock_spotify_client):
+        """Test partial failure with multiple batches."""
+        playlist = Playlist("playlist123")
+
+        # Create 250 track IDs to get 3 batches
+        track_ids = [f"track{i}" for i in range(1, 251)]
+
+        # Fail on second batch
+        side_effects = [None, TypeError("Batch 2 failed"), None]
+        mock_spotify_client.playlist_remove_all_occurrences_of_items.side_effect = side_effects
+
+        # Should return tracks from successful batches (100 + 50 = 150)
+        result = playlist.remove_tracks(track_ids, mock_spotify_client)
+        assert len(result) == 150
+        assert result == track_ids[:100] + track_ids[200:]
+
+    def test_remove_tracks_empty_list(self, mock_spotify_client):
+        """Test removing empty track list."""
+        playlist = Playlist("playlist123")
+
+        result = playlist.remove_tracks([], mock_spotify_client)
+
+        # Should not call API and return empty list
+        mock_spotify_client.playlist_remove_all_occurrences_of_items.assert_not_called()
+        assert result == []

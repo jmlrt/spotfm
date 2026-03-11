@@ -154,6 +154,70 @@ def add_tracks_from_file_batch(client, file_path):
             logging.info(f"Error adding track to db: {e}")
 
 
+def remove_tracks_from_file(client, playlist_id, file_path):
+    """Remove tracks from a Spotify playlist using track IDs from a file.
+
+    Each line in the file should be a Spotify track ID or URL.
+    Removes the tracks from the Spotify playlist and updates the local DB.
+
+    WARNING: This does NOT remove tracks from the tracks table (they remain as
+    orphaned tracks, preserving the negative cache for discover_from_playlists).
+
+    Args:
+        client: Spotify client wrapper instance
+        playlist_id: ID of the playlist to remove tracks from
+        file_path: Path to file containing track IDs (one per line)
+    """
+    # Normalize playlist_id once for consistent use with both Spotify API and DB
+    normalized_playlist_id = utils.parse_url(playlist_id)
+
+    # Parse and filter out empty/whitespace-only IDs to avoid invalid API/DB operations
+    raw_track_ids = utils.manage_tracks_ids_file(file_path)
+    track_ids = []
+    for raw_id in raw_track_ids:
+        parsed_id = utils.parse_url(raw_id)
+        if not parsed_id or not parsed_id.strip():
+            continue
+        parsed_id = parsed_id.strip()
+        # Validate that parsed ID is alphanumeric (valid Spotify track IDs are alphanumeric strings)
+        # Reject IDs with special characters or spaces that indicate parsing errors
+        if not parsed_id.isalnum():
+            logging.warning(f"Skipping invalid track ID: {parsed_id}")
+            continue
+        track_ids.append(parsed_id)
+
+    if not track_ids:
+        logging.info(
+            f"No valid track IDs found in file {file_path}; nothing to remove from playlist {normalized_playlist_id}"
+        )
+        return
+
+    # Use Playlist(id) directly to avoid overhead of get_playlist (which loads full playlist metadata)
+    playlist = Playlist(normalized_playlist_id)
+    # Only delete from DB tracks that were successfully removed from Spotify
+    successfully_removed = playlist.remove_tracks(track_ids, client.client)
+
+    if not successfully_removed:
+        logging.warning(f"No tracks were successfully removed from playlist {normalized_playlist_id}")
+        return
+
+    # Remove from local DB playlists_tracks (not tracks table — preserve negative cache)
+    # Use batched DELETEs with IN clause for efficiency and to avoid excessively large SQL statements
+    chunk_size = 900
+    con = sqlite.get_db_connection(sqlite.DATABASE)
+    cur = con.cursor()
+    for i in range(0, len(successfully_removed), chunk_size):
+        chunk = successfully_removed[i : i + chunk_size]
+        # Use parameterized query: ? for playlist_id, ? for each track in the IN clause
+        placeholders = ",".join("?" * len(chunk))
+        cur.execute(
+            f"DELETE FROM playlists_tracks WHERE playlist_id = ? AND track_id IN ({placeholders})",
+            [normalized_playlist_id, *chunk],
+        )
+    con.commit()
+    logging.info(f"Removed {len(successfully_removed)} tracks from playlist {normalized_playlist_id}")
+
+
 def discover_from_playlists(client, discover_playlist_id, sources_playlists_ids):
     """Discover new tracks from source playlists and add them to a discover playlist.
 

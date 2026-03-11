@@ -63,7 +63,7 @@ spotfm/
 │   ├── artist.py       # Artist entity with genres
 │   ├── playlist.py     # Playlist entity with batch operations
 │   ├── dupes.py        # Duplicate detection (ID, fuzzy match)
-│   ├── misc.py         # High-level commands (discover, add, count)
+│   ├── misc.py         # High-level commands (discover, add, remove, count)
 │   └── constants.py    # BATCH_SIZE, MARKET, etc.
 ├── sqlite.py           # SQLite singleton connection, schema migrations
 └── utils.py            # Config parsing, caching, string sanitization
@@ -278,6 +278,31 @@ spfm spotify update-playlists
 **Example**:
 ```bash
 spfm spotify discover-from-playlists
+```
+
+#### `remove-tracks-from-playlist`
+**Purpose**: Remove tracks from a Spotify playlist using a file of track IDs
+
+**Behavior**:
+1. Read track IDs from file (supports Spotify URLs and plain IDs)
+2. Batch remove from Spotify playlist (batch size: 100 per API call)
+3. Remove from local database `playlists_tracks` table
+4. **Preserve orphaned tracks** in `tracks` table (negative cache for discover)
+
+**Database Impact**:
+- Removes entries from `playlists_tracks` table
+- Does NOT delete from `tracks` table (tracks become orphaned)
+- Orphaned tracks prevent re-discovery on future runs
+- Aligns with discover workflow: deleted tracks should stay deleted
+
+**Example**:
+```bash
+# Create file with track IDs (one per line)
+echo "4iV5W9uYEdYUVa79Axb7Rh" > remove.txt
+echo "spotify:track:1301WleyT98MSxVHPZCA6M" >> remove.txt
+
+# Remove from playlist
+spfm spotify remove-tracks-from-playlist -p <playlist_id> -f remove.txt
 ```
 
 #### `find-duplicate-ids`

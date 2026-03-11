@@ -27,6 +27,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+**Spotify Playlist Management**:
+- `remove-tracks-from-playlist` command to remove tracks from a playlist
+  - Syntax: `spfm spotify remove-tracks-from-playlist -p <playlist_id> -f <file>`
+  - Supports track IDs and Spotify URLs (one per line)
+  - Removes from Spotify playlist and local database
+  - Preserves orphaned tracks table entries (negative cache for discover workflow)
+
 **Last.FM Recent Scrobbles Enhancements**:
 - **State tracking now default** for `recent-scrobbles` command
   - First run initializes state file with current playcount; fetches up to `--limit` scrobbles (default 50)
