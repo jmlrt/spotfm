@@ -936,4 +936,3 @@ class TestPlaylistRemoveTracks:
         # Should not call API and return empty list
         mock_spotify_client.playlist_remove_all_occurrences_of_items.assert_not_called()
         assert result == []
-        mock_spotify_client.playlist_remove_all_occurrences_of_items.assert_not_called()

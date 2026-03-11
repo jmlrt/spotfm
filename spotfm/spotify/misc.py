@@ -173,9 +173,18 @@ def remove_tracks_from_file(client, playlist_id, file_path):
 
     # Parse and filter out empty/whitespace-only IDs to avoid invalid API/DB operations
     raw_track_ids = utils.manage_tracks_ids_file(file_path)
-    track_ids = [
-        parsed_id for parsed_id in (utils.parse_url(tid) for tid in raw_track_ids) if parsed_id and parsed_id.strip()
-    ]
+    track_ids = []
+    for raw_id in raw_track_ids:
+        parsed_id = utils.parse_url(raw_id)
+        if not parsed_id or not parsed_id.strip():
+            continue
+        parsed_id = parsed_id.strip()
+        # Validate that parsed ID is alphanumeric (valid Spotify track IDs are 22 alphanumeric characters)
+        # Reject IDs with special characters or spaces that indicate parsing errors
+        if not parsed_id.isalnum():
+            logging.warning(f"Skipping invalid track ID: {parsed_id}")
+            continue
+        track_ids.append(parsed_id)
 
     if not track_ids:
         logging.info(
