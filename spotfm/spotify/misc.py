@@ -675,7 +675,14 @@ def log_track_counts(config=None):
     """
     # Determine log file path
     if config and "spotify" in config and "track_counts_log" in config["spotify"]:
-        log_path = Path(config["spotify"]["track_counts_log"]).expanduser()
+        log_path_str = config["spotify"]["track_counts_log"]
+        # Validate config path is not empty and is a string
+        if not log_path_str or not isinstance(log_path_str, str):
+            raise ValueError(f"Invalid track_counts_log in config: {log_path_str}")
+        log_path = Path(log_path_str).expanduser()
+        # Reject directory paths
+        if log_path.exists() and log_path.is_dir():
+            raise ValueError(f"track_counts_log must be a file path, not a directory: {log_path}")
     else:
         log_path = utils.WORK_DIR / "track-counts.csv"
 
@@ -689,14 +696,14 @@ def log_track_counts(config=None):
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
     row = {"timestamp": timestamp, "total_tracks": total_tracks, "ir_tracks": ir_tracks}
 
-    # Check if file exists to determine if we need to write headers
-    file_exists = log_path.exists()
+    # Check if file needs headers: doesn't exist OR is empty
+    needs_header = not log_path.exists() or log_path.stat().st_size == 0
 
     with open(log_path, "a", newline="") as csvfile:
         fieldnames = ["timestamp", "total_tracks", "ir_tracks"]
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter=";")
 
-        if not file_exists:
+        if needs_header:
             writer.writeheader()
 
         writer.writerow(row)

@@ -726,3 +726,218 @@ class TestRemoveTracksFromFile:
 
         assert len(remaining) == 1
         assert remaining[0][0] == "track1"
+
+
+@pytest.mark.unit
+class TestLogTrackCounts:
+    """Tests for log_track_counts function."""
+
+    def test_log_track_counts_creates_file_with_headers(self, temp_database, tmp_path, monkeypatch):
+        """Test that log file is created with correct headers on first run."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
+
+        # Setup database with some tracks
+        conn = sqlite3.connect(temp_database)
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO playlists VALUES ('p1', 'Playlist 1', 'user1', '2024-01-01')")
+        cursor.execute("INSERT INTO playlists_tracks VALUES ('p1', 't1', '2024-01-01')")
+        cursor.execute("INSERT INTO playlists_tracks VALUES ('p1', 't2', '2024-01-01')")
+        conn.commit()
+        conn.close()
+
+        log_file = tmp_path / "track-counts.csv"
+        config = {"spotify": {"track_counts_log": str(log_file)}}
+
+        misc.log_track_counts(config)
+
+        # Verify file was created
+        assert log_file.exists()
+
+        # Verify content has header and one row
+        content = log_file.read_text()
+        lines = content.strip().split("\n")
+        assert len(lines) == 2  # header + one data row
+        assert lines[0] == "timestamp;total_tracks;ir_tracks"
+
+    def test_log_track_counts_appends_on_subsequent_runs(self, temp_database, tmp_path, monkeypatch):
+        """Test that subsequent calls append new rows without duplicating headers."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
+
+        # Setup database
+        conn = sqlite3.connect(temp_database)
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO playlists VALUES ('p1', 'Test', 'user1', '2024-01-01')")
+        cursor.execute("INSERT INTO playlists_tracks VALUES ('p1', 't1', '2024-01-01')")
+        conn.commit()
+        conn.close()
+
+        log_file = tmp_path / "track-counts.csv"
+        config = {"spotify": {"track_counts_log": str(log_file)}}
+
+        # First call
+        misc.log_track_counts(config)
+        first_content = log_file.read_text()
+        first_lines = first_content.strip().split("\n")
+        assert len(first_lines) == 2  # header + one row
+
+        # Second call
+        misc.log_track_counts(config)
+        second_content = log_file.read_text()
+        second_lines = second_content.strip().split("\n")
+
+        # Should have header + 2 data rows (header should not be duplicated)
+        assert len(second_lines) == 3
+        assert second_lines[0] == "timestamp;total_tracks;ir_tracks"
+        # Both data rows should be valid CSV rows (contain semicolons)
+        assert ";" in second_lines[1]
+        assert ";" in second_lines[2]
+
+    def test_log_track_counts_uses_default_path(self, temp_database, monkeypatch, tmp_path):
+        """Test that default path is ~/.spotfm/track-counts.csv when no config provided."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
+        # Mock the utils.WORK_DIR to a temp location for testing
+        mock_work_dir = tmp_path / ".spotfm"
+        monkeypatch.setattr(utils, "WORK_DIR", mock_work_dir)
+
+        # Setup database
+        conn = sqlite3.connect(temp_database)
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO playlists VALUES ('p1', 'Test', 'user1', '2024-01-01')")
+        cursor.execute("INSERT INTO playlists_tracks VALUES ('p1', 't1', '2024-01-01')")
+        conn.commit()
+        conn.close()
+
+        # Call without config
+        misc.log_track_counts()
+
+        # Verify default location was used
+        expected_log = mock_work_dir / "track-counts.csv"
+        assert expected_log.exists()
+
+    def test_log_track_counts_respects_custom_path(self, temp_database, tmp_path, monkeypatch):
+        """Test that custom path from config is used."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
+
+        # Setup database
+        conn = sqlite3.connect(temp_database)
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO playlists VALUES ('p1', 'Test', 'user1', '2024-01-01')")
+        cursor.execute("INSERT INTO playlists_tracks VALUES ('p1', 't1', '2024-01-01')")
+        conn.commit()
+        conn.close()
+
+        custom_log = tmp_path / "subdir" / "my-counts.csv"
+        config = {"spotify": {"track_counts_log": str(custom_log)}}
+
+        misc.log_track_counts(config)
+
+        # Verify custom location was used
+        assert custom_log.exists()
+        assert custom_log.parent.exists()
+
+    def test_log_track_counts_tracks_ir_playlist_counts(self, temp_database, tmp_path, monkeypatch):
+        """Test that IR-prefixed playlists are counted correctly."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
+
+        # Setup database with IR and non-IR playlists
+        conn = sqlite3.connect(temp_database)
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO playlists VALUES ('ir1', 'IR Playlist', 'user1', '2024-01-01')")
+        cursor.execute("INSERT INTO playlists VALUES ('p2', 'Regular Playlist', 'user1', '2024-01-01')")
+        cursor.execute("INSERT INTO playlists_tracks VALUES ('ir1', 't1', '2024-01-01')")
+        cursor.execute("INSERT INTO playlists_tracks VALUES ('ir1', 't2', '2024-01-01')")
+        cursor.execute("INSERT INTO playlists_tracks VALUES ('p2', 't3', '2024-01-01')")
+        conn.commit()
+        conn.close()
+
+        log_file = tmp_path / "track-counts.csv"
+        config = {"spotify": {"track_counts_log": str(log_file)}}
+
+        misc.log_track_counts(config)
+
+        content = log_file.read_text()
+        lines = content.strip().split("\n")
+        data = lines[1].split(";")
+
+        # total_tracks = 3, ir_tracks = 2
+        assert data[1] == "3"  # total_tracks
+        assert data[2] == "2"  # ir_tracks
+
+    def test_log_track_counts_handles_empty_file(self, temp_database, tmp_path, monkeypatch):
+        """Test that empty pre-existing file gets headers written."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
+
+        # Setup database
+        conn = sqlite3.connect(temp_database)
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO playlists VALUES ('p1', 'Test', 'user1', '2024-01-01')")
+        cursor.execute("INSERT INTO playlists_tracks VALUES ('p1', 't1', '2024-01-01')")
+        conn.commit()
+        conn.close()
+
+        log_file = tmp_path / "track-counts.csv"
+        # Create empty file
+        log_file.touch()
+
+        config = {"spotify": {"track_counts_log": str(log_file)}}
+        misc.log_track_counts(config)
+
+        content = log_file.read_text()
+        lines = content.strip().split("\n")
+
+        # Should have header + one row (even though file existed)
+        assert len(lines) == 2
+        assert lines[0] == "timestamp;total_tracks;ir_tracks"
+
+    def test_log_track_counts_rejects_empty_config_path(self, temp_database, monkeypatch):
+        """Test that empty string path in config raises ValueError."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
+
+        config = {"spotify": {"track_counts_log": ""}}
+
+        with pytest.raises(ValueError, match="Invalid track_counts_log"):
+            misc.log_track_counts(config)
+
+    def test_log_track_counts_rejects_directory_path(self, temp_database, tmp_path, monkeypatch):
+        """Test that directory path in config raises ValueError."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
+
+        # Create a directory
+        dir_path = tmp_path / "mydir"
+        dir_path.mkdir()
+
+        config = {"spotify": {"track_counts_log": str(dir_path)}}
+
+        with pytest.raises(ValueError, match="must be a file path, not a directory"):
+            misc.log_track_counts(config)
+
+    def test_log_track_counts_creates_parent_directories(self, temp_database, tmp_path, monkeypatch):
+        """Test that parent directories are created if they don't exist."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
+
+        # Setup database
+        conn = sqlite3.connect(temp_database)
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO playlists VALUES ('p1', 'Test', 'user1', '2024-01-01')")
+        cursor.execute("INSERT INTO playlists_tracks VALUES ('p1', 't1', '2024-01-01')")
+        conn.commit()
+        conn.close()
+
+        # Use a path with non-existent parent directories
+        log_file = tmp_path / "a" / "b" / "c" / "track-counts.csv"
+        config = {"spotify": {"track_counts_log": str(log_file)}}
+
+        misc.log_track_counts(config)
+
+        # Verify file was created and all parent directories exist
+        assert log_file.exists()
+        assert log_file.parent.exists()
