@@ -3,7 +3,9 @@ import logging
 import os
 import shlex
 import subprocess
+import sys
 import tempfile
+from logging.handlers import RotatingFileHandler
 
 from spotfm import lastfm, utils
 from spotfm.lastfm import read_lastfm_state, save_lastfm_state
@@ -210,7 +212,27 @@ def spotify_cli(args, config):
 
 
 def main():
-    logging.basicConfig()
+    # Set root logger to INFO to pass messages through to the file handler (INFO level).
+    # Raised to DEBUG after arg parsing only when -v/--verbose is set.
+    root_logger = logging.getLogger()
+    root_logger.setLevel(logging.INFO)
+
+    # Always-on audit log file (with fallback to console-only if filesystem unavailable)
+    try:
+        utils.WORK_DIR.mkdir(parents=True, exist_ok=True)
+        file_handler = RotatingFileHandler(utils.LOG_FILE, maxBytes=1_000_000, backupCount=3, encoding="utf-8")
+        file_handler.setLevel(logging.INFO)
+        file_handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
+        root_logger.addHandler(file_handler)
+    except (PermissionError, OSError) as e:
+        # Filesystem issue (e.g. permission denied, read-only home) — fall back to console-only
+        print(f"Warning: Could not create audit log at {utils.LOG_FILE}: {e}", file=sys.stderr)
+
+    # Console handler (stderr) — level set based on flags after arg parsing
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(logging.Formatter("%(levelname)s: %(message)s"))
+    console_handler.setLevel(logging.WARNING)  # Default: only warnings/errors
+    root_logger.addHandler(console_handler)
 
     parser = argparse.ArgumentParser(
         prog="spotfm",
@@ -292,11 +314,13 @@ def main():
 
     args = parser.parse_args()
 
+    # Set console handler level based on flags
+    console_handler.setLevel(logging.WARNING)  # Default
     if args.info:
-        logging.getLogger().setLevel(logging.INFO)
-
+        console_handler.setLevel(logging.INFO)
     if args.verbose:
-        logging.getLogger().setLevel(logging.DEBUG)
+        console_handler.setLevel(logging.DEBUG)
+        root_logger.setLevel(logging.DEBUG)  # Enable debug records only when -v is set
 
     config = utils.parse_config()
 

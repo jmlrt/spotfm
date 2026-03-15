@@ -43,6 +43,7 @@ Timing should not be removed without understanding Spotify API limits.
 
 import csv
 import logging
+import sys
 from datetime import datetime
 from pathlib import Path
 from time import sleep
@@ -123,24 +124,45 @@ def resolve_playlist_patterns_to_ids(playlists_patterns, include_names=False):
 
 
 def add_tracks_from_file(client, file_path):
+    """Add tracks from file to local database (for later playlist operations).
+
+    Note: This command adds tracks to the LOCAL database only, not to any Spotify playlist.
+    Use after with add-tracks-from-file to add to a specific playlist, or rely on
+    discover-from-playlists to surface them.
+
+    Args:
+        client: Spotify client wrapper instance
+        file_path: Path to file containing track IDs (one per line)
+    """
     tracks_ids = utils.manage_tracks_ids_file(file_path)
 
+    successfully_added = 0
     for track_id in tracks_ids:
-        logging.info(f"Initializing track {track_id}")
+        logging.debug(f"Initializing track {track_id}")
         track = Track.get_track(track_id, client.client)
 
         if track.name is not None and track.artists is not None and track.album is not None:
             track.sync_to_db(client)
-            logging.info(f"Track {track.id} added to db")
+            logging.debug(f"Track {track.id} added to db")
+            successfully_added += 1
         else:
-            logging.info(f"Error: Track {track.id} not found")
+            logging.warning(f"Track {track_id} not found on Spotify")
 
         # Prevent rate limiting (429 errors)
         sleep(0.1)
 
 
 def add_tracks_from_file_batch(client, file_path):
-    """Add tracks from file using optimized batch processing."""
+    """Add tracks from file using optimized batch processing.
+
+    Note: This command adds tracks to the LOCAL database only, not to any Spotify playlist.
+    Use after with add-tracks-from-file to add to a specific playlist, or rely on
+    discover-from-playlists to surface them.
+
+    Args:
+        client: Spotify client wrapper instance
+        file_path: Path to file containing track IDs (one per line)
+    """
     tracks_ids = utils.manage_tracks_ids_file(file_path)
 
     # Track.get_tracks() handles all fetching and syncing
@@ -150,9 +172,9 @@ def add_tracks_from_file_batch(client, file_path):
     for track in tracks:
         try:
             track.sync_to_db(client.client)
-            logging.info(f"Track {track.id} added to db")
+            logging.debug(f"Track {track.id} added to db")
         except Exception as e:
-            logging.info(f"Error adding track to db: {e}")
+            logging.warning(f"Error adding track to db: {e}")
 
 
 def remove_tracks_from_file(client, playlist_id, file_path):
@@ -216,7 +238,6 @@ def remove_tracks_from_file(client, playlist_id, file_path):
             [normalized_playlist_id, *chunk],
         )
     con.commit()
-    logging.info(f"Removed {len(successfully_removed)} tracks from playlist {normalized_playlist_id}")
 
 
 def discover_from_playlists(client, discover_playlist_id, sources_playlists_ids):
@@ -253,8 +274,10 @@ def discover_from_playlists(client, discover_playlist_id, sources_playlists_ids)
     discover_playlist = Playlist.get_playlist(discover_playlist_id, client.client, refresh=True, sync_to_db=False)
     new_tracks = []
     seen_new_ids = set()  # Track IDs already added in this run to avoid duplicates across source playlists
+    total_playlists = len(sources_playlists_ids)
 
-    for playlist_id in sources_playlists_ids:
+    for idx, playlist_id in enumerate(sources_playlists_ids, 1):
+        print(f"fetching playlist {playlist_id} ({idx}/{total_playlists})", file=sys.stderr, flush=True)
         playlist = Playlist.get_playlist(playlist_id, client.client, refresh=True, sync_to_db=False)
         logging.info(f"Looking for new tracks into {playlist.id} - {playlist.name}")
 
@@ -282,13 +305,15 @@ def discover_from_playlists(client, discover_playlist_id, sources_playlists_ids)
         # playlist.tracks is already populated by update_from_api() (with sync_to_db=False).
         # Using it directly avoids a redundant second get_tracks() call.
         tracks = playlist.tracks
+        new_this_playlist = 0
 
         for track in tracks:
             if track.id not in in_db_before and track.id not in seen_new_ids:
                 # Track wasn't in DB before this run AND not already added in a previous source playlist
-                logging.info(f"New track found: {track.id}")
+                logging.debug(f"New track found: {track.id}")
                 new_tracks.append(track)
                 seen_new_ids.add(track.id)
+                new_this_playlist += 1
             elif track.is_orphaned():
                 # Track exists in DB but not in any playlist (was intentionally removed)
                 last_seen = getattr(track, "last_seen_at", "unknown")
@@ -298,14 +323,28 @@ def discover_from_playlists(client, discover_playlist_id, sources_playlists_ids)
                 # Track exists and is in other playlists
                 logging.debug(f"Skipping track {track.id} (already in playlists)")
 
-    logging.info(f"Adding new tracks to {discover_playlist.id} - {discover_playlist.name}")
+        print(f"discovered {new_this_playlist} new tracks from playlist {playlist.name}", file=sys.stderr, flush=True)
+
+    print(f"total discovered from all playlists: {len(new_tracks)} new tracks", file=sys.stderr, flush=True)
+
     if len(new_tracks) > 0:
+        logging.info(
+            "Command: discover_from_playlists | Found %d new tracks from %d source playlists | Adding to discover playlist %s - %s",
+            len(new_tracks),
+            total_playlists,
+            discover_playlist.id,
+            discover_playlist.name,
+        )
         discover_playlist.add_tracks(new_tracks, client.client)
         # Only sync to DB after successful playlist add to prevent orphaning tracks
         # if the Spotify API call fails
         logging.info(f"Adding {len(new_tracks)} new tracks to db")
         for track in new_tracks:
             track.sync_to_db(client.client)
+    else:
+        logging.info(
+            "Command: discover_from_playlists | No new tracks discovered from %d source playlists", total_playlists
+        )
 
 
 def count_tracks_by_playlists():

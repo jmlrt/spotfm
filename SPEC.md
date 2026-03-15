@@ -534,6 +534,67 @@ playlist_name = sanitize_string(user_input)  # Removes single quotes
 
 **Do not remove** rate-limiting sleep without understanding impact.
 
+### 6. Logging Architecture: Dual-Handler Strategy
+
+**Decision**: Separate root logger into two independent handlers (console + file) with different levels
+
+**Strategy**:
+- **Root logger**: Starts at INFO level (captures all INFO+ records from all code)
+- **Console handler**: Defaults to WARNING, configurable via flags
+  - `--info`: Sets console to INFO (operational debugging visible)
+  - `-v`/`--verbose`: Sets console to DEBUG (developer details) + root to DEBUG (enable debug records)
+- **File handler**: Always at INFO, writes to `~/.spotfm/spotfm.log` (audit trail)
+  - RotatingFileHandler: 1MB max size with 3 backups
+  - UTF-8 encoding for non-ASCII track/playlist names
+  - Graceful fallback if filesystem unavailable (permission denied, read-only home, etc.)
+
+**Rationale**:
+- **Visibility**: Progress output visible by default without flags (user doesn't need --info to see what's happening)
+- **Auditability**: All INFO+ events captured to file for debugging and issue remediation
+- **Performance**: LogRecords only created when root logger level allows (DEBUG level only with -v)
+- **Internationalization**: UTF-8 encoding handles non-Latin characters in track metadata
+- **Resilience**: Graceful degradation if audit log can't be written
+
+**Implementation Details**:
+```python
+# cli.py logging setup
+root_logger = logging.getLogger()
+root_logger.setLevel(logging.INFO)  # Enable INFO+ records
+
+# File handler: always captures INFO+
+file_handler = RotatingFileHandler(
+    ~/.spotfm/spotfm.log,
+    maxBytes=1_000_000,
+    backupCount=3,
+    encoding="utf-8"
+)
+file_handler.setLevel(logging.INFO)
+
+# Console handler: user-configurable (default WARNING)
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.WARNING)  # Default: errors only
+
+# After arg parsing, adjust levels based on flags
+if args.info:
+    console_handler.setLevel(logging.INFO)
+if args.verbose:
+    console_handler.setLevel(logging.DEBUG)
+    root_logger.setLevel(logging.DEBUG)  # Enable debug records
+```
+
+**Log Destinations**:
+| Trigger | Destination | Level | Content |
+|---------|-----------|-------|---------|
+| Default | stderr (progress prints) | always | Real-time progress feedback |
+| Default | ~/.spotfm/spotfm.log | INFO | API calls, DB changes, operations |
+| `--info` | stderr | INFO | Operational details |
+| `-v` | stderr | DEBUG | Entity lifecycle, raw SQL |
+
+**Alternative Considered**: Single logger level for both handlers
+- ❌ Would require --info to see audit log (users can't run long operations without flags)
+- ❌ Or audit log would capture DEBUG noise (defeats the purpose)
+- ❌ Performance overhead from creating unused DEBUG LogRecords
+
 ---
 
 ## Testing Strategy

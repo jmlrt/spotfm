@@ -41,6 +41,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Unopinionated by default (no pattern tracking without config)
   - Stable 3-column CSV schema: `timestamp;total_tracks;pattern_tracks` (pattern_tracks is empty when no pattern configured)
 
+**Logging & Observability**:
+- **Always-on audit log** for debugging and track remediation
+  - Audit log at `~/.spotfm/spotfm.log` captures all playlist modifications (track add/remove operations)
+  - RotatingFileHandler (1MB max, 3 backups) prevents unbounded growth
+  - Includes track IDs for every add/remove operation, enabling manual remediation if bugs occur
+  - UTF-8 encoding for non-ASCII track/playlist names
+  - Graceful fallback to console-only logging if filesystem unavailable
+- **Real-time progress output** on long-running commands
+  - `update-playlists` shows "fetching playlist {id} {idx}/{total}" as playlists are processed
+  - `discover-from-playlists` shows per-playlist discovery counts in real-time
+  - Progress visible by default (no flags needed)
+- **Cleaner logging hierarchy**
+  - Per-entity initialization logs demoted to DEBUG (e.g., "Initializing Track X", "Album not found")
+  - Cache hit/miss logs demoted to DEBUG (low-signal implementation details)
+  - `--info` now optional for operational debugging (progress is default)
+  - `-v`/`--verbose` for developer-level DEBUG output
+
 **Last.FM Recent Scrobbles Enhancements**:
 - **State tracking now default** for `recent-scrobbles` command
   - First run initializes state file with current playcount; fetches up to `--limit` scrobbles (default 50)

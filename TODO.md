@@ -2,20 +2,6 @@
 
 ## Enhancements (Ordered by Priority)
 
-### 🔴 HIGH PRIORITY
-
-#### Logging Improvements
-- Add progress & summary logging to spotify commands by default
-  - Desired output examples:
-    - `fetching playlist <name> 12/122` (progress during fetch)
-    - `discovered 12 new tracks from playlist <name>` (per-playlist summary)
-    - `total discovered from all playlists: 122 new tracks` (final summary)
-  - Currently: too minimal in standard mode, excess noise in --info mode
-  - Goal: High-level progress & results without debug details
-  - Files: `spotfm/cli.py`, `spotfm/spotify/client.py`, `spotfm/spotify/misc.py`
-  - Note: Some logging already exists but buried in debug/verbose output
-  - **Effort**: Medium (~4-6 hours)
-
 ### 🟡 MEDIUM PRIORITY
 
 #### Migrate SQL Queries to Parameterized Statements

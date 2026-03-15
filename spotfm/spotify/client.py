@@ -1,3 +1,6 @@
+import logging
+import sys
+
 import spotipy
 from spotipy.oauth2 import CacheFileHandler, SpotifyOAuth
 
@@ -72,7 +75,11 @@ class Client:
             # Update all playlists
             playlist_ids = self.get_playlists_id(excluded_playlists)
 
-        for playlist_id in playlist_ids:
+        total_playlists = len(playlist_ids)
+        total_tracks = 0
+
+        for idx, playlist_id in enumerate(playlist_ids, 1):
+            print(f"fetching playlist {playlist_id} ({idx}/{total_playlists})", file=sys.stderr, flush=True)
             # sync_to_db=False avoids a redundant sync inside get_playlist; we sync explicitly below.
             # refresh=True fetches latest playlist metadata and track IDs.
             # update_from_db() loads the existing snapshot_id so update_from_api() can skip
@@ -80,6 +87,11 @@ class Client:
             # Track.get_tracks() is called with refresh=False (default) to respect cache.
             playlist = Playlist.get_playlist(playlist_id, self.client, refresh=True, sync_to_db=False)
             playlist.sync_to_db(self.client)
+            track_count = len(playlist.raw_tracks) if playlist.raw_tracks else 0
+            total_tracks += track_count
+            logging.info("Synced %d tracks from playlist %s - %s to database", track_count, playlist.id, playlist.name)
+
+        print(f"synced {total_playlists} playlists ({total_tracks} total tracks)", file=sys.stderr, flush=True)
 
         # For full updates, remove playlists that are no longer in the user's Spotify library
         # (e.g. playlists deleted since the last sync). Targeted pattern updates leave other
@@ -96,3 +108,4 @@ class Client:
                 cur.execute("DELETE FROM playlists_tracks")
                 cur.execute("DELETE FROM playlists")
             con.commit()
+            logging.info("Cleaned up %d deleted playlists from database", len(playlist_ids))

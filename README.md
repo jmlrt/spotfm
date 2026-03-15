@@ -156,6 +156,17 @@ timestamp;total_tracks;pattern_tracks
 
 Use for tracking library growth, auditing new track additions, or workflow analytics. Multiple runs per day are supported—each adds a new timestamped row.
 
+## Logging & Debugging
+
+**Audit Log**: All track add/remove operations are logged to `~/.spotfm/spotfm.log` (rotating file, 1MB max with 3 backups). The audit log captures track IDs for every operation, making it easy to debug issues and remediate tracks added/removed by mistake.
+
+**Progress Output**: Long-running commands (`update-playlists`, `discover-from-playlists`) show real-time progress on stderr by default—no flags needed.
+
+**Verbosity Flags**:
+- Default (no flags): Progress output + ERROR/WARNING messages
+- `--info`: Adds INFO-level operational details (API calls, DB syncs)
+- `-v`/`--verbose`: Adds DEBUG-level details (raw SQL, per-entity logs) and enables debugging from dependencies
+
 ## Development
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for comprehensive development documentation including:
