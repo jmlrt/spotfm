@@ -43,6 +43,7 @@ Timing should not be removed without understanding Spotify API limits.
 
 import csv
 import logging
+from datetime import datetime
 from pathlib import Path
 from time import sleep
 
@@ -660,3 +661,44 @@ def write_relinked_tracks_csv(relinked_tracks, output_file):
             )
 
     logging.info(f"Wrote {len(relinked_tracks)} relinked tracks to {output_path}")
+
+
+def log_track_counts(config=None):
+    """Log total track count and IR-prefixed playlist track count to CSV.
+
+    Appends a row with timestamp, total tracks, and IR-playlist tracks.
+    Creates the log file with headers if it doesn't exist.
+
+    Args:
+        config: Configuration dict (optional). If not provided, uses default ~/.spotfm/track-counts.csv
+                Can specify custom path via config["spotify"]["track_counts_log"]
+    """
+    # Determine log file path
+    if config and "spotify" in config and "track_counts_log" in config["spotify"]:
+        log_path = Path(config["spotify"]["track_counts_log"]).expanduser()
+    else:
+        log_path = utils.WORK_DIR / "track-counts.csv"
+
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Get counts
+    total_tracks = count_tracks()
+    ir_tracks = count_tracks("IR%")
+
+    # Prepare row with timestamp format: YYYY-MM-DD HH:MM
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
+    row = {"timestamp": timestamp, "total_tracks": total_tracks, "ir_tracks": ir_tracks}
+
+    # Check if file exists to determine if we need to write headers
+    file_exists = log_path.exists()
+
+    with open(log_path, "a", newline="") as csvfile:
+        fieldnames = ["timestamp", "total_tracks", "ir_tracks"]
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+
+        if not file_exists:
+            writer.writeheader()
+
+        writer.writerow(row)
+
+    logging.info(f"Logged track counts: total={total_tracks}, IR%={ir_tracks} to {log_path}")
