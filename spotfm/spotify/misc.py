@@ -664,14 +664,23 @@ def write_relinked_tracks_csv(relinked_tracks, output_file):
 
 
 def log_track_counts(config=None):
-    """Log total track count and IR-prefixed playlist track count to CSV.
+    """Log track counts to CSV, with optional pattern-specific tracking.
 
-    Appends a row with timestamp, total tracks, and IR-playlist tracks.
-    Creates the log file with headers if it doesn't exist.
+    Appends a row with timestamp and total track count. If a pattern is configured,
+    also tracks counts for playlists matching that pattern.
+
+    Creates the log file with headers if it doesn't exist. CSV columns are dynamic:
+    - Without pattern: timestamp;total_tracks
+    - With pattern: timestamp;total_tracks;new_tracks
 
     Args:
-        config: Configuration dict (optional). If not provided, uses default ~/.spotfm/track-counts.csv
-                Can specify custom path via config["spotify"]["track_counts_log"]
+        config: Configuration dict (optional). If not provided, uses defaults:
+                - Log path: ~/.spotfm/track-counts.csv
+                - Pattern: None (no secondary pattern tracking)
+
+                Can customize via config["spotify"]:
+                - track_counts_log: Path to CSV file
+                - new_tracks_pattern: SQL LIKE pattern for pattern-specific tracking (e.g., "IR%", "New%")
     """
     # Determine log file path
     if config and "spotify" in config and "track_counts_log" in config["spotify"]:
@@ -686,21 +695,34 @@ def log_track_counts(config=None):
     else:
         log_path = utils.WORK_DIR / "track-counts.csv"
 
+    # Determine pattern for secondary tracking (optional, defaults to None)
+    new_tracks_pattern = None
+    if config and "spotify" in config and "new_tracks_pattern" in config["spotify"]:
+        new_tracks_pattern = config["spotify"]["new_tracks_pattern"]
+
     log_path.parent.mkdir(parents=True, exist_ok=True)
 
     # Get counts
     total_tracks = count_tracks()
-    ir_tracks = count_tracks("IR%")
+    new_tracks = count_tracks(new_tracks_pattern) if new_tracks_pattern else None
 
     # Prepare row with timestamp format: YYYY-MM-DD HH:MM
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
-    row = {"timestamp": timestamp, "total_tracks": total_tracks, "ir_tracks": ir_tracks}
+    row = {"timestamp": timestamp, "total_tracks": total_tracks}
+
+    # Add new_tracks to row only if pattern is configured
+    if new_tracks_pattern:
+        row["new_tracks"] = new_tracks
 
     # Check if file needs headers: doesn't exist OR is empty
     needs_header = not log_path.exists() or log_path.stat().st_size == 0
 
+    # Determine fieldnames based on whether pattern is configured
+    fieldnames = ["timestamp", "total_tracks"]
+    if new_tracks_pattern:
+        fieldnames.append("new_tracks")
+
     with open(log_path, "a", newline="") as csvfile:
-        fieldnames = ["timestamp", "total_tracks", "ir_tracks"]
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter=";")
 
         if needs_header:
@@ -708,4 +730,8 @@ def log_track_counts(config=None):
 
         writer.writerow(row)
 
-    logging.info(f"Logged track counts: total={total_tracks}, IR%={ir_tracks} to {log_path}")
+    # Log with appropriate message based on configuration
+    if new_tracks_pattern:
+        logging.info(f"Logged track counts: total={total_tracks}, {new_tracks_pattern}={new_tracks} to {log_path}")
+    else:
+        logging.info(f"Logged track counts: total={total_tracks} to {log_path}")

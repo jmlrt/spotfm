@@ -732,8 +732,8 @@ class TestRemoveTracksFromFile:
 class TestLogTrackCounts:
     """Tests for log_track_counts function."""
 
-    def test_log_track_counts_creates_file_with_headers(self, temp_database, tmp_path, monkeypatch):
-        """Test that log file is created with correct headers on first run."""
+    def test_log_track_counts_creates_file_with_headers_no_pattern(self, temp_database, tmp_path, monkeypatch):
+        """Test that log file is created with basic headers when no pattern configured."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
         monkeypatch.setattr(sqlite, "DATABASE", temp_database)
 
@@ -754,11 +754,40 @@ class TestLogTrackCounts:
         # Verify file was created
         assert log_file.exists()
 
-        # Verify content has header and one row
+        # Verify content has header and one row (no new_tracks column without pattern)
         content = log_file.read_text()
         lines = content.strip().split("\n")
         assert len(lines) == 2  # header + one data row
-        assert lines[0] == "timestamp;total_tracks;ir_tracks"
+        assert lines[0] == "timestamp;total_tracks"
+
+    def test_log_track_counts_creates_file_with_pattern_headers(self, temp_database, tmp_path, monkeypatch):
+        """Test that log file includes new_tracks column when pattern is configured."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
+
+        # Setup database with IR and non-IR playlists
+        conn = sqlite3.connect(temp_database)
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO playlists VALUES ('ir1', 'IR Playlist', 'user1', '2024-01-01')")
+        cursor.execute("INSERT INTO playlists VALUES ('p2', 'Regular', 'user1', '2024-01-01')")
+        cursor.execute("INSERT INTO playlists_tracks VALUES ('ir1', 't1', '2024-01-01')")
+        cursor.execute("INSERT INTO playlists_tracks VALUES ('p2', 't2', '2024-01-01')")
+        conn.commit()
+        conn.close()
+
+        log_file = tmp_path / "track-counts.csv"
+        config = {"spotify": {"track_counts_log": str(log_file), "new_tracks_pattern": "IR%"}}
+
+        misc.log_track_counts(config)
+
+        # Verify file was created
+        assert log_file.exists()
+
+        # Verify content includes new_tracks column with pattern configured
+        content = log_file.read_text()
+        lines = content.strip().split("\n")
+        assert len(lines) == 2  # header + one data row
+        assert lines[0] == "timestamp;total_tracks;new_tracks"
 
     def test_log_track_counts_appends_on_subsequent_runs(self, temp_database, tmp_path, monkeypatch):
         """Test that subsequent calls append new rows without duplicating headers."""
@@ -789,7 +818,7 @@ class TestLogTrackCounts:
 
         # Should have header + 2 data rows (header should not be duplicated)
         assert len(second_lines) == 3
-        assert second_lines[0] == "timestamp;total_tracks;ir_tracks"
+        assert second_lines[0] == "timestamp;total_tracks"
         # Both data rows should be valid CSV rows (contain semicolons)
         assert ";" in second_lines[1]
         assert ";" in second_lines[2]
@@ -839,8 +868,8 @@ class TestLogTrackCounts:
         assert custom_log.exists()
         assert custom_log.parent.exists()
 
-    def test_log_track_counts_tracks_ir_playlist_counts(self, temp_database, tmp_path, monkeypatch):
-        """Test that IR-prefixed playlists are counted correctly."""
+    def test_log_track_counts_tracks_pattern_counts(self, temp_database, tmp_path, monkeypatch):
+        """Test that pattern-specific playlists are counted correctly when configured."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
         monkeypatch.setattr(sqlite, "DATABASE", temp_database)
 
@@ -856,7 +885,7 @@ class TestLogTrackCounts:
         conn.close()
 
         log_file = tmp_path / "track-counts.csv"
-        config = {"spotify": {"track_counts_log": str(log_file)}}
+        config = {"spotify": {"track_counts_log": str(log_file), "new_tracks_pattern": "IR%"}}
 
         misc.log_track_counts(config)
 
@@ -864,9 +893,9 @@ class TestLogTrackCounts:
         lines = content.strip().split("\n")
         data = lines[1].split(";")
 
-        # total_tracks = 3, ir_tracks = 2
+        # total_tracks = 3, new_tracks (IR%) = 2
         assert data[1] == "3"  # total_tracks
-        assert data[2] == "2"  # ir_tracks
+        assert data[2] == "2"  # new_tracks
 
     def test_log_track_counts_handles_empty_file(self, temp_database, tmp_path, monkeypatch):
         """Test that empty pre-existing file gets headers written."""
@@ -891,9 +920,10 @@ class TestLogTrackCounts:
         content = log_file.read_text()
         lines = content.strip().split("\n")
 
-        # Should have header + one row (even though file existed)
+        # Should have header + one row (even though file existed empty)
         assert len(lines) == 2
-        assert lines[0] == "timestamp;total_tracks;ir_tracks"
+        # Without pattern configured, should only have timestamp and total_tracks
+        assert lines[0] == "timestamp;total_tracks"
 
     def test_log_track_counts_rejects_empty_config_path(self, temp_database, monkeypatch):
         """Test that empty string path in config raises ValueError."""
@@ -941,3 +971,62 @@ class TestLogTrackCounts:
         # Verify file was created and all parent directories exist
         assert log_file.exists()
         assert log_file.parent.exists()
+
+    def test_log_track_counts_no_pattern_by_default(self, temp_database, tmp_path, monkeypatch):
+        """Test that default behavior (no pattern configured) only logs total tracks."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
+
+        # Setup database
+        conn = sqlite3.connect(temp_database)
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO playlists VALUES ('p1', 'Test', 'user1', '2024-01-01')")
+        cursor.execute("INSERT INTO playlists_tracks VALUES ('p1', 't1', '2024-01-01')")
+        conn.commit()
+        conn.close()
+
+        log_file = tmp_path / "track-counts.csv"
+        # Call with minimal config - no new_tracks_pattern
+        config = {"spotify": {"track_counts_log": str(log_file)}}
+
+        misc.log_track_counts(config)
+
+        content = log_file.read_text()
+        lines = content.strip().split("\n")
+
+        # Should only have 2 columns (timestamp, total_tracks)
+        assert lines[0] == "timestamp;total_tracks"
+        data = lines[1].split(";")
+        assert len(data) == 2  # Only timestamp and total_tracks
+        assert data[1] == "1"  # total_tracks
+
+    def test_log_track_counts_configurable_pattern(self, temp_database, tmp_path, monkeypatch):
+        """Test that pattern can be configured to anything user wants (e.g., 'Inbox%', 'New%')."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(sqlite, "DATABASE", temp_database)
+
+        # Setup database with New and other playlists
+        conn = sqlite3.connect(temp_database)
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO playlists VALUES ('new1', 'New Album', 'user1', '2024-01-01')")
+        cursor.execute("INSERT INTO playlists VALUES ('p2', 'Regular Playlist', 'user1', '2024-01-01')")
+        cursor.execute("INSERT INTO playlists_tracks VALUES ('new1', 't1', '2024-01-01')")
+        cursor.execute("INSERT INTO playlists_tracks VALUES ('new1', 't2', '2024-01-01')")
+        cursor.execute("INSERT INTO playlists_tracks VALUES ('p2', 't3', '2024-01-01')")
+        conn.commit()
+        conn.close()
+
+        log_file = tmp_path / "track-counts.csv"
+        # Configure a custom pattern (not IR%, but New%)
+        config = {"spotify": {"track_counts_log": str(log_file), "new_tracks_pattern": "New%"}}
+
+        misc.log_track_counts(config)
+
+        content = log_file.read_text()
+        lines = content.strip().split("\n")
+        data = lines[1].split(";")
+
+        # Should track the New% pattern
+        assert lines[0] == "timestamp;total_tracks;new_tracks"
+        assert data[1] == "3"  # total_tracks
+        assert data[2] == "2"  # new_tracks (New%)
