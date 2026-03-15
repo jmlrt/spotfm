@@ -128,6 +128,11 @@ def lastfm_cli(args, config):
 
 
 def spotify_cli(args, config):
+    # Validate that --log-counts is only used with update-playlists
+    if hasattr(args, "log_counts") and args.log_counts and args.command != "update-playlists":
+        print("Error: --log-counts flag is only available for the 'update-playlists' command")
+        raise SystemExit(1)
+
     client = spotify_client.Client(
         config["spotify"]["client_id"],
         config["spotify"]["client_secret"],
@@ -280,7 +285,9 @@ def main():
         "-t", "--threshold", type=int, default=95, help="Similarity threshold for fuzzy matching (0-100, default 95)"
     )
     spotify_parser.add_argument(
-        "--log-counts", action="store_true", help="Log total and IR-prefixed track counts after update-playlists"
+        "--log-counts",
+        action="store_true",
+        help="Log track counts to CSV after update-playlists (configurable via spotfm.toml: track_counts_log, new_tracks_pattern)",
     )
 
     args = parser.parse_args()

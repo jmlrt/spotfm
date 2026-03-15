@@ -754,14 +754,15 @@ class TestLogTrackCounts:
         # Verify file was created
         assert log_file.exists()
 
-        # Verify content has header and one row (no new_tracks column without pattern)
+        # Verify content has header and one row (stable schema always has 3 columns)
         content = log_file.read_text()
         lines = content.strip().split("\n")
         assert len(lines) == 2  # header + one data row
-        assert lines[0] == "timestamp;total_tracks"
+        # Always have stable 3-column schema (pattern_tracks is empty when no pattern)
+        assert lines[0] == "timestamp;total_tracks;pattern_tracks"
 
     def test_log_track_counts_creates_file_with_pattern_headers(self, temp_database, tmp_path, monkeypatch):
-        """Test that log file includes new_tracks column when pattern is configured."""
+        """Test that log file includes pattern column with populated value when pattern is configured."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
         monkeypatch.setattr(sqlite, "DATABASE", temp_database)
 
@@ -783,11 +784,16 @@ class TestLogTrackCounts:
         # Verify file was created
         assert log_file.exists()
 
-        # Verify content includes new_tracks column with pattern configured
+        # Verify stable schema with populated pattern_tracks column
         content = log_file.read_text()
         lines = content.strip().split("\n")
         assert len(lines) == 2  # header + one data row
-        assert lines[0] == "timestamp;total_tracks;new_tracks"
+        # Schema is always stable with 3 columns
+        assert lines[0] == "timestamp;total_tracks;pattern_tracks"
+        # Pattern column should have a value (1 track in IR%)
+        data = lines[1].split(";")
+        assert len(data) == 3
+        assert data[2] == "1"  # IR% matches 1 track
 
     def test_log_track_counts_appends_on_subsequent_runs(self, temp_database, tmp_path, monkeypatch):
         """Test that subsequent calls append new rows without duplicating headers."""
@@ -818,10 +824,10 @@ class TestLogTrackCounts:
 
         # Should have header + 2 data rows (header should not be duplicated)
         assert len(second_lines) == 3
-        assert second_lines[0] == "timestamp;total_tracks"
-        # Both data rows should be valid CSV rows (contain semicolons)
-        assert ";" in second_lines[1]
-        assert ";" in second_lines[2]
+        assert second_lines[0] == "timestamp;total_tracks;pattern_tracks"
+        # Both data rows should have 3 columns
+        assert len(second_lines[1].split(";")) == 3
+        assert len(second_lines[2].split(";")) == 3
 
     def test_log_track_counts_uses_default_path(self, temp_database, monkeypatch, tmp_path):
         """Test that default path is ~/.spotfm/track-counts.csv when no config provided."""
@@ -893,9 +899,9 @@ class TestLogTrackCounts:
         lines = content.strip().split("\n")
         data = lines[1].split(";")
 
-        # total_tracks = 3, new_tracks (IR%) = 2
+        # total_tracks = 3, pattern_tracks (IR%) = 2
         assert data[1] == "3"  # total_tracks
-        assert data[2] == "2"  # new_tracks
+        assert data[2] == "2"  # pattern_tracks
 
     def test_log_track_counts_handles_empty_file(self, temp_database, tmp_path, monkeypatch):
         """Test that empty pre-existing file gets headers written."""
@@ -922,8 +928,8 @@ class TestLogTrackCounts:
 
         # Should have header + one row (even though file existed empty)
         assert len(lines) == 2
-        # Without pattern configured, should only have timestamp and total_tracks
-        assert lines[0] == "timestamp;total_tracks"
+        # Stable schema always has 3 columns
+        assert lines[0] == "timestamp;total_tracks;pattern_tracks"
 
     def test_log_track_counts_rejects_empty_config_path(self, temp_database, monkeypatch):
         """Test that empty string path in config raises ValueError."""
@@ -973,7 +979,7 @@ class TestLogTrackCounts:
         assert log_file.parent.exists()
 
     def test_log_track_counts_no_pattern_by_default(self, temp_database, tmp_path, monkeypatch):
-        """Test that default behavior (no pattern configured) only logs total tracks."""
+        """Test that default behavior (no pattern configured) leaves pattern_tracks empty."""
         monkeypatch.setattr(utils, "DATABASE", temp_database)
         monkeypatch.setattr(sqlite, "DATABASE", temp_database)
 
@@ -994,11 +1000,12 @@ class TestLogTrackCounts:
         content = log_file.read_text()
         lines = content.strip().split("\n")
 
-        # Should only have 2 columns (timestamp, total_tracks)
-        assert lines[0] == "timestamp;total_tracks"
+        # Stable schema always has 3 columns
+        assert lines[0] == "timestamp;total_tracks;pattern_tracks"
         data = lines[1].split(";")
-        assert len(data) == 2  # Only timestamp and total_tracks
+        assert len(data) == 3  # timestamp, total_tracks, pattern_tracks
         assert data[1] == "1"  # total_tracks
+        assert data[2] == ""  # pattern_tracks is empty (no pattern configured)
 
     def test_log_track_counts_configurable_pattern(self, temp_database, tmp_path, monkeypatch):
         """Test that pattern can be configured to anything user wants (e.g., 'Inbox%', 'New%')."""
@@ -1026,7 +1033,7 @@ class TestLogTrackCounts:
         lines = content.strip().split("\n")
         data = lines[1].split(";")
 
-        # Should track the New% pattern
-        assert lines[0] == "timestamp;total_tracks;new_tracks"
+        # Stable schema always has 3 columns
+        assert lines[0] == "timestamp;total_tracks;pattern_tracks"
         assert data[1] == "3"  # total_tracks
-        assert data[2] == "2"  # new_tracks (New%)
+        assert data[2] == "2"  # pattern_tracks (New%)

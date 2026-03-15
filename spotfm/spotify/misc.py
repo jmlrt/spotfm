@@ -666,12 +666,13 @@ def write_relinked_tracks_csv(relinked_tracks, output_file):
 def log_track_counts(config=None):
     """Log track counts to CSV, with optional pattern-specific tracking.
 
-    Appends a row with timestamp and total track count. If a pattern is configured,
-    also tracks counts for playlists matching that pattern.
+    Appends a row with timestamp, total track count, and optional pattern-specific count.
+    Uses a stable schema (always 3 columns) to avoid issues when pattern configuration changes.
 
-    Creates the log file with headers if it doesn't exist. CSV columns are dynamic:
-    - Without pattern: timestamp;total_tracks
-    - With pattern: timestamp;total_tracks;new_tracks
+    Creates the log file with headers if it doesn't exist. CSV always has 3 columns:
+    - timestamp: ISO format without seconds (YYYY-MM-DD HH:MM)
+    - total_tracks: Total unique tracks across all playlists
+    - pattern_tracks: Count for configured pattern (empty string if no pattern configured)
 
     Args:
         config: Configuration dict (optional). If not provided, uses defaults:
@@ -704,23 +705,23 @@ def log_track_counts(config=None):
 
     # Get counts
     total_tracks = count_tracks()
-    new_tracks = count_tracks(new_tracks_pattern) if new_tracks_pattern else None
+    # Always count the pattern if configured, otherwise None
+    pattern_tracks = count_tracks(new_tracks_pattern) if new_tracks_pattern else None
 
     # Prepare row with timestamp format: YYYY-MM-DD HH:MM
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
-    row = {"timestamp": timestamp, "total_tracks": total_tracks}
-
-    # Add new_tracks to row only if pattern is configured
-    if new_tracks_pattern:
-        row["new_tracks"] = new_tracks
+    # Always include all columns for schema stability (avoids mismatch issues when pattern is enabled/disabled)
+    row = {
+        "timestamp": timestamp,
+        "total_tracks": total_tracks,
+        "pattern_tracks": pattern_tracks if pattern_tracks is not None else "",
+    }
 
     # Check if file needs headers: doesn't exist OR is empty
     needs_header = not log_path.exists() or log_path.stat().st_size == 0
 
-    # Determine fieldnames based on whether pattern is configured
-    fieldnames = ["timestamp", "total_tracks"]
-    if new_tracks_pattern:
-        fieldnames.append("new_tracks")
+    # Always use stable 3-column schema regardless of whether pattern is configured
+    fieldnames = ["timestamp", "total_tracks", "pattern_tracks"]
 
     with open(log_path, "a", newline="") as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter=";")
@@ -732,6 +733,6 @@ def log_track_counts(config=None):
 
     # Log with appropriate message based on configuration
     if new_tracks_pattern:
-        logging.info(f"Logged track counts: total={total_tracks}, {new_tracks_pattern}={new_tracks} to {log_path}")
+        logging.info(f"Logged track counts: total={total_tracks}, {new_tracks_pattern}={pattern_tracks} to {log_path}")
     else:
         logging.info(f"Logged track counts: total={total_tracks} to {log_path}")
