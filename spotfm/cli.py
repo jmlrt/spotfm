@@ -128,6 +128,11 @@ def lastfm_cli(args, config):
 
 
 def spotify_cli(args, config):
+    # Validate that --log-counts is only used with update-playlists
+    if hasattr(args, "log_counts") and args.log_counts and args.command != "update-playlists":
+        print("Error: --log-counts flag is only available for the 'update-playlists' command")
+        raise SystemExit(1)
+
     client = spotify_client.Client(
         config["spotify"]["client_id"],
         config["spotify"]["client_secret"],
@@ -140,6 +145,8 @@ def spotify_cli(args, config):
             count_tracks(args.playlists)
         case "update-playlists":
             update_playlists(client, config["spotify"]["excluded_playlists"], args.playlists)
+            if hasattr(args, "log_counts") and args.log_counts:
+                spotify_misc.log_track_counts(config)
         case "add-tracks-from-file":
             spotify_misc.add_tracks_from_file(client, args.file)
         case "add-tracks-from-file-batch":
@@ -276,6 +283,11 @@ def main():
     spotify_parser.add_argument("--genre", help="Filter by genre using a regex pattern")
     spotify_parser.add_argument(
         "-t", "--threshold", type=int, default=95, help="Similarity threshold for fuzzy matching (0-100, default 95)"
+    )
+    spotify_parser.add_argument(
+        "--log-counts",
+        action="store_true",
+        help="Log track counts to CSV after update-playlists (configurable via spotfm.toml: track_counts_log, new_tracks_pattern)",
     )
 
     args = parser.parse_args()

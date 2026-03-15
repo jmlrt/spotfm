@@ -43,6 +43,7 @@ Timing should not be removed without understanding Spotify API limits.
 
 import csv
 import logging
+from datetime import datetime
 from pathlib import Path
 from time import sleep
 
@@ -660,3 +661,82 @@ def write_relinked_tracks_csv(relinked_tracks, output_file):
             )
 
     logging.info(f"Wrote {len(relinked_tracks)} relinked tracks to {output_path}")
+
+
+def log_track_counts(config=None):
+    """Log track counts to CSV, with optional pattern-specific tracking.
+
+    Appends a row with timestamp, total track count, and optional pattern-specific count.
+    Uses a stable schema (always 3 columns) to avoid issues when pattern configuration changes.
+
+    Creates the log file with headers if it doesn't exist. CSV always has 3 columns:
+    - timestamp: YYYY-MM-DD HH:MM format
+    - total_tracks: Total unique tracks across all playlists
+    - pattern_tracks: Count for configured pattern (empty string if no pattern configured)
+
+    Args:
+        config: Configuration dict (optional). If not provided, uses defaults:
+                - Log path: ~/.spotfm/track-counts.csv
+                - Pattern: None (no secondary pattern tracking)
+
+                Can customize via config["spotify"]:
+                - track_counts_log: Path to CSV file
+                - new_tracks_pattern: SQL LIKE pattern for pattern-specific tracking (e.g., "IR%", "New%").
+                  Omit this key to disable pattern tracking. If specified, must be a string.
+    """
+    # Determine log file path
+    if config and "spotify" in config and "track_counts_log" in config["spotify"]:
+        log_path_str = config["spotify"]["track_counts_log"]
+        # Validate config path is not empty and is a string
+        if not log_path_str or not isinstance(log_path_str, str):
+            raise ValueError(f"Invalid track_counts_log in config: {log_path_str}")
+        log_path = Path(log_path_str).expanduser()
+        # Reject directory paths
+        if log_path.exists() and log_path.is_dir():
+            raise ValueError(f"track_counts_log must be a file path, not a directory: {log_path}")
+    else:
+        log_path = utils.WORK_DIR / "track-counts.csv"
+
+    # Determine pattern for secondary tracking (optional, defaults to None)
+    new_tracks_pattern = None
+    if config and "spotify" in config and "new_tracks_pattern" in config["spotify"]:
+        new_tracks_pattern = config["spotify"]["new_tracks_pattern"]
+        # Validate pattern is a string (if specified)
+        if new_tracks_pattern is not None and not isinstance(new_tracks_pattern, str):
+            raise ValueError(f"new_tracks_pattern must be a string, got {type(new_tracks_pattern).__name__}")
+
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Get counts
+    total_tracks = count_tracks()
+    # Always count the pattern if configured, otherwise None
+    pattern_tracks = count_tracks(new_tracks_pattern) if new_tracks_pattern else None
+
+    # Prepare row with timestamp format: YYYY-MM-DD HH:MM
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
+    # Always include all columns for schema stability (avoids mismatch issues when pattern is enabled/disabled)
+    row = {
+        "timestamp": timestamp,
+        "total_tracks": total_tracks,
+        "pattern_tracks": pattern_tracks if pattern_tracks is not None else "",
+    }
+
+    # Always use stable 3-column schema regardless of whether pattern is configured
+    fieldnames = ["timestamp", "total_tracks", "pattern_tracks"]
+
+    # Check if file needs headers: doesn't exist OR is empty
+    needs_header = not log_path.exists() or log_path.stat().st_size == 0
+
+    with open(log_path, "a", newline="") as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter=";")
+
+        if needs_header:
+            writer.writeheader()
+
+        writer.writerow(row)
+
+    # Log with appropriate message based on configuration
+    if new_tracks_pattern:
+        logging.info(f"Logged track counts: total={total_tracks}, {new_tracks_pattern}={pattern_tracks} to {log_path}")
+    else:
+        logging.info(f"Logged track counts: total={total_tracks} to {log_path}")
