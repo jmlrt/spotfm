@@ -670,7 +670,7 @@ def log_track_counts(config=None):
     Uses a stable schema (always 3 columns) to avoid issues when pattern configuration changes.
 
     Creates the log file with headers if it doesn't exist. CSV always has 3 columns:
-    - timestamp: ISO format without seconds (YYYY-MM-DD HH:MM)
+    - timestamp: YYYY-MM-DD HH:MM format
     - total_tracks: Total unique tracks across all playlists
     - pattern_tracks: Count for configured pattern (empty string if no pattern configured)
 
@@ -682,7 +682,7 @@ def log_track_counts(config=None):
                 Can customize via config["spotify"]:
                 - track_counts_log: Path to CSV file
                 - new_tracks_pattern: SQL LIKE pattern for pattern-specific tracking (e.g., "IR%", "New%").
-                  Omit this key to disable pattern tracking. If specified, must be a non-empty string.
+                  Omit this key to disable pattern tracking. If specified, must be a string.
     """
     # Determine log file path
     if config and "spotify" in config and "track_counts_log" in config["spotify"]:

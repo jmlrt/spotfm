@@ -276,7 +276,7 @@ new_tracks_pattern = "IR%"                        # Pattern for secondary count 
 # Basic: Just update playlists
 spfm spotify update-playlists
 
-# Update and log counts (tracks total tracks only)
+# Update and log counts (logs total tracks only)
 spfm spotify update-playlists --log-counts
 
 # With pattern configured in spotfm.toml, logs both total and pattern-specific counts
