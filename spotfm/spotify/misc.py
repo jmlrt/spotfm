@@ -135,7 +135,6 @@ def add_tracks_from_file(client, file_path):
         file_path: Path to file containing track IDs (one per line)
     """
     tracks_ids = utils.manage_tracks_ids_file(file_path)
-    logging.info("Command: add_tracks_from_file | File: %s | Adding %d tracks to database", file_path, len(tracks_ids))
 
     successfully_added = 0
     for track_id in tracks_ids:
@@ -152,13 +151,6 @@ def add_tracks_from_file(client, file_path):
         # Prevent rate limiting (429 errors)
         sleep(0.1)
 
-    logging.info(
-        "Command: add_tracks_from_file | File: %s | Successfully added %d/%d tracks to database",
-        file_path,
-        successfully_added,
-        len(tracks_ids),
-    )
-
 
 def add_tracks_from_file_batch(client, file_path):
     """Add tracks from file using optimized batch processing.
@@ -172,31 +164,17 @@ def add_tracks_from_file_batch(client, file_path):
         file_path: Path to file containing track IDs (one per line)
     """
     tracks_ids = utils.manage_tracks_ids_file(file_path)
-    logging.info(
-        "Command: add_tracks_from_file_batch | File: %s | Adding %d tracks to database (batch mode)",
-        file_path,
-        len(tracks_ids),
-    )
 
     # Track.get_tracks() handles all fetching and syncing
     tracks = Track.get_tracks(tracks_ids, client.client, refresh=False)
 
     # Sync tracks to DB
-    successfully_added = 0
     for track in tracks:
         try:
             track.sync_to_db(client.client)
             logging.debug(f"Track {track.id} added to db")
-            successfully_added += 1
         except Exception as e:
             logging.warning(f"Error adding track to db: {e}")
-
-    logging.info(
-        "Command: add_tracks_from_file_batch | File: %s | Successfully added %d/%d tracks to database",
-        file_path,
-        successfully_added,
-        len(tracks_ids),
-    )
 
 
 def remove_tracks_from_file(client, playlist_id, file_path):
@@ -243,11 +221,7 @@ def remove_tracks_from_file(client, playlist_id, file_path):
     successfully_removed = playlist.remove_tracks(track_ids, client.client)
 
     if not successfully_removed:
-        logging.warning(
-            "Command: remove_tracks_from_file | File: %s | Playlist: %s | No tracks were successfully removed",
-            file_path,
-            normalized_playlist_id,
-        )
+        logging.warning(f"No tracks were successfully removed from playlist {normalized_playlist_id}")
         return
 
     # Remove from local DB playlists_tracks (not tracks table — preserve negative cache)
@@ -264,14 +238,6 @@ def remove_tracks_from_file(client, playlist_id, file_path):
             [normalized_playlist_id, *chunk],
         )
     con.commit()
-    logging.info(
-        "Command: remove_tracks_from_file | File: %s | Removed %d/%d tracks from playlist %s [track_ids: %s]",
-        file_path,
-        len(successfully_removed),
-        len(track_ids),
-        normalized_playlist_id,
-        ",".join(successfully_removed),
-    )
 
 
 def discover_from_playlists(client, discover_playlist_id, sources_playlists_ids):
