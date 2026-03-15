@@ -142,14 +142,14 @@ new_tracks_pattern = "IR%"
 
 **Output without pattern:**
 ```csv
-timestamp;total_tracks
-2026-03-15 09:30;14204
-2026-03-15 14:45;14205
+timestamp;total_tracks;pattern_tracks
+2026-03-15 09:30;14204;
+2026-03-15 14:45;14205;
 ```
 
 **Output with pattern configured:**
 ```csv
-timestamp;total_tracks;new_tracks
+timestamp;total_tracks;pattern_tracks
 2026-03-15 09:30;14204;3637
 2026-03-15 14:45;14205;3640
 ```

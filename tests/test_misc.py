@@ -1037,3 +1037,52 @@ class TestLogTrackCounts:
         assert lines[0] == "timestamp;total_tracks;pattern_tracks"
         assert data[1] == "3"  # total_tracks
         assert data[2] == "2"  # pattern_tracks (New%)
+
+    def test_log_track_counts_rejects_empty_pattern(self, temp_database, tmp_path, monkeypatch):
+        """Test that empty new_tracks_pattern raises ValueError."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(utils, "WORK_DIR", tmp_path)
+
+        config = {
+            "spotify": {
+                "track_counts_log": str(tmp_path / "counts.csv"),
+                "new_tracks_pattern": "",  # Empty string should be rejected
+            }
+        }
+
+        with pytest.raises(ValueError, match=r"Invalid new_tracks_pattern.*must be a non-empty string"):
+            misc.log_track_counts(config)
+
+    def test_log_track_counts_rejects_non_string_pattern(self, temp_database, tmp_path, monkeypatch):
+        """Test that non-string new_tracks_pattern raises ValueError."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(utils, "WORK_DIR", tmp_path)
+
+        config = {
+            "spotify": {
+                "track_counts_log": str(tmp_path / "counts.csv"),
+                "new_tracks_pattern": 123,  # Non-string should be rejected
+            }
+        }
+
+        with pytest.raises(ValueError, match=r"Invalid new_tracks_pattern.*must be a non-empty string"):
+            misc.log_track_counts(config)
+
+    def test_log_track_counts_validates_existing_header(self, temp_database, tmp_path, monkeypatch):
+        """Test that mismatched CSV header raises ValueError."""
+        monkeypatch.setattr(utils, "DATABASE", temp_database)
+        monkeypatch.setattr(utils, "WORK_DIR", tmp_path)
+
+        log_file = tmp_path / "counts.csv"
+
+        # Pre-create a CSV with wrong header
+        log_file.write_text("timestamp,total_tracks,old_column\n")
+
+        config = {
+            "spotify": {
+                "track_counts_log": str(log_file),
+            }
+        }
+
+        with pytest.raises(ValueError, match=r"CSV header mismatch.*expected.*found"):
+            misc.log_track_counts(config)

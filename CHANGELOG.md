@@ -39,7 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Configurable log path via `track_counts_log` in `spotfm.toml`
   - Optional secondary pattern tracking via `new_tracks_pattern` (e.g., "IR%", "New%")
   - Unopinionated by default (no pattern tracking without config)
-  - Dynamic CSV columns: adds `new_tracks` column only when pattern is configured
+  - Stable 3-column CSV schema: `timestamp;total_tracks;pattern_tracks` (pattern_tracks is empty when no pattern configured)
 
 **Last.FM Recent Scrobbles Enhancements**:
 - **State tracking now default** for `recent-scrobbles` command
