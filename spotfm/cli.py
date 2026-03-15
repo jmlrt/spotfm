@@ -212,9 +212,10 @@ def spotify_cli(args, config):
 
 
 def main():
-    # Set root logger to DEBUG to allow all messages through to handlers
+    # Set root logger to INFO to pass messages through to the file handler (INFO level).
+    # Raised to DEBUG after arg parsing only when -v/--verbose is set.
     root_logger = logging.getLogger()
-    root_logger.setLevel(logging.DEBUG)
+    root_logger.setLevel(logging.INFO)
 
     # Always-on audit log file (with fallback to console-only if filesystem unavailable)
     try:
@@ -319,6 +320,7 @@ def main():
         console_handler.setLevel(logging.INFO)
     if args.verbose:
         console_handler.setLevel(logging.DEBUG)
+        root_logger.setLevel(logging.DEBUG)  # Enable debug records only when -v is set
 
     config = utils.parse_config()
 
