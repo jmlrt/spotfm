@@ -2,7 +2,7 @@
 
 **This document is the source of truth for spotfm's architecture, design decisions, and features.**
 
-Last updated: 2026-03-08
+Last updated: 2026-03-15
 
 ---
 
@@ -252,12 +252,50 @@ c. **`update_from_api(client)`**: Fetch from Spotify API
 3. Create/update Track, Album, Artist entities
 4. Update `playlists_tracks` relationships with `added_at` timestamps
 5. Log progress and summary
+6. (Optional with `--log-counts`) Append track counts to CSV log file
 
 **Rate limiting**: 0.1s between individual track API calls (Spotify batch endpoints removed Feb 2026)
 
-**Example**:
+**Options**:
+- `--log-counts`: After update completes, log track counts to CSV file
+  - Appends row with timestamp and total track count
+  - Optionally tracks secondary pattern (e.g., "IR%" for new tracks)
+  - CSV location: `~/.spotfm/track-counts.csv` (configurable via `track_counts_log`)
+  - Pattern tracking: Optional via `new_tracks_pattern` config
+
+**Configuration** (optional in `spotfm.toml`):
+```toml
+[spotify]
+# Track count logging (both optional)
+track_counts_log = "~/.spotfm/track-counts.csv"  # CSV log location
+new_tracks_pattern = "IR%"                        # Pattern for secondary count (e.g., "IR%", "New%")
+```
+
+**Examples**:
 ```bash
+# Basic: Just update playlists
 spfm spotify update-playlists
+
+# Update and log counts (tracks total tracks only)
+spfm spotify update-playlists --log-counts
+
+# With pattern configured in spotfm.toml, logs both total and pattern-specific counts
+spfm spotify update-playlists --log-counts
+```
+
+**Log Output Examples**:
+Without pattern configured:
+```csv
+timestamp;total_tracks
+2026-03-15 09:30;14204
+2026-03-15 14:45;14205
+```
+
+With `new_tracks_pattern = "IR%"` configured:
+```csv
+timestamp;total_tracks;new_tracks
+2026-03-15 09:30;14204;3637
+2026-03-15 14:45;14205;3640
 ```
 
 #### `discover-from-playlists`

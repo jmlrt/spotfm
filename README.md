@@ -64,6 +64,9 @@ password_hash = "your_password_hash"
 # Update all playlists with latest tracks
 spfm spotify update-playlists
 
+# Update playlists AND log track counts (with optional pattern tracking)
+spfm spotify update-playlists --log-counts
+
 # Discover new tracks from source playlists (adds to discover_playlist)
 spfm spotify discover-from-playlists
 
@@ -116,6 +119,42 @@ password_hash = "..."
 scrobbles_minimum = 2      # Minimum total scrobbles (default: 4)
 period_minimum = 1         # Minimum in period window (unset/omitted: no filter; 1: require ≥1 in period)
 ```
+
+### Track Count Logging
+
+Track playlist statistics over time using the `--log-counts` flag with `update-playlists`:
+
+```bash
+spfm spotify update-playlists --log-counts
+```
+
+Appends a row to `~/.spotfm/track-counts.csv` after each run. Customize via `spotfm.toml`:
+
+```toml
+[spotify]
+# Optional: custom log location (default: ~/.spotfm/track-counts.csv)
+track_counts_log = "~/.spotfm/track-counts.csv"
+
+# Optional: pattern for secondary tracking (default: none)
+# Examples: "IR%", "New%", "Inbox%", "Discover%"
+new_tracks_pattern = "IR%"
+```
+
+**Output without pattern:**
+```csv
+timestamp;total_tracks
+2026-03-15 09:30;14204
+2026-03-15 14:45;14205
+```
+
+**Output with pattern configured:**
+```csv
+timestamp;total_tracks;new_tracks
+2026-03-15 09:30;14204;3637
+2026-03-15 14:45;14205;3640
+```
+
+Use for tracking library growth, auditing new track additions, or workflow analytics. Multiple runs per day are supported—each adds a new timestamped row.
 
 ## Development
 

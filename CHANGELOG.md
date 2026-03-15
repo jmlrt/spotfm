@@ -33,6 +33,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Supports track IDs and Spotify URLs (one per line)
   - Removes from Spotify playlist and local database
   - Preserves orphaned tracks table entries (negative cache for discover workflow)
+- `update-playlists --log-counts` flag for tracking playlist statistics
+  - Appends timestamped track counts to CSV log file (`~/.spotfm/track-counts.csv`)
+  - Supports multiple runs per day with separate timestamps
+  - Configurable log path via `track_counts_log` in `spotfm.toml`
+  - Optional secondary pattern tracking via `new_tracks_pattern` (e.g., "IR%", "New%")
+  - Unopinionated by default (no pattern tracking without config)
+  - Dynamic CSV columns: adds `new_tracks` column only when pattern is configured
 
 **Last.FM Recent Scrobbles Enhancements**:
 - **State tracking now default** for `recent-scrobbles` command
