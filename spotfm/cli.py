@@ -211,14 +211,22 @@ def spotify_cli(args, config):
 
 
 def main():
-    logging.basicConfig()
+    # Set root logger to DEBUG to allow all messages through to handlers
+    root_logger = logging.getLogger()
+    root_logger.setLevel(logging.DEBUG)
 
     # Always-on audit log file
     utils.WORK_DIR.mkdir(parents=True, exist_ok=True)
-    file_handler = RotatingFileHandler(utils.LOG_FILE, maxBytes=1_000_000, backupCount=3)
+    file_handler = RotatingFileHandler(utils.LOG_FILE, maxBytes=1_000_000, backupCount=3, encoding="utf-8")
     file_handler.setLevel(logging.INFO)
     file_handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
-    logging.getLogger().addHandler(file_handler)
+    root_logger.addHandler(file_handler)
+
+    # Console handler (stderr) — level set based on flags after arg parsing
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(logging.Formatter("%(levelname)s: %(message)s"))
+    console_handler.setLevel(logging.WARNING)  # Default: only warnings/errors
+    root_logger.addHandler(console_handler)
 
     parser = argparse.ArgumentParser(
         prog="spotfm",
@@ -300,11 +308,12 @@ def main():
 
     args = parser.parse_args()
 
+    # Set console handler level based on flags
+    console_handler.setLevel(logging.WARNING)  # Default
     if args.info:
-        logging.getLogger().setLevel(logging.INFO)
-
+        console_handler.setLevel(logging.INFO)
     if args.verbose:
-        logging.getLogger().setLevel(logging.DEBUG)
+        console_handler.setLevel(logging.DEBUG)
 
     config = utils.parse_config()
 

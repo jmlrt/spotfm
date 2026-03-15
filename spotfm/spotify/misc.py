@@ -258,7 +258,7 @@ def discover_from_playlists(client, discover_playlist_id, sources_playlists_ids)
 
     for idx, playlist_id in enumerate(sources_playlists_ids, 1):
         playlist = Playlist.get_playlist(playlist_id, client.client, refresh=True, sync_to_db=False)
-        print(f"fetching playlist {playlist.name} {idx}/{total_playlists}", file=sys.stderr, flush=True)
+        print(f"processing playlist {playlist.name} {idx}/{total_playlists}", file=sys.stderr, flush=True)
         logging.info(f"Looking for new tracks into {playlist.id} - {playlist.name}")
 
         # Pre-check which track IDs are already in DB for this discover run.
@@ -303,9 +303,9 @@ def discover_from_playlists(client, discover_playlist_id, sources_playlists_ids)
                 # Track exists and is in other playlists
                 logging.debug(f"Skipping track {track.id} (already in playlists)")
 
-        print(f"discovered {new_this_playlist} new tracks from playlist {playlist.name}", file=sys.stderr)
+        print(f"discovered {new_this_playlist} new tracks from playlist {playlist.name}", file=sys.stderr, flush=True)
 
-    print(f"total discovered from all playlists: {len(new_tracks)} new tracks", file=sys.stderr)
+    print(f"total discovered from all playlists: {len(new_tracks)} new tracks", file=sys.stderr, flush=True)
     logging.info(f"Adding new tracks to {discover_playlist.id} - {discover_playlist.name}")
     if len(new_tracks) > 0:
         discover_playlist.add_tracks(new_tracks, client.client)
