@@ -258,7 +258,7 @@ def discover_from_playlists(client, discover_playlist_id, sources_playlists_ids)
 
     for idx, playlist_id in enumerate(sources_playlists_ids, 1):
         playlist = Playlist.get_playlist(playlist_id, client.client, refresh=True, sync_to_db=False)
-        print(f"processing playlist {playlist.name} {idx}/{total_playlists}", file=sys.stderr, flush=True)
+        print(f"fetching playlist {playlist.name} {idx}/{total_playlists}", file=sys.stderr, flush=True)
         logging.info(f"Looking for new tracks into {playlist.id} - {playlist.name}")
 
         # Pre-check which track IDs are already in DB for this discover run.

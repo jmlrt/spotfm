@@ -3,6 +3,7 @@ import logging
 import os
 import shlex
 import subprocess
+import sys
 import tempfile
 from logging.handlers import RotatingFileHandler
 
@@ -215,12 +216,16 @@ def main():
     root_logger = logging.getLogger()
     root_logger.setLevel(logging.DEBUG)
 
-    # Always-on audit log file
-    utils.WORK_DIR.mkdir(parents=True, exist_ok=True)
-    file_handler = RotatingFileHandler(utils.LOG_FILE, maxBytes=1_000_000, backupCount=3, encoding="utf-8")
-    file_handler.setLevel(logging.INFO)
-    file_handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
-    root_logger.addHandler(file_handler)
+    # Always-on audit log file (with fallback to console-only if filesystem unavailable)
+    try:
+        utils.WORK_DIR.mkdir(parents=True, exist_ok=True)
+        file_handler = RotatingFileHandler(utils.LOG_FILE, maxBytes=1_000_000, backupCount=3, encoding="utf-8")
+        file_handler.setLevel(logging.INFO)
+        file_handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
+        root_logger.addHandler(file_handler)
+    except (PermissionError, OSError) as e:
+        # Filesystem issue (e.g. permission denied, read-only home) — fall back to console-only
+        print(f"Warning: Could not create audit log at {utils.LOG_FILE}: {e}", file=sys.stderr)
 
     # Console handler (stderr) — level set based on flags after arg parsing
     console_handler = logging.StreamHandler()

@@ -371,7 +371,7 @@ class Track:
                 sqlite.DATABASE, f"SELECT album_id FROM albums_tracks WHERE track_id == '{self.id}'"
             ).fetchone()[0]
         except TypeError:
-            logging.debug("Album ID %s not found in database", self.id)
+            logging.debug("Album mapping not found for track %s", self.id)
             return False
         album = Album.get_album(self.album_id, client)
         # TODO: add Album object instead
