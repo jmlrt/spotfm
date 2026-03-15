@@ -681,7 +681,8 @@ def log_track_counts(config=None):
 
                 Can customize via config["spotify"]:
                 - track_counts_log: Path to CSV file
-                - new_tracks_pattern: SQL LIKE pattern for pattern-specific tracking (e.g., "IR%", "New%")
+                - new_tracks_pattern: SQL LIKE pattern for pattern-specific tracking (e.g., "IR%", "New%").
+                  Omit this key to disable pattern tracking. If specified, must be a non-empty string.
     """
     # Determine log file path
     if config and "spotify" in config and "track_counts_log" in config["spotify"]:
@@ -700,13 +701,9 @@ def log_track_counts(config=None):
     new_tracks_pattern = None
     if config and "spotify" in config and "new_tracks_pattern" in config["spotify"]:
         new_tracks_pattern = config["spotify"]["new_tracks_pattern"]
-        # Validate pattern is a non-empty string
-        if new_tracks_pattern is not None and (
-            not isinstance(new_tracks_pattern, str) or not new_tracks_pattern.strip()
-        ):
-            raise ValueError(
-                f"Invalid new_tracks_pattern in config: must be a non-empty string, got {new_tracks_pattern!r}"
-            )
+        # Validate pattern is a string (if specified)
+        if new_tracks_pattern is not None and not isinstance(new_tracks_pattern, str):
+            raise ValueError(f"new_tracks_pattern must be a string, got {type(new_tracks_pattern).__name__}")
 
     log_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -729,22 +726,6 @@ def log_track_counts(config=None):
 
     # Check if file needs headers: doesn't exist OR is empty
     needs_header = not log_path.exists() or log_path.stat().st_size == 0
-
-    # If file exists and is non-empty, validate the existing header matches expected schema
-    if log_path.exists() and log_path.stat().st_size > 0 and not needs_header:
-        try:
-            with open(log_path, newline="") as check_file:
-                reader = csv.DictReader(check_file, delimiter=";")
-                if reader.fieldnames != fieldnames:
-                    raise ValueError(
-                        f"CSV header mismatch in {log_path}: "
-                        f"expected {fieldnames}, found {reader.fieldnames}. "
-                        f"Either rotate the file or align the schema."
-                    )
-        except ValueError:
-            raise
-        except csv.Error as e:
-            raise ValueError(f"Failed to validate CSV header in {log_path}: {e}") from e
 
     with open(log_path, "a", newline="") as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter=";")
