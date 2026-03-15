@@ -79,7 +79,7 @@ class Client:
         total_tracks = 0
 
         for idx, playlist_id in enumerate(playlist_ids, 1):
-            print(f"updating playlist {playlist_id} ({idx}/{total_playlists})", file=sys.stderr, flush=True)
+            print(f"fetching playlist {playlist_id} ({idx}/{total_playlists})", file=sys.stderr, flush=True)
             # sync_to_db=False avoids a redundant sync inside get_playlist; we sync explicitly below.
             # refresh=True fetches latest playlist metadata and track IDs.
             # update_from_db() loads the existing snapshot_id so update_from_api() can skip
@@ -91,7 +91,7 @@ class Client:
             total_tracks += track_count
             logging.info("Synced %d tracks from playlist %s - %s to database", track_count, playlist.id, playlist.name)
 
-        print(f"synced {total_playlists} playlists ({total_tracks} total tracks)", file=sys.stderr)
+        print(f"synced {total_playlists} playlists ({total_tracks} total tracks)", file=sys.stderr, flush=True)
 
         # For full updates, remove playlists that are no longer in the user's Spotify library
         # (e.g. playlists deleted since the last sync). Targeted pattern updates leave other
