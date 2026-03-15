@@ -244,12 +244,39 @@ class Playlist:
         batch_size = 50  # Spotify API limit for playlist add items
         tracks_id_batches = [tracks_id[i : i + batch_size] for i in range(0, len(tracks_id), batch_size)]
 
+        logging.info(
+            "Adding %d tracks to playlist %s - %s [track_ids: %s]",
+            len(tracks_id),
+            self.id,
+            self.name,
+            ",".join(tracks_id),
+        )
+
+        successfully_added = []
         for i, batch in enumerate(tracks_id_batches):
-            logging.info(f"Batch: {i}/{len(tracks_id_batches)}")
+            logging.info(f"Batch: {i + 1}/{len(tracks_id_batches)} ({len(batch)} tracks)")
             try:
                 client.playlist_add_items(self.id, batch)
-            except TypeError:
-                print(f"Error: Failed to add {batch} to playlist {self.id}")
+                successfully_added.extend(batch)
+                logging.debug(f"Successfully added batch {i + 1}/{len(tracks_id_batches)}")
+            except TypeError as e:
+                logging.error(
+                    "Failed to add batch %d/%d to playlist %s - %s: %s [track_ids: %s]",
+                    i + 1,
+                    len(tracks_id_batches),
+                    self.id,
+                    self.name,
+                    e,
+                    ",".join(batch),
+                )
+
+        logging.info(
+            "Playlist %s - %s: successfully added %d/%d tracks",
+            self.id,
+            self.name,
+            len(successfully_added),
+            len(tracks_id),
+        )
 
     def remove_tracks(self, track_ids, client):
         """Remove tracks from playlist and return IDs that were successfully removed.
@@ -265,12 +292,37 @@ class Playlist:
         track_ids_batches = [track_ids[i : i + batch_size] for i in range(0, len(track_ids), batch_size)]
         successfully_removed = []
 
+        logging.info(
+            "Removing %d tracks from playlist %s - %s [track_ids: %s]",
+            len(track_ids),
+            self.id,
+            self.name,
+            ",".join(track_ids),
+        )
+
         for i, batch in enumerate(track_ids_batches):
-            logging.info(f"Remove batch: {i}/{len(track_ids_batches)}")
+            logging.info(f"Remove batch: {i + 1}/{len(track_ids_batches)} ({len(batch)} tracks)")
             try:
                 client.playlist_remove_all_occurrences_of_items(self.id, batch)
                 successfully_removed.extend(batch)
-            except TypeError:
-                logging.error(f"Failed to remove {batch} from playlist {self.id}")
+                logging.debug(f"Successfully removed batch {i + 1}/{len(track_ids_batches)}")
+            except TypeError as e:
+                logging.error(
+                    "Failed to remove batch %d/%d from playlist %s - %s: %s [track_ids: %s]",
+                    i + 1,
+                    len(track_ids_batches),
+                    self.id,
+                    self.name,
+                    e,
+                    ",".join(batch),
+                )
+
+        logging.info(
+            "Playlist %s - %s: successfully removed %d/%d tracks",
+            self.id,
+            self.name,
+            len(successfully_removed),
+            len(track_ids),
+        )
 
         return successfully_removed

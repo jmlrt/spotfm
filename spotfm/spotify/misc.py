@@ -124,36 +124,79 @@ def resolve_playlist_patterns_to_ids(playlists_patterns, include_names=False):
 
 
 def add_tracks_from_file(client, file_path):
-    tracks_ids = utils.manage_tracks_ids_file(file_path)
+    """Add tracks from file to local database (for later playlist operations).
 
+    Note: This command adds tracks to the LOCAL database only, not to any Spotify playlist.
+    Use after with add-tracks-from-file to add to a specific playlist, or rely on
+    discover-from-playlists to surface them.
+
+    Args:
+        client: Spotify client wrapper instance
+        file_path: Path to file containing track IDs (one per line)
+    """
+    tracks_ids = utils.manage_tracks_ids_file(file_path)
+    logging.info("Command: add_tracks_from_file | File: %s | Adding %d tracks to database", file_path, len(tracks_ids))
+
+    successfully_added = 0
     for track_id in tracks_ids:
-        logging.info(f"Initializing track {track_id}")
+        logging.debug(f"Initializing track {track_id}")
         track = Track.get_track(track_id, client.client)
 
         if track.name is not None and track.artists is not None and track.album is not None:
             track.sync_to_db(client)
-            logging.info(f"Track {track.id} added to db")
+            logging.debug(f"Track {track.id} added to db")
+            successfully_added += 1
         else:
-            logging.info(f"Error: Track {track.id} not found")
+            logging.warning(f"Track {track_id} not found on Spotify")
 
         # Prevent rate limiting (429 errors)
         sleep(0.1)
 
+    logging.info(
+        "Command: add_tracks_from_file | File: %s | Successfully added %d/%d tracks to database",
+        file_path,
+        successfully_added,
+        len(tracks_ids),
+    )
+
 
 def add_tracks_from_file_batch(client, file_path):
-    """Add tracks from file using optimized batch processing."""
+    """Add tracks from file using optimized batch processing.
+
+    Note: This command adds tracks to the LOCAL database only, not to any Spotify playlist.
+    Use after with add-tracks-from-file to add to a specific playlist, or rely on
+    discover-from-playlists to surface them.
+
+    Args:
+        client: Spotify client wrapper instance
+        file_path: Path to file containing track IDs (one per line)
+    """
     tracks_ids = utils.manage_tracks_ids_file(file_path)
+    logging.info(
+        "Command: add_tracks_from_file_batch | File: %s | Adding %d tracks to database (batch mode)",
+        file_path,
+        len(tracks_ids),
+    )
 
     # Track.get_tracks() handles all fetching and syncing
     tracks = Track.get_tracks(tracks_ids, client.client, refresh=False)
 
     # Sync tracks to DB
+    successfully_added = 0
     for track in tracks:
         try:
             track.sync_to_db(client.client)
-            logging.info(f"Track {track.id} added to db")
+            logging.debug(f"Track {track.id} added to db")
+            successfully_added += 1
         except Exception as e:
-            logging.info(f"Error adding track to db: {e}")
+            logging.warning(f"Error adding track to db: {e}")
+
+    logging.info(
+        "Command: add_tracks_from_file_batch | File: %s | Successfully added %d/%d tracks to database",
+        file_path,
+        successfully_added,
+        len(tracks_ids),
+    )
 
 
 def remove_tracks_from_file(client, playlist_id, file_path):
@@ -200,7 +243,11 @@ def remove_tracks_from_file(client, playlist_id, file_path):
     successfully_removed = playlist.remove_tracks(track_ids, client.client)
 
     if not successfully_removed:
-        logging.warning(f"No tracks were successfully removed from playlist {normalized_playlist_id}")
+        logging.warning(
+            "Command: remove_tracks_from_file | File: %s | Playlist: %s | No tracks were successfully removed",
+            file_path,
+            normalized_playlist_id,
+        )
         return
 
     # Remove from local DB playlists_tracks (not tracks table — preserve negative cache)
@@ -217,7 +264,14 @@ def remove_tracks_from_file(client, playlist_id, file_path):
             [normalized_playlist_id, *chunk],
         )
     con.commit()
-    logging.info(f"Removed {len(successfully_removed)} tracks from playlist {normalized_playlist_id}")
+    logging.info(
+        "Command: remove_tracks_from_file | File: %s | Removed %d/%d tracks from playlist %s [track_ids: %s]",
+        file_path,
+        len(successfully_removed),
+        len(track_ids),
+        normalized_playlist_id,
+        ",".join(successfully_removed),
+    )
 
 
 def discover_from_playlists(client, discover_playlist_id, sources_playlists_ids):
@@ -306,14 +360,25 @@ def discover_from_playlists(client, discover_playlist_id, sources_playlists_ids)
         print(f"discovered {new_this_playlist} new tracks from playlist {playlist.name}", file=sys.stderr, flush=True)
 
     print(f"total discovered from all playlists: {len(new_tracks)} new tracks", file=sys.stderr, flush=True)
-    logging.info(f"Adding new tracks to {discover_playlist.id} - {discover_playlist.name}")
+
     if len(new_tracks) > 0:
+        logging.info(
+            "Command: discover_from_playlists | Found %d new tracks from %d source playlists | Adding to discover playlist %s - %s",
+            len(new_tracks),
+            total_playlists,
+            discover_playlist.id,
+            discover_playlist.name,
+        )
         discover_playlist.add_tracks(new_tracks, client.client)
         # Only sync to DB after successful playlist add to prevent orphaning tracks
         # if the Spotify API call fails
         logging.info(f"Adding {len(new_tracks)} new tracks to db")
         for track in new_tracks:
             track.sync_to_db(client.client)
+    else:
+        logging.info(
+            "Command: discover_from_playlists | No new tracks discovered from %d source playlists", total_playlists
+        )
 
 
 def count_tracks_by_playlists():
