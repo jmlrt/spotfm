@@ -4,6 +4,7 @@ import os
 import shlex
 import subprocess
 import tempfile
+from logging.handlers import RotatingFileHandler
 
 from spotfm import lastfm, utils
 from spotfm.lastfm import read_lastfm_state, save_lastfm_state
@@ -211,6 +212,13 @@ def spotify_cli(args, config):
 
 def main():
     logging.basicConfig()
+
+    # Always-on audit log file
+    utils.WORK_DIR.mkdir(parents=True, exist_ok=True)
+    file_handler = RotatingFileHandler(utils.LOG_FILE, maxBytes=1_000_000, backupCount=3)
+    file_handler.setLevel(logging.INFO)
+    file_handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
+    logging.getLogger().addHandler(file_handler)
 
     parser = argparse.ArgumentParser(
         prog="spotfm",

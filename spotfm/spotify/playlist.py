@@ -49,7 +49,7 @@ class Playlist:
 
     def __init__(self, playlist_id, client=None, refresh=True):
         self.id = utils.parse_url(playlist_id)
-        logging.info("Initializing Playlist %s", self.id)
+        logging.debug("Initializing Playlist %s", self.id)
         self.name = None
         self.owner = None
         self.raw_tracks = None  # [(track_id, added_at)] loaded from DB or API
@@ -130,14 +130,14 @@ class Playlist:
                 self.name, self.owner, self.updated = result
                 self.snapshot_id = None
         except TypeError:
-            logging.info("Playlist ID %s not found in database", self.id)
+            logging.debug("Playlist ID %s not found in database", self.id)
             return False
         results = sqlite.select_db(
             sqlite.DATABASE, f"SELECT track_id, added_at FROM playlists_tracks WHERE playlist_id == '{self.id}'"
         ).fetchall()
         self.raw_tracks = [(col[0], col[1]) for col in results]
         self.tracks = None  # Invalidate stale hydrated tracks to keep state consistent with raw_tracks
-        logging.info("Playlist ID %s retrieved from database", self.id)
+        logging.debug("Playlist ID %s retrieved from database", self.id)
         return True
 
     def update_from_api(self, client):

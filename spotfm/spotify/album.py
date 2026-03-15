@@ -12,7 +12,7 @@ class Album:
     kind = "album"
 
     def __init__(self, id, client=None, refresh=False):
-        logging.info("Initializing Album %s", id)
+        logging.debug("Initializing Album %s", id)
         self.id = utils.parse_url(id)
         self.name = None
         self.release_date = None
@@ -100,7 +100,7 @@ class Album:
                 sqlite.DATABASE, f"SELECT name, release_date, updated_at FROM albums WHERE id == '{self.id}'"
             ).fetchone()
         except TypeError:
-            logging.info("Album ID %s not found in database", self.id)
+            logging.debug("Album ID %s not found in database", self.id)
             return False
         results = sqlite.select_db(
             sqlite.DATABASE, f"SELECT artist_id FROM albums_artists WHERE album_id == '{self.id}'"
@@ -108,7 +108,7 @@ class Album:
         self.artists_id = [col[0] for col in results]
         if hydrate_artists:
             self.artists = [Artist.get_artist(id, client) for id in self.artists_id]
-        logging.info("Album ID %s retrieved from database", self.id)
+        logging.debug("Album ID %s retrieved from database", self.id)
         return True
 
     def update_from_api(self, client, hydrate_artists=True):

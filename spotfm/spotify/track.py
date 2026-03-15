@@ -75,7 +75,7 @@ class Track:
     kind = "track"
 
     def __init__(self, id, client=None, refresh=False):
-        logging.info("Initializing Track %s", id)
+        logging.debug("Initializing Track %s", id)
         self.id = utils.parse_url(id)
         self.name = None
         self.album_id = None
@@ -364,14 +364,14 @@ class Track:
             else:
                 raise
         except TypeError:
-            logging.info("Track ID %s not found in database", self.id)
+            logging.debug("Track ID %s not found in database", self.id)
             return False
         try:
             self.album_id = sqlite.select_db(
                 sqlite.DATABASE, f"SELECT album_id FROM albums_tracks WHERE track_id == '{self.id}'"
             ).fetchone()[0]
         except TypeError:
-            logging.info("Album ID %s not found in database", self.id)
+            logging.debug("Album ID %s not found in database", self.id)
             return False
         album = Album.get_album(self.album_id, client)
         # TODO: add Album object instead
@@ -382,7 +382,7 @@ class Track:
         ).fetchall()
         self.artists_id = [col[0] for col in results]
         self.artists = [Artist.get_artist(id, client) for id in self.artists_id]
-        logging.info("Track ID %s retrieved from database", self.id)
+        logging.debug("Track ID %s retrieved from database", self.id)
         return True
 
     def update_from_api(self, client):

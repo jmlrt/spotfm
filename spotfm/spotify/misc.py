@@ -43,6 +43,7 @@ Timing should not be removed without understanding Spotify API limits.
 
 import csv
 import logging
+import sys
 from datetime import datetime
 from pathlib import Path
 from time import sleep
@@ -253,9 +254,11 @@ def discover_from_playlists(client, discover_playlist_id, sources_playlists_ids)
     discover_playlist = Playlist.get_playlist(discover_playlist_id, client.client, refresh=True, sync_to_db=False)
     new_tracks = []
     seen_new_ids = set()  # Track IDs already added in this run to avoid duplicates across source playlists
+    total_playlists = len(sources_playlists_ids)
 
-    for playlist_id in sources_playlists_ids:
+    for idx, playlist_id in enumerate(sources_playlists_ids, 1):
         playlist = Playlist.get_playlist(playlist_id, client.client, refresh=True, sync_to_db=False)
+        print(f"fetching playlist {playlist.name} {idx}/{total_playlists}", file=sys.stderr, flush=True)
         logging.info(f"Looking for new tracks into {playlist.id} - {playlist.name}")
 
         # Pre-check which track IDs are already in DB for this discover run.
@@ -282,13 +285,15 @@ def discover_from_playlists(client, discover_playlist_id, sources_playlists_ids)
         # playlist.tracks is already populated by update_from_api() (with sync_to_db=False).
         # Using it directly avoids a redundant second get_tracks() call.
         tracks = playlist.tracks
+        new_this_playlist = 0
 
         for track in tracks:
             if track.id not in in_db_before and track.id not in seen_new_ids:
                 # Track wasn't in DB before this run AND not already added in a previous source playlist
-                logging.info(f"New track found: {track.id}")
+                logging.debug(f"New track found: {track.id}")
                 new_tracks.append(track)
                 seen_new_ids.add(track.id)
+                new_this_playlist += 1
             elif track.is_orphaned():
                 # Track exists in DB but not in any playlist (was intentionally removed)
                 last_seen = getattr(track, "last_seen_at", "unknown")
@@ -298,6 +303,9 @@ def discover_from_playlists(client, discover_playlist_id, sources_playlists_ids)
                 # Track exists and is in other playlists
                 logging.debug(f"Skipping track {track.id} (already in playlists)")
 
+        print(f"discovered {new_this_playlist} new tracks from playlist {playlist.name}", file=sys.stderr)
+
+    print(f"total discovered from all playlists: {len(new_tracks)} new tracks", file=sys.stderr)
     logging.info(f"Adding new tracks to {discover_playlist.id} - {discover_playlist.name}")
     if len(new_tracks) > 0:
         discover_playlist.add_tracks(new_tracks, client.client)

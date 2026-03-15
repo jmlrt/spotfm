@@ -10,7 +10,7 @@ class Artist:
     kind = "artist"
 
     def __init__(self, id, client=None, refresh=False):
-        logging.info("Initializing Artist %s", id)
+        logging.debug("Initializing Artist %s", id)
         self.id = utils.parse_url(id)
         self.name = None
         self.genres = []
@@ -92,13 +92,13 @@ class Artist:
                 sqlite.DATABASE, f"SELECT name, updated_at FROM artists WHERE id == '{self.id}'"
             ).fetchone()
         except TypeError:
-            logging.info("Artist ID %s not found in database", self.id)
+            logging.debug("Artist ID %s not found in database", self.id)
             return False
         results = sqlite.select_db(
             sqlite.DATABASE, f"SELECT genre FROM artists_genres WHERE artist_id == '{self.id}'"
         ).fetchall()
         self.genres = [col[0] for col in results]
-        logging.info("Artist ID %s retrieved from database", self.id)
+        logging.debug("Artist ID %s retrieved from database", self.id)
         return True
 
     def update_from_api(self, client):
