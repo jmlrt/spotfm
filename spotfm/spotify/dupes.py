@@ -425,6 +425,12 @@ def find_duplicate_names(excluded_playlist_ids=None, output_file=None, threshold
                 if track1["id"] == track2["id"]:
                     continue
 
+                # Skip if both tracks are in exactly the same set of playlists
+                playlists1_ids = frozenset(p[0] for p in track1["playlists"])
+                playlists2_ids = frozenset(p[0] for p in track2["playlists"])
+                if playlists1_ids == playlists2_ids:
+                    continue
+
                 # Create unique pair key to avoid duplicates
                 pair_key = tuple(sorted([track1["id"], track2["id"]]))
                 if pair_key in seen_pairs:
@@ -530,6 +536,12 @@ def find_duplicate_names(excluded_playlist_ids=None, output_file=None, threshold
         score = fuzz.partial_ratio(name1, name2)
 
         if score < pass2_threshold:
+            continue
+
+        # Skip if both tracks are in exactly the same set of playlists
+        playlists1_ids = frozenset(p[0] for p in track1["playlists"])
+        playlists2_ids = frozenset(p[0] for p in track2["playlists"])
+        if playlists1_ids == playlists2_ids:
             continue
 
         # Filter out false positives

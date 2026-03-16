@@ -536,6 +536,79 @@ class TestFindDuplicateNames:
             assert pair not in seen_pairs, "Same pair reported twice"
             seen_pairs.add(pair)
 
+    def test_same_id_tracks_excluded(self, populated_db, monkeypatch):
+        """Test that tracks with the same ID are excluded even if names differ."""
+        monkeypatch.setattr(utils, "DATABASE", populated_db)
+
+        # Mock get_fuzzy_match_candidates to return two candidates with same ID
+        candidates = [
+            {
+                "id": "duplicate_id",
+                "name": "Track Name A",
+                "artists": "Artist 1",
+                "playlists": [("playlist1", "Playlist 1"), ("playlist2", "Playlist 2")],
+                "full_name": "Artist 1 - Track Name A",
+                "name_prefix": "tra",
+                "name_length": 12,
+            },
+            {
+                "id": "duplicate_id",
+                "name": "Track Name B",
+                "artists": "Artist 1",
+                "playlists": [("playlist3", "Playlist 3"), ("playlist4", "Playlist 4")],
+                "full_name": "Artist 1 - Track Name B",
+                "name_prefix": "tra",
+                "name_length": 12,
+            },
+        ]
+
+        def mock_get_candidates(*args, **kwargs):
+            return candidates
+
+        monkeypatch.setattr(dupes, "get_fuzzy_match_candidates", mock_get_candidates)
+
+        duplicates = dupes.find_duplicate_names(threshold=80)
+
+        # Should exclude the pair because they have the same ID
+        assert len(duplicates) == 0
+
+    def test_same_playlist_tracks_excluded(self, populated_db, monkeypatch):
+        """Test that tracks appearing in the exact same playlists are excluded."""
+        monkeypatch.setattr(utils, "DATABASE", populated_db)
+
+        # Mock get_fuzzy_match_candidates to return candidates in identical playlists
+        shared_playlists = [("playlist1", "Playlist 1"), ("playlist2", "Playlist 2")]
+        candidates = [
+            {
+                "id": "track1",
+                "name": "Come Together",
+                "artists": "The Beatles",
+                "playlists": shared_playlists,
+                "full_name": "The Beatles - Come Together",
+                "name_prefix": "com",
+                "name_length": 14,
+            },
+            {
+                "id": "track2",
+                "name": "Come Together Remix",
+                "artists": "The Beatles",
+                "playlists": shared_playlists,  # Exact same playlists
+                "full_name": "The Beatles - Come Together Remix",
+                "name_prefix": "com",
+                "name_length": 19,
+            },
+        ]
+
+        def mock_get_candidates(*args, **kwargs):
+            return candidates
+
+        monkeypatch.setattr(dupes, "get_fuzzy_match_candidates", mock_get_candidates)
+
+        duplicates = dupes.find_duplicate_names(threshold=80)
+
+        # Should exclude the pair because they appear in the exact same playlists
+        assert len(duplicates) == 0
+
 
 @pytest.mark.unit
 class TestWriteDuplicatesCsv:
