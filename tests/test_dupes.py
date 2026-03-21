@@ -541,24 +541,28 @@ class TestFindDuplicateNames:
         monkeypatch.setattr(utils, "DATABASE", populated_db)
 
         # Mock get_fuzzy_match_candidates to return two candidates with same ID
+        playlists1 = [("playlist1", "Playlist 1"), ("playlist2", "Playlist 2")]
+        playlists2 = [("playlist3", "Playlist 3"), ("playlist4", "Playlist 4")]
         candidates = [
             {
                 "id": "duplicate_id",
                 "name": "Track Name A",
                 "artists": "Artist 1",
-                "playlists": [("playlist1", "Playlist 1"), ("playlist2", "Playlist 2")],
+                "playlists": playlists1,
                 "full_name": "Artist 1 - Track Name A",
                 "name_prefix": "tra",
                 "name_length": 12,
+                "playlist_id_set": frozenset(p[0] for p in playlists1),
             },
             {
                 "id": "duplicate_id",
                 "name": "Track Name B",
                 "artists": "Artist 1",
-                "playlists": [("playlist3", "Playlist 3"), ("playlist4", "Playlist 4")],
+                "playlists": playlists2,
                 "full_name": "Artist 1 - Track Name B",
                 "name_prefix": "tra",
                 "name_length": 12,
+                "playlist_id_set": frozenset(p[0] for p in playlists2),
             },
         ]
 
@@ -578,6 +582,7 @@ class TestFindDuplicateNames:
 
         # Mock get_fuzzy_match_candidates to return candidates in identical playlists
         shared_playlists = [("playlist1", "Playlist 1"), ("playlist2", "Playlist 2")]
+        shared_playlist_id_set = frozenset(p[0] for p in shared_playlists)
         candidates = [
             {
                 "id": "track1",
@@ -587,6 +592,7 @@ class TestFindDuplicateNames:
                 "full_name": "The Beatles - Come Together",
                 "name_prefix": "com",
                 "name_length": 14,
+                "playlist_id_set": shared_playlist_id_set,
             },
             {
                 "id": "track2",
@@ -596,6 +602,7 @@ class TestFindDuplicateNames:
                 "full_name": "The Beatles - Come Together Remix",
                 "name_prefix": "com",
                 "name_length": 19,
+                "playlist_id_set": shared_playlist_id_set,
             },
         ]
 
