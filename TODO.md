@@ -2,17 +2,6 @@
 
 ## Enhancements (Ordered by Priority)
 
-### 🔴 HIGH PRIORITY
-
-#### Fix `find-duplicate-names` to Filter Same-ID Dupes
-- Remove false positives where both tracks have the same Spotify ID
-  - Current: Outputs dupes even when `playlists1` and `playlists2` are identical or track IDs match
-  - Root cause: `get_fuzzy_match_candidates()` doesn't pre-filter by playlist/ID before fuzzy matching
-  - Impact: Reduces noise, makes output actionable (every dupe is a real version difference)
-  - Target: Only output dupes where track IDs differ (true versions/remixes)
-  - Files: `spotfm/spotify/dupes.py` (get_fuzzy_match_candidates, find_duplicate_names)
-  - **Effort**: Low (~30 minutes)
-
 ### 🟡 MEDIUM PRIORITY
 
 #### Improve Duplicate Detection with Duration & Version Categorization
