@@ -4,6 +4,24 @@
 
 ### 🟡 MEDIUM PRIORITY
 
+#### Improve Duplicate Detection with Duration & Version Categorization
+- **Part 1: Add duration_ms to track storage**
+  - Store Spotify's `duration_ms` field when syncing tracks (currently fetched but discarded)
+  - Add `duration_ms INTEGER` column to tracks table via migration
+  - Files: `spotfm/sqlite.py` (add migration), `spotfm/spotify/track.py` (store in sync_to_db)
+  - **Effort**: Low (~30 minutes)
+
+- **Part 2: Enhance `find-duplicate-names` output with categorization**
+  - Current: Outputs all fuzzy matches equally, requiring manual review
+  - Target: Flag each dupe as SAFE, QUESTIONABLE, or NOT_A_DUPE based on:
+    - **SAFE**: A COLORS SHOW versions, duration match within 90% (same track, different encoding)
+    - **QUESTIONABLE**: Original vs Remix, Studio vs Live, different named versions (Angela vs Angela - Version 2)
+    - **NOT_A_DUPE**: Sequels (Pt. 2, II, 2.0), medleys, collaborations that aren't the same track
+  - Add `--include-duration` flag to `find-duplicate-names` to output duration & duration_diff in CSV
+  - Add categorization logic to classify each dupe pair
+  - Files: `spotfm/spotify/dupes.py` (add duration column to output, add dupe_category logic), `spotfm/cli.py` (add --include-duration flag)
+  - **Effort**: Medium (~2-3 hours)
+
 #### Migrate SQL Queries to Parameterized Statements
 - Replace f-string SQL queries with parameterized queries
   - Current: `SELECT * FROM tracks WHERE id = '{track_id}'` (SQL injection risk)
@@ -11,14 +29,6 @@
   - Impact: Improves security, prevents injection via user input
   - Files: `spotfm/sqlite.py`, `spotfm/spotify/*.py`, tests
   - **Effort**: Medium (~3-5 hours)
-
-#### Improve Duplicate Detection
-- Enhance `dupes-names` to ignore suffix-only matches
-  - Current: matches tracks where only part after "-" is similar
-  - Example issue: Groups "- Nouvelle Ecole" or "- 2011 remastered" as duplicates
-  - Target: Smart parsing to compare only title core, ignore common suffixes
-  - Files: `spotfm/spotify/dupes.py`, `tests/test_dupes.py`
-  - **Effort**: Medium (~3-4 hours)
 
 ### 🟢 LOW PRIORITY
 

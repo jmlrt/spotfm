@@ -203,6 +203,8 @@ def get_fuzzy_match_candidates(excluded_playlist_ids=None, min_name_length=3):
                     playlist_list.append((pid, pname))
 
         full_name = f"{artists} - {track_name}" if artists else track_name
+        # Precompute playlist ID set for efficient comparison in find_duplicate_names
+        playlist_id_set = frozenset(p[0] for p in playlist_list)
 
         candidates.append(
             {
@@ -213,6 +215,7 @@ def get_fuzzy_match_candidates(excluded_playlist_ids=None, min_name_length=3):
                 "full_name": full_name,
                 "name_prefix": name_prefix,
                 "name_length": name_length,
+                "playlist_id_set": playlist_id_set,
             }
         )
 
@@ -425,9 +428,13 @@ def find_duplicate_names(excluded_playlist_ids=None, output_file=None, threshold
                 if track1["id"] == track2["id"]:
                     continue
 
-                # Create unique pair key to avoid duplicates
+                # Create unique pair key to avoid duplicates (check before expensive operations)
                 pair_key = tuple(sorted([track1["id"], track2["id"]]))
                 if pair_key in seen_pairs:
+                    continue
+
+                # Skip if both tracks are in exactly the same set of playlists (use precomputed set)
+                if track1["playlist_id_set"] == track2["playlist_id_set"]:
                     continue
 
                 # Filter out false positives
@@ -530,6 +537,10 @@ def find_duplicate_names(excluded_playlist_ids=None, output_file=None, threshold
         score = fuzz.partial_ratio(name1, name2)
 
         if score < pass2_threshold:
+            continue
+
+        # Skip if both tracks are in exactly the same set of playlists (use precomputed set)
+        if track1["playlist_id_set"] == track2["playlist_id_set"]:
             continue
 
         # Filter out false positives
