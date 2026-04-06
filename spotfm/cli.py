@@ -177,13 +177,11 @@ def spotify_cli(args, config):
             )
         case "find-duplicate-ids":
             excluded = config["spotify"].get("excluded_playlists", [])
-            spotify_dupes.find_duplicate_ids(excluded_playlist_ids=excluded, output_file=args.output)
+            spotify_dupes.find_duplicate_ids(excluded_playlist_ids=excluded)
         case "find-duplicate-names":
             excluded = config["spotify"].get("excluded_playlists", [])
             threshold = args.threshold if hasattr(args, "threshold") else 95
-            spotify_dupes.find_duplicate_names(
-                excluded_playlist_ids=excluded, output_file=args.output, threshold=threshold
-            )
+            spotify_dupes.find_duplicate_names(excluded_playlist_ids=excluded, threshold=threshold)
         case "find-relinked-tracks":
             excluded = config["spotify"].get("excluded_playlists", [])
             spotify_misc.find_relinked_tracks(client.client, excluded_playlist_ids=excluded, output_file=args.output)
@@ -299,7 +297,6 @@ def main():
         "-p", "--playlists", nargs="+", help="Playlist ID(s) or name pattern(s) (use %% as wildcard for LIKE syntax)"
     )
     spotify_parser.add_argument("-f", "--file")
-    spotify_parser.add_argument("-o", "--output", help="Output CSV file path")
     spotify_parser.add_argument("--start-date", help="Filter by album release start date (YYYY-MM-DD)")
     spotify_parser.add_argument("--end-date", help="Filter by album release end date (YYYY-MM-DD)")
     spotify_parser.add_argument("--genre", help="Filter by genre using a regex pattern")
