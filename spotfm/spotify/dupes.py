@@ -115,6 +115,9 @@ def get_tracks_with_playlists_optimized(excluded_playlist_ids=None):
 def find_duplicate_ids(excluded_playlist_ids=None):
     """Find tracks that appear multiple times (exact ID match).
 
+    Outputs CSV-compatible comma-separated format to stdout with ANSI color codes.
+    Format: playlists,artists,track (cyan, green, yellow).
+
     Args:
         excluded_playlist_ids: List of playlist IDs to exclude
 
@@ -372,7 +375,8 @@ def find_duplicate_names(excluded_playlist_ids=None, threshold=95):
 
     Uses prefix grouping and RapidFuzz batch API to reduce O(n²) comparisons.
     Includes secondary pass for same-artist tracks to catch cross-prefix duplicates.
-    Includes progress logging for long-running operations.
+    Outputs CSV-compatible comma-separated format to stdout with ANSI color codes.
+    Format: playlists1,playlists2,artists1,artists2,track1,track2,score (cyan pair1, green pair2, yellow score).
 
     Args:
         excluded_playlist_ids: List of playlist IDs to exclude

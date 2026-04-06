@@ -297,6 +297,7 @@ def main():
         "-p", "--playlists", nargs="+", help="Playlist ID(s) or name pattern(s) (use %% as wildcard for LIKE syntax)"
     )
     spotify_parser.add_argument("-f", "--file")
+    spotify_parser.add_argument("-o", "--output", help="Output CSV file path (for find-tracks, find-relinked-tracks)")
     spotify_parser.add_argument("--start-date", help="Filter by album release start date (YYYY-MM-DD)")
     spotify_parser.add_argument("--end-date", help="Filter by album release end date (YYYY-MM-DD)")
     spotify_parser.add_argument("--genre", help="Filter by genre using a regex pattern")

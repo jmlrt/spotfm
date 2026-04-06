@@ -1,7 +1,5 @@
 """Tests for duplicate detection functionality."""
 
-import csv
-
 import pytest
 
 from spotfm import sqlite, utils
@@ -219,24 +217,6 @@ class TestFindDuplicateIds:
         track1_dup = next((d for d in duplicates if "Come Together" in d["track"]), None)
         if track1_dup:
             assert track1_dup["count"] == 2
-
-    def test_output_to_csv(self, populated_db, monkeypatch, tmp_path):
-        """Test writing duplicates to CSV file."""
-        monkeypatch.setattr(utils, "DATABASE", populated_db)
-
-        output_file = tmp_path / "dupes.csv"
-        duplicates = dupes.find_duplicate_ids(output_file=str(output_file))
-
-        # Verify file was created
-        assert output_file.exists()
-
-        # Read and verify CSV contents
-        with open(output_file) as f:
-            reader = csv.DictReader(f, delimiter=";")
-            rows = list(reader)
-
-        assert len(rows) == len(duplicates)
-        assert rows[0]["Type"] == "ID"
 
     def test_no_duplicates(self, temp_database, monkeypatch):
         """Test when no duplicates exist."""
@@ -493,24 +473,6 @@ class TestFindDuplicateNames:
         # Excluding playlists should reduce matches
         assert len(duplicates_excluded) <= len(duplicates_all)
 
-    def test_output_to_csv(self, populated_db, monkeypatch, tmp_path):
-        """Test writing similar tracks to CSV file."""
-        monkeypatch.setattr(utils, "DATABASE", populated_db)
-
-        output_file = tmp_path / "similar.csv"
-        duplicates = dupes.find_duplicate_names(threshold=85, output_file=str(output_file))
-
-        # Verify file was created
-        assert output_file.exists()
-
-        # Read and verify CSV contents
-        with open(output_file) as f:
-            reader = csv.DictReader(f, delimiter=";")
-            rows = list(reader)
-
-        assert len(rows) == len(duplicates)
-        assert "Score" in reader.fieldnames
-
     def test_score_sorting(self, populated_db, monkeypatch):
         """Test that duplicates are sorted by score descending."""
         monkeypatch.setattr(utils, "DATABASE", populated_db)
@@ -615,113 +577,3 @@ class TestFindDuplicateNames:
 
         # Should exclude the pair because they appear in the exact same playlists
         assert len(duplicates) == 0
-
-
-@pytest.mark.unit
-class TestWriteDuplicatesCsv:
-    """Tests for write_duplicates_csv function."""
-
-    def test_write_csv(self, tmp_path):
-        """Test writing duplicates to CSV file."""
-        duplicates = [
-            {
-                "type": "ID",
-                "track": "The Beatles - Come Together",
-                "count": 3,
-                "playlists": "playlist1_Rock,playlist2_Pop",
-            },
-            {
-                "type": "ID",
-                "track": "The Beatles - Something",
-                "count": 2,
-                "playlists": "playlist1_Rock,playlist3_Jazz",
-            },
-        ]
-
-        output_file = tmp_path / "dupes.csv"
-        dupes.write_duplicates_csv(duplicates, str(output_file))
-
-        # Verify file exists
-        assert output_file.exists()
-
-        # Read and verify contents
-        with open(output_file) as f:
-            reader = csv.DictReader(f, delimiter=";")
-            rows = list(reader)
-
-        assert len(rows) == 2
-        assert rows[0]["Type"] == "ID"
-        assert rows[0]["Track"] == "The Beatles - Come Together"
-        assert rows[0]["Count"] == "3"
-        assert rows[0]["Playlists"] == "playlist1_Rock,playlist2_Pop"
-
-    def test_creates_parent_directory(self, tmp_path):
-        """Test that parent directories are created if needed."""
-        output_file = tmp_path / "subdir" / "nested" / "dupes.csv"
-
-        duplicates = [{"type": "ID", "track": "Track", "count": 2, "playlists": "p1,p2"}]
-
-        dupes.write_duplicates_csv(duplicates, str(output_file))
-
-        assert output_file.exists()
-        assert output_file.parent.exists()
-
-
-@pytest.mark.unit
-class TestWriteSimilarityCsv:
-    """Tests for write_similarity_csv function."""
-
-    def test_write_csv(self, tmp_path):
-        """Test writing similar tracks to CSV file."""
-        duplicates = [
-            {
-                "playlists1": "playlist1_Rock",
-                "artists1": "The Beatles",
-                "track1": "Come Together",
-                "track2": "Come Together - Remastered",
-                "artists2": "The Beatles",
-                "playlists2": "playlist2_Pop",
-                "score": 95,
-                "ratio_type": "token_set_ratio",
-            },
-        ]
-
-        output_file = tmp_path / "similar.csv"
-        dupes.write_similarity_csv(duplicates, str(output_file))
-
-        # Verify file exists
-        assert output_file.exists()
-
-        # Read and verify contents
-        with open(output_file) as f:
-            reader = csv.DictReader(f, delimiter=";")
-            rows = list(reader)
-
-        assert len(rows) == 1
-        assert rows[0]["Artist 1"] == "The Beatles"
-        assert rows[0]["Title 1"] == "Come Together"
-        assert rows[0]["Title 2"] == "Come Together - Remastered"
-        assert rows[0]["Score"] == "95"
-        assert rows[0]["Ratio type"] == "token_set_ratio"
-
-    def test_creates_parent_directory(self, tmp_path):
-        """Test that parent directories are created if needed."""
-        output_file = tmp_path / "subdir" / "nested" / "similar.csv"
-
-        duplicates = [
-            {
-                "playlists1": "p1",
-                "artists1": "Artist",
-                "track1": "Track1",
-                "track2": "Track2",
-                "artists2": "Artist",
-                "playlists2": "p2",
-                "score": 90,
-                "ratio_type": "ratio",
-            }
-        ]
-
-        dupes.write_similarity_csv(duplicates, str(output_file))
-
-        assert output_file.exists()
-        assert output_file.parent.exists()
