@@ -81,12 +81,12 @@ spfm spotify count-tracks
 
 # Find duplicate track IDs (same track in multiple playlists)
 spfm spotify find-duplicate-ids
-spfm spotify find-duplicate-ids -o output.csv  # Save to CSV
+spfm spotify find-duplicate-ids > output.csv  # Save to CSV (includes color codes)
 
 # Find similar track names (fuzzy matching)
 spfm spotify find-duplicate-names
 spfm spotify find-duplicate-names -t 90          # Adjust similarity threshold (0-100)
-spfm spotify find-duplicate-names -o output.csv  # Save to CSV
+spfm spotify find-duplicate-names > output.csv  # Save to CSV (includes color codes)
 
 # Find relinked tracks (Spotify replaces deleted tracks)
 spfm spotify find-relinked-tracks

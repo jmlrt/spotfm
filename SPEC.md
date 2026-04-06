@@ -349,12 +349,14 @@ spfm spotify remove-tracks-from-playlist -p <playlist_id> -f remove.txt
 **Implementation**:
 - Query database only (no API calls)
 - GROUP BY track_id, find where count(playlists) > 1
-- Support CSV export and console output
+- Outputs CSV-compatible comma-separated format (playlists,artists,track) with ANSI color codes
+- Results sorted alphabetically by playlists, then artists, then track name
 
 **Example**:
 ```bash
 spfm spotify find-duplicate-ids
-spfm spotify find-duplicate-ids -o dupes.csv
+spfm spotify find-duplicate-ids > dupes.csv  # Pipe to file (includes ANSI codes)
+spfm spotify find-duplicate-ids | sed 's/\x1b\[[0-9;]*m//g' > dupes.csv  # Strip colors
 ```
 
 #### `find-duplicate-names`
@@ -364,12 +366,15 @@ spfm spotify find-duplicate-ids -o dupes.csv
 - Query all tracks from database
 - Use rapidfuzz with 4 algorithms: ratio, partial_ratio, token_sort_ratio, token_set_ratio
 - Configurable similarity threshold (0-100, default 95)
-- Support CSV export
+- Outputs CSV-compatible comma-separated format (playlists1,playlists2,artists1,artists2,track1,track2,score) with ANSI color codes
+- Results sorted alphabetically by playlist pairs, artists, and track names
+- Playlist pairs normalized to alphabetical order for consistent output
 
 **Example**:
 ```bash
 spfm spotify find-duplicate-names -t 90
-spfm spotify find-duplicate-names -o similar.csv
+spfm spotify find-duplicate-names > similar.csv  # Pipe to file (includes ANSI codes)
+spfm spotify find-duplicate-names | sed 's/\x1b\[[0-9;]*m//g' > similar.csv  # Strip colors
 ```
 
 #### `find-relinked-tracks`

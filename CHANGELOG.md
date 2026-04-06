@@ -112,6 +112,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Reduces `discover-from-playlists` time from ~2.5 min to ~1.5 min for 500+ new tracks
   - Includes batch album/artist fetching post-parallel-phase for efficiency
 
+**Duplicate Detection Output**:
+- `find-duplicate-ids` and `find-duplicate-names` now output CSV-compatible comma-separated format to stdout
+  - Removed separate `-o/--output` option (pipe output with `>` instead)
+  - Added ANSI color codes for terminal readability (cyan/green/yellow fields)
+  - Score values truncated to 2 decimals for compact output
+  - Ratio type removed from `find-duplicate-names` to reduce line length
+  - Playlist pairs normalized to alphabetical order for consistent output
+  - **Before**: `find-duplicate-ids -o output.csv` → **After**: `find-duplicate-ids > output.csv`
+  - For clean CSV without ANSI codes: `find-duplicate-ids | sed 's/\x1b\[[0-9;]*m//g' > output.csv`
+
 ## [Recent Releases]
 
 ### Version History
