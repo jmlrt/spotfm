@@ -377,6 +377,24 @@ spfm spotify find-duplicate-names > similar.csv  # Pipe to file (includes ANSI c
 spfm spotify find-duplicate-names | sed 's/\x1b\[[0-9;]*m//g' > similar.csv  # Strip colors
 ```
 
+**Two-Pass Algorithm**:
+- **Pass 1** (Prefix-based): Groups tracks by first 3 characters, compares within groups
+  - Reduces comparisons from O(n²) to manageable size
+  - Fast for "common variations" like "Song", "Song Remix", "Song Edit"
+- **Pass 2** (Cross-prefix): Checks tracks with shared artists across different prefixes
+  - Catches variations like "Song (Original Mix)" vs "SONG (Dub Remix)"
+  - Lower threshold (90 by default) since artist match is already confirmed
+
+**Playlist Pair Normalization**:
+- Playlist names are sorted alphabetically before joining (e.g., "IR-Inbox,Discover" not "Discover,IR-Inbox")
+- Ensures consistent output regardless of discovery order
+- Prevents duplicate rows for same pair discovered in different orders
+
+**CSV Output Quoting**:
+- Uses Python's csv.writer with QUOTE_MINIMAL to properly escape special characters
+- Handles commas, quotes, and newlines in playlist/artist/track names
+- ANSI color codes only added when outputting to TTY (terminal)
+
 #### `find-relinked-tracks`
 **Purpose**: Find tracks that Spotify replaced (relinked due to artist merges, etc.)
 
