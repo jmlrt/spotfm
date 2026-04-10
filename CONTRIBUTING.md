@@ -201,6 +201,30 @@ Per [CLAUDE.md Development Practices](CLAUDE.md#development-practices):
 
 Don't wait for the user to ask twice—fix it everywhere.
 
+### Working with Duplicate Detection (dupes.py)
+
+When modifying `find_duplicate_ids()` or `find_duplicate_names()`, maintain these invariants:
+
+1. **Deterministic Playlist Ordering**: Always sort playlist names before joining them
+   - **Why**: SQL `GROUP_CONCAT` returns undefined order; different runs can produce different strings
+   - **How**: Use `sorted([pname for pid, pname in playlists])` before `",".join()`
+   - **Impact**: Ensures "Inbox,Discover" always comes out the same way, not "Discover,Inbox"
+
+2. **CSV Output Encoding**: Use `csv.writer()` with proper quoting, not string concatenation
+   - **Why**: Playlist/artist/track names can contain commas, quotes, newlines—naive concatenation breaks parsing
+   - **How**: Use `csv.writer(output, quoting=csv.QUOTE_MINIMAL)` for field handling
+   - **Impact**: Safe to parse with any CSV reader; no escaping surprises
+
+3. **Conditional ANSI Codes**: Only include color codes when outputting to TTY
+   - **Why**: Piped/file output includes ANSI codes that break CSV parsers
+   - **How**: Check `sys.stdout.isatty()` before adding color; parse and re-colorize if needed
+   - **Impact**: Terminal shows colors, `> file.csv` produces clean CSV
+
+4. **Playlist Pair Normalization**: Normalize alphabetically (e.g., "A,B" not "B,A")
+   - **Why**: Same pair can be discovered in different orders; prevents duplicate rows
+   - **How**: Sort both playlist lists before joining; maintain correspondence when swapping
+   - **Impact**: Consistent output regardless of discovery order or playlist comparison order
+
 ## Reporting Issues
 
 When reporting bugs:

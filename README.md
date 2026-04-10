@@ -81,17 +81,38 @@ spfm spotify count-tracks
 
 # Find duplicate track IDs (same track in multiple playlists)
 spfm spotify find-duplicate-ids
-spfm spotify find-duplicate-ids -o output.csv  # Save to CSV
+spfm spotify find-duplicate-ids > output.csv  # Save to CSV (includes color codes)
 
 # Find similar track names (fuzzy matching)
 spfm spotify find-duplicate-names
 spfm spotify find-duplicate-names -t 90          # Adjust similarity threshold (0-100)
-spfm spotify find-duplicate-names -o output.csv  # Save to CSV
+spfm spotify find-duplicate-names > output.csv  # Save to CSV (includes color codes)
 
 # Find relinked tracks (Spotify replaces deleted tracks)
 spfm spotify find-relinked-tracks
 spfm spotify find-relinked-tracks -o output.csv  # Save to CSV
 ```
+
+### Parsing Duplicate Detection Output
+
+The `find-duplicate-ids` and `find-duplicate-names` commands output CSV format with ANSI color codes for terminal readability.
+
+**To parse the CSV programmatically or save to file cleanly:**
+
+```bash
+# Remove ANSI codes for clean CSV
+spfm spotify find-duplicate-ids | sed 's/\x1b\[[0-9;]*m//g' > dupes.csv
+spfm spotify find-duplicate-names | sed 's/\x1b\[[0-9;]*m//g' > similar.csv
+
+# Or use standard CSV tools directly
+spfm spotify find-duplicate-ids | sed 's/\x1b\[[0-9;]*m//g' | python3 -c "import csv, sys; reader = csv.reader(sys.stdin); [print(row) for row in reader]"
+```
+
+**Column reference**:
+- `find-duplicate-ids`: `playlists,artists,track`
+- `find-duplicate-names`: `playlists1,playlists2,artists1,artists2,track1,track2,score`
+
+**Field quoting**: Fields are automatically quoted when they contain commas, quotes, or newlines. The csv.writer ensures proper escaping for safe parsing.
 
 ### Last.FM Commands
 
