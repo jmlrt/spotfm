@@ -156,6 +156,8 @@ def main() -> None:
 
     if args.verbose:
         logging.getLogger().setLevel(logging.DEBUG)
+    else:
+        logging.getLogger().setLevel(logging.WARNING)
 
     source_id = resolve_identifier(args.source, "Source")
     dest_id = resolve_identifier(args.dest, "Destination")
