@@ -63,7 +63,12 @@ def resolve_identifier(identifier: str, label: str) -> str:
 
 
 def move_tracks(
-    client: spotify_client.Client, source_id: str, dest_id: str, count: int, dry_run: bool = False
+    client: spotify_client.Client,
+    source_id: str,
+    dest_id: str,
+    count: int,
+    dry_run: bool = False,
+    verbose: bool = False,
 ) -> list[str]:
     """Move tracks from source to destination playlist, sorted by artist then album.
 
@@ -73,22 +78,29 @@ def move_tracks(
         dest_id: Destination playlist ID
         count: Number of tracks to move
         dry_run: If True, only show what would be moved without modifying playlists
+        verbose: If True, show detailed logging; if False and dry_run, only show track list
 
     Returns:
         List of track IDs that were moved
     """
-    logger.info("Running pre-flight playlist updates...")
+    quiet = dry_run and not verbose
+
+    if not quiet:
+        logger.info("Running pre-flight playlist updates...")
     client.update_playlists(playlists_patterns=[source_id])
     client.update_playlists(playlists_patterns=[dest_id])
 
-    logger.info(f"Loading source playlist {source_id}...")
+    if not quiet:
+        logger.info(f"Loading source playlist {source_id}...")
     source = playlist_module.Playlist.get_playlist(source_id, client.client, refresh=False)
-    if source.tracks:
-        logger.info(f"Loaded {len(source.tracks)} tracks from source playlist")
-    else:
-        logger.info("Loaded 0 tracks from source playlist")
+    if not quiet:
+        if source.tracks:
+            logger.info(f"Loaded {len(source.tracks)} tracks from source playlist")
+        else:
+            logger.info("Loaded 0 tracks from source playlist")
 
-    logger.info("Sorting tracks by artist then album...")
+    if not quiet:
+        logger.info("Sorting tracks by artist then album...")
 
     def sort_key(track):
         artist = track.artists[0].name.lower() if track.artists else ""
@@ -99,14 +111,21 @@ def move_tracks(
     tracks_to_move = sorted_tracks[:count]
     track_ids = [t.id for t in tracks_to_move]
 
-    logger.info(f"Selected {len(tracks_to_move)} tracks to move:")
-    for i, track in enumerate(tracks_to_move, 1):
-        artist = track.artists[0].name if track.artists else "Unknown"
-        album = track.album or "Unknown"
-        logger.info(f"  {i:2d}. {artist} - {album} - {track.name}")
+    if quiet:
+        for i, track in enumerate(tracks_to_move, 1):
+            artist = track.artists[0].name if track.artists else "Unknown"
+            album = track.album or "Unknown"
+            print(f"{i:2d}. {artist} - {album} - {track.name}")
+    else:
+        logger.info(f"Selected {len(tracks_to_move)} tracks to move:")
+        for i, track in enumerate(tracks_to_move, 1):
+            artist = track.artists[0].name if track.artists else "Unknown"
+            album = track.album or "Unknown"
+            logger.info(f"  {i:2d}. {artist} - {album} - {track.name}")
 
     if dry_run:
-        logger.info("DRY RUN: No changes made")
+        if not quiet:
+            logger.info("DRY RUN: No changes made")
         return track_ids
 
     logger.info(f"Adding {len(tracks_to_move)} tracks to destination playlist...")
@@ -152,7 +171,7 @@ def main() -> None:
         scope=spotify_constants.SCOPE,
     )
 
-    move_tracks(client, source_id, dest_id, args.count, dry_run=args.dry_run)
+    move_tracks(client, source_id, dest_id, args.count, dry_run=args.dry_run, verbose=args.verbose)
 
 
 if __name__ == "__main__":
