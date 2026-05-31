@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}spotfm — Recent Scrobbles{% endblock %}
+{% block content %}
+<h2>Recent Scrobbles</h2>
+<p>Last 50 tracks · 90-day window</p>
+
+{% if tracks %}
+<ol>
+  {% for line in tracks %}
+  <li>{{ line }}</li>
+  {% endfor %}
+</ol>
+{% else %}
+<p>No scrobbles found matching the configured thresholds.</p>
+{% endif %}
+{% endblock %}

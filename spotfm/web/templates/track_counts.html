@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}spotfm — Track Counts{% endblock %}
+{% block content %}
+<h2>Track Count History</h2>
+
+{% if error %}
+<p style="color: var(--pico-color-red-500)">{{ error }}</p>
+{% elif rows %}
+<table>
+  <tbody>
+    {% for row in rows %}
+    <tr>
+      {% for cell in row %}
+      <td>{{ cell }}</td>
+      {% endfor %}
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>No data found in track counts log.</p>
+{% endif %}
+{% endblock %}

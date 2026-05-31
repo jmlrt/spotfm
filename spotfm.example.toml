@@ -1,3 +1,6 @@
+[web]
+api_key = ""  # any random string; required to access the webapp
+
 [lastfm]
 api_key = ""
 api_secret = ""

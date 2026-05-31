@@ -1,0 +1,9 @@
+services:
+  spotfm-web:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ~/.spotfm:/root/.spotfm
+      - ~/.cache/spotfm:/root/.cache/spotfm
+    restart: unless-stopped

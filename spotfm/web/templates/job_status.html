@@ -1,0 +1,19 @@
+<div id="job-status-{{ job.id }}"
+  {% if job.status.value in ("pending", "running") %}
+  hx-get="/jobs/{{ job.id }}"
+  hx-trigger="every 2s"
+  hx-swap="outerHTML"
+  {% endif %}
+>
+  <p>
+    <strong>{{ job.name }}</strong> —
+    {% if job.status.value == "pending" %}⏳ Pending…
+    {% elif job.status.value == "running" %}🔄 Running…
+    {% elif job.status.value == "done" %}✅ Done
+    {% else %}❌ Failed: {{ job.error }}
+    {% endif %}
+  </p>
+  {% if job.progress %}
+  <pre style="max-height: 300px; overflow-y: auto; font-size: 0.8rem">{{ job.progress | join('\n') }}</pre>
+  {% endif %}
+</div>
