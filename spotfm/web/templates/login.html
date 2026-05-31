@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>spotfm — Login</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.classless.min.css">
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+  <main class="login-box">
+    <article>
+      <h2>spotfm</h2>
+      {% if error %}
+        <p style="color: var(--pico-color-red-500)">{{ error }}</p>
+      {% endif %}
+      <form action="/login{% if request.query_params.next %}?next={{ request.query_params.next }}{% endif %}" method="post">
+        <label>
+          API Key
+          <input type="password" name="api_key" autofocus required>
+        </label>
+        <button type="submit">Sign in</button>
+      </form>
+    </article>
+  </main>
+</body>
+</html>

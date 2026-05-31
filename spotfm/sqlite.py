@@ -177,7 +177,7 @@ def get_db_connection(database):
         # Close existing connection if it exists
         if _db_connection is not None:
             _db_connection.close()
-        _db_connection = sqlite3.connect(database)
+        _db_connection = sqlite3.connect(database, check_same_thread=False)
         _db_connection.create_function("REGEXP", 2, _regexp)
         _db_connection.set_trace_callback(utils.DATABASE_LOG_LEVEL)
         _current_database = database_str

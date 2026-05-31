@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}spotfm — Duplicates{% endblock %}
+{% block content %}
+<h2>Duplicate Detection</h2>
+
+<section>
+  <h3>Exact duplicates (by ID)</h3>
+  <p>Tracks appearing in multiple playlists with the same Spotify track ID.</p>
+  <a href="/duplicates/ids" role="button" class="outline">Find exact dupes</a>
+
+  {% if dupes_ids is not none %}
+    {% if dupes_ids %}
+    <p>{{ dupes_ids | length }} duplicate(s) found.</p>
+    <table>
+      <thead>
+        <tr><th>Playlists</th><th>Artist</th><th>Track</th></tr>
+      </thead>
+      <tbody>
+        {% for d in dupes_ids %}
+        <tr>
+          <td>{{ d.playlists }}</td>
+          <td>{{ d.artists or "—" }}</td>
+          <td>{{ d.track_name }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p>No exact duplicates found.</p>
+    {% endif %}
+  {% endif %}
+</section>
+
+<section>
+  <h3>Fuzzy duplicates (by name)</h3>
+  <p>Tracks with similar titles and artists (may have different IDs — e.g. album vs. single versions). This is slow.</p>
+  <form action="/duplicates/names" method="post">
+    <button type="submit" class="secondary">Find fuzzy dupes (background job)</button>
+  </form>
+  {% if job %}
+  <div id="job-status">
+    {% include "job_status.html" %}
+  </div>
+  {% endif %}
+</section>
+{% endblock %}
