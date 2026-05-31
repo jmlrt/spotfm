@@ -1,0 +1,54 @@
+.login-box {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh;
+}
+
+.login-box article {
+  width: 100%;
+  max-width: 360px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.stats-grid article {
+  text-align: center;
+  padding: 1rem;
+}
+
+.stats-grid h3 {
+  font-size: 2rem;
+  margin-bottom: 0.25rem;
+}
+
+.stats-grid p {
+  margin: 0;
+  color: var(--pico-muted-color);
+}
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.actions-row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.actions-row form {
+  margin: 0;
+}
+
+nav a {
+  white-space: nowrap;
+}

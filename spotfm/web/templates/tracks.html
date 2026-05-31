@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}spotfm — Tracks{% endblock %}
+{% block content %}
+<h2>Tracks</h2>
+
+<form method="get" action="/tracks">
+  <div class="filter-grid">
+    <label>
+      Playlist
+      <select name="playlist">
+        <option value="">All playlists</option>
+        {% for pid, pname in all_playlists %}
+        <option value="{{ pid }}" {% if filters.playlist == pid %}selected{% endif %}>{{ pname }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>
+      Artist
+      <input type="text" name="artist" value="{{ filters.artist }}" placeholder="Filter by artist">
+    </label>
+    <label>
+      Album
+      <input type="text" name="album" value="{{ filters.album }}" placeholder="Filter by album">
+    </label>
+    <label>
+      Year from
+      <input type="number" name="year_start" value="{{ filters.year_start }}" placeholder="e.g. 2000" min="1900" max="2099">
+    </label>
+    <label>
+      Year to
+      <input type="number" name="year_end" value="{{ filters.year_end }}" placeholder="e.g. 2024" min="1900" max="2099">
+    </label>
+  </div>
+  <button type="submit">Filter</button>
+  <a href="/tracks" role="button" class="outline secondary">Reset</a>
+</form>
+
+{% if tracks %}
+<p>{{ tracks | length }} tracks</p>
+<table>
+  <thead>
+    <tr><th>Artist</th><th>Track</th><th>Album</th><th>Year</th></tr>
+  </thead>
+  <tbody>
+    {% for t in tracks %}
+    <tr>
+      <td>{{ t.artists or "—" }}</td>
+      <td>{{ t.name }}</td>
+      <td>{{ t.album or "—" }}</td>
+      <td>{{ t.year or "—" }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% elif request.query_params %}
+<p>No tracks found matching your filters.</p>
+{% else %}
+<p>Select a filter above to browse tracks.</p>
+{% endif %}
+{% endblock %}
