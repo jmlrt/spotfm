@@ -56,6 +56,7 @@ class Playlist:
         self.tracks = None  # [Track] after hydration; None until update_from_api() is called
         self.updated = None
         self.snapshot_id = None  # Spotify snapshot ID to detect unchanged playlists
+        self.snapshot_unchanged = False  # True when snapshot matched DB — skip redundant track sync
         # TODO: self._tracks_names
         # TODO: self._sorted_tracks
 
@@ -175,6 +176,7 @@ class Playlist:
                 self.tracks = self.get_tracks(client, sync_to_db=False)
             # Update the last-updated marker to reflect a successful refresh
             self.updated = str(date.today())
+            self.snapshot_unchanged = True
             return
 
         self.snapshot_id = new_snapshot
@@ -219,6 +221,12 @@ class Playlist:
             queries.append(
                 f"INSERT OR REPLACE INTO playlists (id, name, owner, updated_at) VALUES ('{self.id}', '{self.name}', '{self.owner}', '{self.updated}')"
             )
+
+        if self.snapshot_unchanged:
+            # Playlist content didn't change — only update metadata, skip track re-sync
+            logging.info("Playlist %s - %s snapshot unchanged, skipping track sync", self.id, self.name)
+            sqlite.query_db(sqlite.DATABASE, queries)
+            return
 
         # Delete all existing tracks for this playlist to handle removed tracks
         queries.append(f"DELETE FROM playlists_tracks WHERE playlist_id = '{self.id}'")
