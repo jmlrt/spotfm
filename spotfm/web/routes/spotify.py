@@ -1,5 +1,7 @@
 import asyncio
+import contextlib
 import csv
+import io
 from pathlib import Path
 
 from fastapi import APIRouter, Request
@@ -106,7 +108,8 @@ async def duplicates_ids(request: Request):
         return redirect
     config = request.app.state.config
     excluded = config.get("spotify", {}).get("excluded_playlists", [])
-    dupes = spotify_dupes.find_duplicate_ids(excluded_playlist_ids=excluded)
+    with contextlib.redirect_stdout(io.StringIO()):
+        dupes = spotify_dupes.find_duplicate_ids(excluded_playlist_ids=excluded)
     return templates.TemplateResponse(request, "duplicates.html", context={"dupes_ids": dupes, "job": None})
 
 
@@ -124,7 +127,11 @@ async def duplicates_names(request: Request):
     excluded = config.get("spotify", {}).get("excluded_playlists", [])
     job = create_job("dupe-names")
 
-    asyncio.create_task(run_job(job, spotify_dupes.find_duplicate_names, excluded_playlist_ids=excluded))  # noqa: RUF006
+    def _find_dupe_names(**kwargs):
+        with contextlib.redirect_stdout(io.StringIO()):
+            return spotify_dupes.find_duplicate_names(**kwargs)
+
+    asyncio.create_task(run_job(job, _find_dupe_names, excluded_playlist_ids=excluded))  # noqa: RUF006
     return RedirectResponse(url=f"/jobs/{job.id}", status_code=302)
 
 
@@ -210,11 +217,16 @@ async def track_counts(request: Request):
             request, "track_counts.html", context={"rows": [], "error": f"Log file not found: {log_path}"}
         )
 
-    rows = []
-    with open(log_path, newline="") as f:
-        reader = csv.reader(f)
-        for row in reader:
-            rows.append(row)
+    try:
+        rows = []
+        with open(log_path, newline="") as f:
+            reader = csv.reader(f)
+            for row in reader:
+                rows.append(row)
+    except OSError as e:
+        return templates.TemplateResponse(
+            request, "track_counts.html", context={"rows": [], "error": f"Could not read log file: {e}"}
+        )
 
     rows.sort(key=lambda r: r[0] if r else "", reverse=True)
 
