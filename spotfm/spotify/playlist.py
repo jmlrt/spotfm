@@ -142,6 +142,7 @@ class Playlist:
         return True
 
     def update_from_api(self, client):
+        self.snapshot_unchanged = False  # Reset before checking; instance may be reused across refreshes
         playlist = client.playlist(self.id, fields="name,owner.id,snapshot_id", market=MARKET)
         self.name = utils.sanitize_string(playlist["name"])
         logging.info("Fetching playlist %s - %s from api", self.id, self.name)
