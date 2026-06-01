@@ -83,7 +83,11 @@ def test_update_playlists_creates_job(authed_client, monkeypatch):
     monkeypatch.setattr(jobs_module, "run_job", fake_run_job)
     import asyncio
 
-    monkeypatch.setattr(asyncio, "create_task", lambda coro: None)
+    def mock_create_task(coro):
+        coro.close()
+        return None
+
+    monkeypatch.setattr(asyncio, "create_task", mock_create_task)
 
     resp = authed_client.post("/jobs/update-playlists", follow_redirects=False)
     assert resp.status_code == 302

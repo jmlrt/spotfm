@@ -52,7 +52,7 @@
     {% endfor %}
   </tbody>
 </table>
-{% elif request.query_params %}
+{% elif has_filters %}
 <p>No tracks found matching your filters.</p>
 {% else %}
 <p>Select a filter above to browse tracks.</p>
