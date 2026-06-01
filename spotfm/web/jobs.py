@@ -43,7 +43,7 @@ def reset_jobs():
 
 def get_running_job(name: str) -> Job | None:
     for job in _jobs.values():
-        if job.name == name and job.status == JobStatus.RUNNING:
+        if job.name == name and job.status in (JobStatus.PENDING, JobStatus.RUNNING):
             return job
     return None
 
