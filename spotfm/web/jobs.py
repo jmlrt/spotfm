@@ -48,11 +48,15 @@ def get_running_job(name: str) -> Job | None:
     return None
 
 
+def get_latest_job(name: str) -> Job | None:
+    """Return the most recently created job with this name, regardless of status."""
+    matches = [j for j in _jobs.values() if j.name == name]
+    return matches[-1] if matches else None
+
+
 async def run_job(job: Job, fn, *args, **kwargs):
     job.status = JobStatus.RUNNING
 
-    # Capture logging output as progress lines; lock only for the list append
-    # since emit() is called from the executor thread
     class JobLogHandler(logging.Handler):
         def emit(self, record):
             msg = self.format(record)
@@ -63,6 +67,10 @@ async def run_job(job: Job, fn, *args, **kwargs):
     handler = JobLogHandler()
     handler.setFormatter(logging.Formatter("%(levelname)s: %(message)s"))
     root_logger = logging.getLogger()
+    # Temporarily lower root logger level so INFO progress messages are captured
+    original_level = root_logger.level
+    if original_level == logging.NOTSET or original_level > logging.INFO:
+        root_logger.setLevel(logging.INFO)
     root_logger.addHandler(handler)
 
     def run():
@@ -77,4 +85,5 @@ async def run_job(job: Job, fn, *args, **kwargs):
         job.error = str(e)
         job.status = JobStatus.FAILED
     finally:
+        root_logger.setLevel(original_level)
         root_logger.removeHandler(handler)

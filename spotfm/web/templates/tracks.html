@@ -36,10 +36,16 @@
 </form>
 
 {% if tracks %}
-<p>{{ tracks | length }} tracks</p>
+<p>{{ pagination.total }} tracks</p>
 <table>
   <thead>
-    <tr><th>Artist</th><th>Track</th><th>Album</th><th>Year</th></tr>
+    <tr>
+      <th><a href="{{ sort_url('artists') }}">Artist{{ ind('artists') }}</a></th>
+      <th><a href="{{ sort_url('name') }}">Track{{ ind('name') }}</a></th>
+      <th><a href="{{ sort_url('album') }}">Album{{ ind('album') }}</a></th>
+      <th><a href="{{ sort_url('year') }}">Year{{ ind('year') }}</a></th>
+      <th>Playlists</th>
+    </tr>
   </thead>
   <tbody>
     {% for t in tracks %}
@@ -48,13 +54,13 @@
       <td>{{ t.name }}</td>
       <td>{{ t.album or "—" }}</td>
       <td>{{ t.year or "—" }}</td>
+      <td>{% for pid, pname in t.track_playlists %}<a href="/tracks?playlist={{ pid }}">{{ pname }}</a>{% if not loop.last %}, {% endif %}{% else %}—{% endfor %}</td>
     </tr>
     {% endfor %}
   </tbody>
 </table>
-{% elif has_filters %}
-<p>No tracks found matching your filters.</p>
+{% include "_pagination.html" %}
 {% else %}
-<p>Select a filter above to browse tracks.</p>
+<p>No tracks found{% if has_filters %} matching your filters{% endif %}.</p>
 {% endif %}
 {% endblock %}

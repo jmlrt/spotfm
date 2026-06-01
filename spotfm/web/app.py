@@ -75,10 +75,16 @@ def create_app(config_file=None):
         from spotfm import sqlite
         from spotfm.utils import DATABASE
 
+        queries = {
+            "tracks": "SELECT COUNT(DISTINCT track_id) FROM playlists_tracks",
+            "playlists": "SELECT COUNT(*) FROM playlists",
+            "artists": "SELECT COUNT(DISTINCT ta.artist_id) FROM tracks_artists ta JOIN playlists_tracks pt ON ta.track_id = pt.track_id",
+            "albums": "SELECT COUNT(DISTINCT at.album_id) FROM albums_tracks at JOIN playlists_tracks pt ON at.track_id = pt.track_id",
+        }
         counts = {}
-        for table in ("tracks", "playlists", "artists", "albums"):
-            row = sqlite.select_db(DATABASE, f"SELECT COUNT(*) FROM {table}").fetchone()
-            counts[table] = row[0] if row else 0
+        for key, query in queries.items():
+            row = sqlite.select_db(DATABASE, query).fetchone()
+            counts[key] = row[0] if row else 0
         return templates.TemplateResponse(request, "index.html", context={"counts": counts})
 
     return app

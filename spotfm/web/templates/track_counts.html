@@ -7,16 +7,18 @@
 <p style="color: var(--pico-color-red-500)">{{ error }}</p>
 {% elif rows %}
 <table>
+  {% if headers %}
+  <thead>
+    <tr>{% for h in headers %}<th>{{ h }}</th>{% endfor %}</tr>
+  </thead>
+  {% endif %}
   <tbody>
     {% for row in rows %}
-    <tr>
-      {% for cell in row %}
-      <td>{{ cell }}</td>
-      {% endfor %}
-    </tr>
+    <tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>
     {% endfor %}
   </tbody>
 </table>
+{% include "_pagination.html" %}
 {% else %}
 <p>No data found in track counts log.</p>
 {% endif %}
