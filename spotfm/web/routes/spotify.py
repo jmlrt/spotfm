@@ -264,7 +264,9 @@ async def job_status(request: Request, job_id: str):
     job = get_job(job_id)
     if job is None:
         return HTMLResponse("<p>Job not found</p>", status_code=404)
-    return templates.TemplateResponse(request, "job_status.html", context={"job": job, "JobStatus": JobStatus})
+    is_htmx = request.headers.get("HX-Request") == "true"
+    template = "job_status.html" if is_htmx else "job_page.html"
+    return templates.TemplateResponse(request, template, context={"job": job, "JobStatus": JobStatus})
 
 
 @router.get("/track-counts", response_class=HTMLResponse)
