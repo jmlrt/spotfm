@@ -14,7 +14,7 @@
       {% if error %}
         <p style="color: var(--pico-color-red-500)">{{ error }}</p>
       {% endif %}
-      <form action="/login{% if request.query_params.next %}?next={{ request.query_params.next }}{% endif %}" method="post">
+      <form action="/login{% if request.query_params.next %}?next={{ request.query_params.next|urlencode }}{% endif %}" method="post">
         <label>
           API Key
           <input type="password" name="api_key" autofocus required>

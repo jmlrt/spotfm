@@ -1,6 +1,6 @@
 import asyncio
-import io
-import sys
+import logging
+import threading
 import uuid
 from dataclasses import dataclass, field
 from enum import StrEnum
@@ -24,55 +24,65 @@ class Job:
 
 
 _jobs: dict[str, Job] = {}
+_jobs_lock = threading.Lock()
 
 
 def create_job(name: str) -> Job:
     job = Job(id=str(uuid.uuid4()), name=name)
-    _jobs[job.id] = job
+    with _jobs_lock:
+        _jobs[job.id] = job
     return job
 
 
 def get_job(job_id: str) -> Job | None:
-    return _jobs.get(job_id)
+    with _jobs_lock:
+        return _jobs.get(job_id)
 
 
 def reset_jobs():
     """Clear all jobs. For testing purposes only."""
-    _jobs.clear()
+    with _jobs_lock:
+        _jobs.clear()
 
 
 def get_running_job(name: str) -> Job | None:
-    for job in _jobs.values():
-        if job.name == name and job.status == JobStatus.RUNNING:
-            return job
+    with _jobs_lock:
+        for job in _jobs.values():
+            if job.name == name and job.status == JobStatus.RUNNING:
+                return job
     return None
 
 
 async def run_job(job: Job, fn, *args, **kwargs):
     job.status = JobStatus.RUNNING
 
-    # Capture stderr output as progress lines
-    old_stderr = sys.stderr
-    buf = io.StringIO()
+    # Capture logging output as progress lines
+    class JobLogHandler(logging.Handler):
+        def emit(self, record):
+            msg = self.format(record)
+            if msg.strip():
+                with _jobs_lock:
+                    job.progress.append(msg)
+
+    handler = JobLogHandler()
+    handler.setFormatter(logging.Formatter("%(levelname)s: %(message)s"))
+    root_logger = logging.getLogger()
+    root_logger.addHandler(handler)
 
     def run():
-        nonlocal buf
-        sys.stderr = buf
         try:
             result = fn(*args, **kwargs)
             return result
         finally:
-            sys.stderr = old_stderr
+            root_logger.removeHandler(handler)
 
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
     try:
         result = await loop.run_in_executor(None, run)
-        job.progress = [line for line in buf.getvalue().splitlines() if line.strip()]
         job.result = result
         job.status = JobStatus.DONE
     except Exception as e:
-        job.progress = [line for line in buf.getvalue().splitlines() if line.strip()]
         job.error = str(e)
         job.status = JobStatus.FAILED
     finally:
-        sys.stderr = old_stderr
+        root_logger.removeHandler(handler)

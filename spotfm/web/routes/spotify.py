@@ -55,20 +55,23 @@ async def tracks(
             end_date=end_date,
         )
         for row in raw:
-            track_id, track_name, release_year, album_name, artist_names, *_ = row
+            artist_names = row["artist_names"]
+            album_name = row["album_name"]
             if artist and artist.lower() not in (artist_names or "").lower():
                 continue
             if album and album.lower() not in (album_name or "").lower():
                 continue
             track_rows.append(
                 {
-                    "id": track_id,
-                    "name": track_name,
-                    "year": release_year,
+                    "id": row["track_id"],
+                    "name": row["track_name"],
+                    "year": row["release_year"],
                     "album": album_name,
                     "artists": artist_names,
                 }
             )
+
+    has_filters = bool(playlist or artist or album or year_start or year_end)
 
     return templates.TemplateResponse(
         request,
@@ -76,6 +79,7 @@ async def tracks(
         context={
             "tracks": track_rows,
             "all_playlists": all_playlists,
+            "has_filters": has_filters,
             "filters": {
                 "playlist": playlist,
                 "artist": artist,
