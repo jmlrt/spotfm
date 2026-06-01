@@ -1,7 +1,7 @@
 FROM python:3.14-slim
 WORKDIR /app
 RUN pip install --no-cache-dir uv
-COPY pyproject.toml uv.lock LICENSE README.md ./
+COPY pyproject.toml LICENSE README.md ./
 COPY spotfm/ spotfm/
 RUN uv pip install --no-cache-dir --system ".[web]"
 EXPOSE 8000
