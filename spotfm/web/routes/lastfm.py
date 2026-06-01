@@ -7,7 +7,6 @@ from fastapi.templating import Jinja2Templates
 from spotfm import lastfm
 from spotfm.lastfm import read_lastfm_state, save_lastfm_state
 from spotfm.web.auth import require_auth
-from spotfm.web.pagination import paginate, pagination_base_url
 
 TEMPLATES_DIR = Path(__file__).parent.parent / "templates"
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
@@ -41,7 +40,6 @@ async def scrobbles(
     scrobbles_minimum: str = Query(default=""),
     period: int = Query(default=90),
     period_minimum: str = Query(default=""),
-    page: int = Query(default=1, ge=1),
 ):
     redirect = await require_auth(request)
     if redirect:
@@ -129,18 +127,14 @@ async def scrobbles(
     # Default order: descending by period scrobbles
     tracks.sort(key=lambda r: int(r["period_scrobbles"]) if r["period_scrobbles"].isdigit() else 0, reverse=True)
 
-    page_tracks, pagination = paginate(tracks, page)
-
     return templates.TemplateResponse(
         request,
         "scrobbles.html",
         context={
             "state": "results",
             "error": None,
-            "tracks": page_tracks,
+            "tracks": tracks,
             "period": period,
             "incremental": incremental,
-            "pagination": pagination,
-            "base_url": pagination_base_url(request),
         },
     )
