@@ -34,7 +34,10 @@ async def playlists(
     # rows are (name, pid, count) tuples
     sort_dir = dir if dir in ("asc", "desc") else "asc"
     key = {"name": 0, "count": 2}.get(sort, 0)
-    rows = sorted(rows, key=lambda r: r[key] or "", reverse=(sort_dir == "desc"))
+    if sort == "count":
+        rows = sorted(rows, key=lambda r: r[key] or 0, reverse=(sort_dir == "desc"))
+    else:
+        rows = sorted(rows, key=lambda r: r[key] or "", reverse=(sort_dir == "desc"))
     page_rows, pagination = paginate(rows, page)
     sort_fn = make_sort_url(request, sort, sort_dir)
     ind = lambda col: sort_indicator(sort, sort_dir, col)  # noqa: E731
