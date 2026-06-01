@@ -34,7 +34,7 @@
       {% endfor %}
     </tbody>
   </table>
-  {% elif job.status.value == "done" %}
+  {% elif job.status.value == "done" and job.name == "dupe-names" %}
   <p>No similar pairs found.</p>
   {% endif %}
 </div>
