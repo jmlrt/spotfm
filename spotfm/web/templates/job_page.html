@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block title %}spotfm — Job {{ job.id[:8] }}{% endblock %}
+{% block content %}
+<h2>Job: {{ job.name }}</h2>
+{% include "job_status.html" %}
+{% endblock %}
