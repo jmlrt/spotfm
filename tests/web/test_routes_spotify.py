@@ -106,3 +106,30 @@ def test_job_status_found(authed_client, monkeypatch):
     resp = authed_client.get(f"/jobs/{job.id}")
     assert resp.status_code == 200
     assert "Done" in resp.text
+
+
+@pytest.mark.unit
+def test_track_counts_missing_config(authed_client):
+    resp = authed_client.get("/track-counts")
+    assert resp.status_code == 200
+    assert "not configured" in resp.text or "not found" in resp.text
+
+
+@pytest.mark.unit
+def test_track_counts_renders_csv(authed_client, tmp_path, monkeypatch):
+    csv_file = tmp_path / "track-counts.csv"
+    csv_file.write_text("2024-01-01,100\n2024-02-01,105\n")
+
+    # Patch config to point at temp CSV
+    original_state = authed_client.app.state.config
+    patched_config = {
+        **original_state,
+        "spotify": {**original_state.get("spotify", {}), "track_counts_log": str(csv_file)},
+    }
+    authed_client.app.state.config = patched_config
+
+    resp = authed_client.get("/track-counts")
+    assert resp.status_code == 200
+    assert "2024-02-01" in resp.text
+
+    authed_client.app.state.config = original_state
