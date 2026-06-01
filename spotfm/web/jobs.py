@@ -25,6 +25,9 @@ class Job:
 
 _jobs: dict[str, Job] = {}
 _progress_lock = threading.Lock()
+_active_jobs = 0
+_level_lock = threading.Lock()
+_saved_root_level: int | None = None
 
 
 def create_job(name: str) -> Job:
@@ -55,6 +58,7 @@ def get_latest_job(name: str) -> Job | None:
 
 
 async def run_job(job: Job, fn, *args, **kwargs):
+    global _active_jobs, _saved_root_level
     job.status = JobStatus.RUNNING
 
     class JobLogHandler(logging.Handler):
@@ -67,10 +71,14 @@ async def run_job(job: Job, fn, *args, **kwargs):
     handler = JobLogHandler()
     handler.setFormatter(logging.Formatter("%(levelname)s: %(message)s"))
     root_logger = logging.getLogger()
-    # Temporarily lower root logger level so INFO progress messages are captured
-    original_level = root_logger.level
-    if original_level == logging.NOTSET or original_level > logging.INFO:
-        root_logger.setLevel(logging.INFO)
+
+    # Refcount: first job lowers the root log level; last job to finish restores it
+    with _level_lock:
+        if _active_jobs == 0:
+            _saved_root_level = root_logger.level
+            if _saved_root_level == logging.NOTSET or _saved_root_level > logging.INFO:
+                root_logger.setLevel(logging.INFO)
+        _active_jobs += 1
     root_logger.addHandler(handler)
 
     def run():
@@ -85,5 +93,8 @@ async def run_job(job: Job, fn, *args, **kwargs):
         job.error = str(e)
         job.status = JobStatus.FAILED
     finally:
-        root_logger.setLevel(original_level)
         root_logger.removeHandler(handler)
+        with _level_lock:
+            _active_jobs -= 1
+            if _active_jobs == 0 and _saved_root_level is not None:
+                root_logger.setLevel(_saved_root_level)

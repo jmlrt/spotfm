@@ -109,14 +109,21 @@ async def scrobbles(
                     context={"state": "no_new", "error": None, "state_info": None, "cfg": lastfm_cfg},
                 )
 
+    def _cfg_int(key, default=None):
+        v = lastfm_cfg.get(key, default)
+        try:
+            return int(v) if v is not None and str(v).strip() else default
+        except ValueError, TypeError:
+            return default
+
     raw_tracks = list(
         user.get_recent_tracks_scrobbles(
             limit=effective_limit,
             scrobbles_minimum=scrobbles_minimum_int
             if scrobbles_minimum_int is not None
-            else lastfm_cfg.get("scrobbles_minimum", 4),
+            else _cfg_int("scrobbles_minimum", 4),
             period=period,
-            period_minimum=period_minimum_int if period_minimum_int is not None else lastfm_cfg.get("period_minimum"),
+            period_minimum=period_minimum_int if period_minimum_int is not None else _cfg_int("period_minimum"),
         )
     )
     tracks = [_parse_track_line(line) for line in raw_tracks]
