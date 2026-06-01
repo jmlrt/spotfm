@@ -16,12 +16,16 @@
 
 <table>
   <thead>
-    <tr><th>Playlist</th><th>Tracks</th><th></th></tr>
+    <tr>
+      <th><a href="{{ sort_url('name') }}">Playlist{{ ind('name') }}</a></th>
+      <th><a href="{{ sort_url('count') }}">Tracks{{ ind('count') }}</a></th>
+      <th></th>
+    </tr>
   </thead>
   <tbody>
     {% for name, pid, count in playlists %}
     <tr>
-      <td>{{ name }}</td>
+      <td><a href="/tracks?playlist={{ pid }}">{{ name }}</a></td>
       <td>{{ count }}</td>
       <td>
         <form action="/jobs/update-playlists" method="post" style="margin:0">
@@ -35,4 +39,5 @@
     {% endfor %}
   </tbody>
 </table>
+{% include "_pagination.html" %}
 {% endblock %}

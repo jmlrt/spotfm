@@ -10,7 +10,7 @@
 
   {% if dupes_ids is not none %}
     {% if dupes_ids %}
-    <p>{{ dupes_ids | length }} duplicate(s) found.</p>
+    <p>{{ pagination.total }} duplicate(s) found.</p>
     <table>
       <thead>
         <tr><th>Playlists</th><th>Artist</th><th>Track</th></tr>
@@ -25,6 +25,7 @@
         {% endfor %}
       </tbody>
     </table>
+    {% include "_pagination.html" %}
     {% else %}
     <p>No exact duplicates found.</p>
     {% endif %}
@@ -34,13 +35,13 @@
 <section>
   <h3>Fuzzy duplicates (by name)</h3>
   <p>Tracks with similar titles and artists (may have different IDs — e.g. album vs. single versions). This is slow.</p>
-  <form action="/duplicates/names" method="post">
-    <button type="submit" class="secondary">Find fuzzy dupes (background job)</button>
+  {% if not job or job.status.value in ("done", "failed") %}
+  <form action="/duplicates/names" method="post" style="margin-bottom:1rem">
+    <button type="submit" class="secondary">{% if job %}Run again{% else %}Find fuzzy dupes (background job){% endif %}</button>
   </form>
+  {% endif %}
   {% if job %}
-  <div id="job-status">
-    {% include "job_status.html" %}
-  </div>
+  {% include "job_status.html" %}
   {% endif %}
 </section>
 {% endblock %}
