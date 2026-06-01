@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Query, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
@@ -16,10 +16,10 @@ router = APIRouter()
 @router.get("/scrobbles", response_class=HTMLResponse)
 async def scrobbles(
     request: Request,
-    limit: str = "",
-    scrobbles_minimum: str = "",
-    period: str = "",
-    period_minimum: str = "",
+    limit: int = Query(default=50),
+    scrobbles_minimum: int | None = Query(default=None),
+    period: int = Query(default=90),
+    period_minimum: int | None = Query(default=None),
 ):
     redirect = await require_auth(request)
     if redirect:
@@ -29,8 +29,7 @@ async def scrobbles(
     lastfm_cfg = config.get("lastfm", {})
 
     required_keys = ["api_key", "api_secret", "username", "password_hash"]
-    missing_keys = [k for k in required_keys if k not in lastfm_cfg]
-    if missing_keys:
+    if any(k not in lastfm_cfg for k in required_keys):
         return templates.TemplateResponse(
             request, "scrobbles.html", context={"tracks": [], "error": "Last.FM not configured"}
         )
@@ -43,24 +42,14 @@ async def scrobbles(
     )
     user = lastfm.User(lastfm_client.client)
 
-    try:
-        limit_val = int(limit) if limit else 50
-        scrobbles_min_val = int(scrobbles_minimum) if scrobbles_minimum else lastfm_cfg.get("scrobbles_minimum", 4)
-        period_val = int(period) if period else 90
-        period_min_val = int(period_minimum) if period_minimum else lastfm_cfg.get("period_minimum")
-    except ValueError:
-        limit_val = 50
-        scrobbles_min_val = lastfm_cfg.get("scrobbles_minimum", 4)
-        period_val = 90
-        period_min_val = lastfm_cfg.get("period_minimum")
-
-    # get_recent_tracks_scrobbles yields formatted strings
     tracks = list(
         user.get_recent_tracks_scrobbles(
-            limit=limit_val,
-            scrobbles_minimum=scrobbles_min_val,
-            period=period_val,
-            period_minimum=period_min_val,
+            limit=limit,
+            scrobbles_minimum=scrobbles_minimum
+            if scrobbles_minimum is not None
+            else lastfm_cfg.get("scrobbles_minimum", 4),
+            period=period,
+            period_minimum=period_minimum if period_minimum is not None else lastfm_cfg.get("period_minimum"),
         )
     )
     return templates.TemplateResponse(request, "scrobbles.html", context={"tracks": tracks, "error": None})
