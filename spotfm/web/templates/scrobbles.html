@@ -5,15 +5,74 @@
 
 {% if error %}
 <p style="color: red;"><strong>Error:</strong> {{ error }}</p>
+{% endif %}
+
+{% if state == "form" and not error %}
+<form method="get" action="/scrobbles">
+  <input type="hidden" name="fetch" value="1">
+  <div class="filter-grid">
+    <label>
+      Limit
+      <input type="number" name="limit" placeholder="auto (from last.fm state)" min="1" max="1000">
+    </label>
+    <label>
+      Period (days)
+      <input type="number" name="period" value="{{ defaults.period }}" min="1" max="365">
+    </label>
+    <label>
+      Min scrobbles (total)
+      <input type="number" name="scrobbles_minimum" value="{{ defaults.scrobbles_minimum }}" min="0">
+    </label>
+    <label>
+      Min scrobbles (in period)
+      <input type="number" name="period_minimum" value="{{ defaults.period_minimum }}" placeholder="none" min="0">
+    </label>
+  </div>
+  {% if state_info %}
+  <p style="color: var(--pico-muted-color); font-size: 0.85rem">
+    Last saved state: {{ state_info.last_scrobble_count }} scrobbles — leaving limit empty will fetch only new ones.
+  </p>
+  {% else %}
+  <p style="color: var(--pico-muted-color); font-size: 0.85rem">No saved state yet — first run will use the limit above.</p>
+  {% endif %}
+  <button type="submit">Fetch scrobbles</button>
+</form>
+
+{% elif state == "no_new" %}
+<p>No new scrobbles since last check.</p>
+<a href="/scrobbles">Back to form</a>
+
+{% elif state == "results" %}
+{% if incremental %}
+<p>{{ pagination.total }} new tracks since last check · {{ period }}-day window · <a href="/scrobbles">Fetch again</a></p>
 {% else %}
-<p>Last {{ limit }} tracks · {{ period }}-day window</p>
+<p>{{ pagination.total }} tracks · {{ period }}-day window · <a href="/scrobbles">Back to form</a></p>
+{% endif %}
 
 {% if tracks %}
-<ol>
-  {% for line in tracks %}
-  <li>{{ line }}</li>
-  {% endfor %}
-</ol>
+<table data-client-sort="scrobbles">
+  <thead>
+    <tr>
+      <th data-col="artist" style="cursor:pointer">Artist<span class="sort-ind"></span></th>
+      <th data-col="title" style="cursor:pointer">Track<span class="sort-ind"></span></th>
+      <th data-col="period" style="cursor:pointer">Last {{ period }}d<span class="sort-ind"> ↓</span></th>
+      <th data-col="total" style="cursor:pointer">Total<span class="sort-ind"></span></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for track in tracks %}
+    <tr>
+      <td>{{ track.artist or "—" }}</td>
+      <td>{{ track.title }}</td>
+      <td>{{ track.period_scrobbles }}</td>
+      <td>{{ track.total_scrobbles }}</td>
+      <td>{% if track.url %}<a href="{{ track.url }}" target="_blank" rel="noopener">last.fm ↗</a>{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% include "_pagination.html" %}
 {% else %}
 <p>No scrobbles found matching the configured thresholds.</p>
 {% endif %}
