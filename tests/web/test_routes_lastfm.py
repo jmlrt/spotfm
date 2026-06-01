@@ -38,3 +38,23 @@ def test_scrobbles_with_query_params(authed_client, monkeypatch):
     mock_user.get_recent_tracks_scrobbles.assert_called_once_with(
         limit=30, scrobbles_minimum=5, period=60, period_minimum=20
     )
+
+
+@pytest.mark.unit
+def test_scrobbles_invalid_query_params_uses_defaults(authed_client, monkeypatch):
+    from unittest.mock import MagicMock
+
+    import spotfm.lastfm as lastfm_module
+
+    mock_user = MagicMock()
+    mock_user.get_recent_tracks_scrobbles.return_value = iter(["Track 1"])
+    monkeypatch.setattr(lastfm_module, "Client", MagicMock())
+    monkeypatch.setattr(lastfm_module, "User", lambda _: mock_user)
+
+    # Pass invalid integers - should use defaults instead of crashing
+    resp = authed_client.get("/scrobbles?limit=abc&scrobbles_minimum=xyz&period=invalid")
+    assert resp.status_code == 200
+    # Should have called with defaults (limit=50, scrobbles_minimum=4, period=90, period_minimum=None)
+    mock_user.get_recent_tracks_scrobbles.assert_called_once_with(
+        limit=50, scrobbles_minimum=4, period=90, period_minimum=None
+    )
