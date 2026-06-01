@@ -44,9 +44,9 @@
 
 {% elif state == "results" %}
 {% if incremental %}
-<p>{{ pagination.total }} new tracks since last check · {{ period }}-day window · <a href="/scrobbles">Fetch again</a></p>
+<p>{{ tracks|length }} new tracks since last check · {{ period }}-day window · <a href="/scrobbles">Fetch again</a></p>
 {% else %}
-<p>{{ pagination.total }} tracks · {{ period }}-day window · <a href="/scrobbles">Back to form</a></p>
+<p>{{ tracks|length }} tracks · {{ period }}-day window · <a href="/scrobbles">Back to form</a></p>
 {% endif %}
 
 {% if tracks %}
