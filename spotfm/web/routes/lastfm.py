@@ -31,7 +31,9 @@ async def scrobbles(
     required_keys = ["api_key", "api_secret", "username", "password_hash"]
     if any(not lastfm_cfg.get(k) for k in required_keys):
         return templates.TemplateResponse(
-            request, "scrobbles.html", context={"tracks": [], "error": "Last.FM not configured"}
+            request,
+            "scrobbles.html",
+            context={"tracks": [], "error": "Last.FM not configured", "limit": limit, "period": period},
         )
 
     lastfm_client = lastfm.Client(
@@ -52,4 +54,6 @@ async def scrobbles(
             period_minimum=period_minimum if period_minimum is not None else lastfm_cfg.get("period_minimum"),
         )
     )
-    return templates.TemplateResponse(request, "scrobbles.html", context={"tracks": tracks, "error": None})
+    return templates.TemplateResponse(
+        request, "scrobbles.html", context={"tracks": tracks, "error": None, "limit": limit, "period": period}
+    )
