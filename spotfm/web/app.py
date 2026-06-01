@@ -60,7 +60,8 @@ def create_app(config_file=None):
 
             next_url = unquote(request.query_params.get("next", "/"))
             # Validate next_url is a safe relative path (prevent open redirect)
-            if not next_url.startswith("/") or "://" in next_url:
+            # Also reject scheme-relative URLs like //evil.com
+            if not next_url.startswith("/") or next_url.startswith("//") or "://" in next_url:
                 next_url = "/"
             return RedirectResponse(url=next_url, status_code=302)
         return templates.TemplateResponse(request, "login.html", context={"error": "Invalid API key"}, status_code=401)

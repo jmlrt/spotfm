@@ -29,7 +29,7 @@ async def scrobbles(
     lastfm_cfg = config.get("lastfm", {})
 
     required_keys = ["api_key", "api_secret", "username", "password_hash"]
-    if any(k not in lastfm_cfg for k in required_keys):
+    if any(not lastfm_cfg.get(k) for k in required_keys):
         return templates.TemplateResponse(
             request, "scrobbles.html", context={"tracks": [], "error": "Last.FM not configured"}
         )
