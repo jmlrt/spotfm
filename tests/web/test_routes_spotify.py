@@ -73,14 +73,6 @@ def test_duplicates_ids_empty_db(authed_client, monkeypatch):
 
 @pytest.mark.unit
 def test_update_playlists_creates_job(authed_client, monkeypatch):
-    import spotfm.web.jobs as jobs_module
-
-    calls = []
-
-    async def fake_run_job(job, fn, **kwargs):
-        calls.append(job.name)
-
-    monkeypatch.setattr(jobs_module, "run_job", fake_run_job)
     import asyncio
 
     def mock_create_task(coro):

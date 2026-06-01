@@ -1,4 +1,3 @@
-import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -27,8 +26,7 @@ def create_app(config_file=None):
     web_config = config.get("web", {})
     api_key = web_config.get("api_key", "")
     if not api_key:
-        print("ERROR: [web] api_key is missing or empty in spotfm.toml", file=sys.stderr)
-        sys.exit(1)
+        raise RuntimeError("[web] api_key is missing or empty in spotfm.toml")
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -56,9 +54,7 @@ def create_app(config_file=None):
     async def login(request: Request, api_key_input: str = Form(alias="api_key")):
         if check_api_key(api_key_input, request.app.state.api_key):
             request.session["authenticated"] = True
-            from urllib.parse import unquote
-
-            next_url = unquote(request.query_params.get("next", "/"))
+            next_url = request.query_params.get("next", "/")
             # Validate next_url is a safe relative path (prevent open redirect)
             # Also reject scheme-relative URLs like //evil.com
             if not next_url.startswith("/") or next_url.startswith("//") or "://" in next_url:

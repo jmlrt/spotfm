@@ -16,6 +16,6 @@ async def require_auth(request: Request):
             next_path += f"?{request.url.query}"
         from urllib.parse import quote
 
-        next_encoded = quote(next_path, safe="/?&=")
+        next_encoded = quote(next_path, safe="/")
         return RedirectResponse(url=f"/login?next={next_encoded}", status_code=302)
     return None
