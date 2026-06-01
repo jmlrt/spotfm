@@ -1,4 +1,5 @@
 import asyncio
+import csv
 from pathlib import Path
 
 from fastapi import APIRouter, Request
@@ -184,3 +185,33 @@ async def job_status(request: Request, job_id: str):
     if job is None:
         return HTMLResponse("<p>Job not found</p>", status_code=404)
     return templates.TemplateResponse(request, "job_status.html", context={"job": job, "JobStatus": JobStatus})
+
+
+@router.get("/track-counts", response_class=HTMLResponse)
+async def track_counts(request: Request):
+    redirect = await require_auth(request)
+    if redirect:
+        return redirect
+
+    config = request.app.state.config
+    log_path_raw = config.get("spotify", {}).get("track_counts_log", "")
+    if not log_path_raw:
+        return templates.TemplateResponse(
+            request, "track_counts.html", context={"rows": [], "error": "track_counts_log not configured"}
+        )
+
+    log_path = Path(log_path_raw).expanduser()
+    if not log_path.exists():
+        return templates.TemplateResponse(
+            request, "track_counts.html", context={"rows": [], "error": f"Log file not found: {log_path}"}
+        )
+
+    rows = []
+    with open(log_path, newline="") as f:
+        reader = csv.reader(f)
+        for row in reader:
+            rows.append(row)
+
+    rows.sort(key=lambda r: r[0] if r else "", reverse=True)
+
+    return templates.TemplateResponse(request, "track_counts.html", context={"rows": rows, "error": None})
