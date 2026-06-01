@@ -7,29 +7,6 @@
   <h3>Exact duplicates (by ID)</h3>
   <p>Tracks appearing in multiple playlists with the same Spotify track ID.</p>
   <a href="/duplicates/ids" role="button" class="outline">Find exact dupes</a>
-
-  {% if dupes_ids is not none %}
-    {% if dupes_ids %}
-    <p>{{ pagination.total }} duplicate(s) found.</p>
-    <table>
-      <thead>
-        <tr><th>Playlists</th><th>Artist</th><th>Track</th></tr>
-      </thead>
-      <tbody>
-        {% for d in dupes_ids %}
-        <tr>
-          <td>{{ d.playlists }}</td>
-          <td>{{ d.artists or "—" }}</td>
-          <td>{{ d.track_name }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    {% include "_pagination.html" %}
-    {% else %}
-    <p>No exact duplicates found.</p>
-    {% endif %}
-  {% endif %}
 </section>
 
 <section>
