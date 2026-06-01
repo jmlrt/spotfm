@@ -57,6 +57,9 @@ def create_app(config_file=None):
         if check_api_key(api_key_input, request.app.state.api_key):
             request.session["authenticated"] = True
             next_url = request.query_params.get("next", "/")
+            # Validate next_url is a safe relative path (prevent open redirect)
+            if not next_url.startswith("/") or "://" in next_url:
+                next_url = "/"
             return RedirectResponse(url=next_url, status_code=302)
         return templates.TemplateResponse(request, "login.html", context={"error": "Invalid API key"}, status_code=401)
 

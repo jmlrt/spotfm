@@ -44,3 +44,28 @@ def test_logout_clears_session(authed_client):
 def test_dashboard_requires_auth(client):
     resp = client.get("/", follow_redirects=False)
     assert resp.status_code == 302
+
+
+@pytest.mark.unit
+def test_login_open_redirect_protection(client):
+    # Attempt external redirect via next param
+    resp = client.post(
+        "/login?next=https://evil.com",
+        data={"api_key": TEST_API_KEY},
+        follow_redirects=False,
+    )
+    assert resp.status_code == 302
+    # Should redirect to "/" instead of the malicious URL
+    assert resp.headers["location"] == "/"
+
+
+@pytest.mark.unit
+def test_login_safe_relative_redirect(client):
+    # Valid relative redirect should work
+    resp = client.post(
+        "/login?next=/playlists",
+        data={"api_key": TEST_API_KEY},
+        follow_redirects=False,
+    )
+    assert resp.status_code == 302
+    assert resp.headers["location"] == "/playlists"

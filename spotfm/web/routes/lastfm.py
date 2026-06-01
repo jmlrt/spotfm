@@ -35,10 +35,16 @@ async def scrobbles(
     )
     user = lastfm.User(lastfm_client.client)
 
-    limit_val = int(limit) if limit else 50
-    scrobbles_min_val = int(scrobbles_minimum) if scrobbles_minimum else lastfm_cfg.get("scrobbles_minimum", 4)
-    period_val = int(period) if period else 90
-    period_min_val = int(period_minimum) if period_minimum else lastfm_cfg.get("period_minimum")
+    try:
+        limit_val = int(limit) if limit else 50
+        scrobbles_min_val = int(scrobbles_minimum) if scrobbles_minimum else lastfm_cfg.get("scrobbles_minimum", 4)
+        period_val = int(period) if period else 90
+        period_min_val = int(period_minimum) if period_minimum else lastfm_cfg.get("period_minimum")
+    except ValueError:
+        limit_val = 50
+        scrobbles_min_val = lastfm_cfg.get("scrobbles_minimum", 4)
+        period_val = 90
+        period_min_val = lastfm_cfg.get("period_minimum")
 
     # get_recent_tracks_scrobbles yields formatted strings
     tracks = list(
