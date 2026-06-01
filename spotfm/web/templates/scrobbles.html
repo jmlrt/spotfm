@@ -2,6 +2,10 @@
 {% block title %}spotfm — Recent Scrobbles{% endblock %}
 {% block content %}
 <h2>Recent Scrobbles</h2>
+
+{% if error %}
+<p style="color: red;"><strong>Error:</strong> {{ error }}</p>
+{% else %}
 <p>Last 50 tracks · 90-day window</p>
 
 {% if tracks %}
@@ -12,5 +16,6 @@
 </ol>
 {% else %}
 <p>No scrobbles found matching the configured thresholds.</p>
+{% endif %}
 {% endif %}
 {% endblock %}

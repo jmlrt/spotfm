@@ -56,7 +56,9 @@ def create_app(config_file=None):
     async def login(request: Request, api_key_input: str = Form(alias="api_key")):
         if check_api_key(api_key_input, request.app.state.api_key):
             request.session["authenticated"] = True
-            next_url = request.query_params.get("next", "/")
+            from urllib.parse import unquote
+
+            next_url = unquote(request.query_params.get("next", "/"))
             # Validate next_url is a safe relative path (prevent open redirect)
             if not next_url.startswith("/") or "://" in next_url:
                 next_url = "/"
@@ -86,4 +88,6 @@ def create_app(config_file=None):
 
 
 def run():
+    # Single worker is required for SQLite singleton connection safety
+    # see: spotfm/sqlite.py check_same_thread=False
     uvicorn.run("spotfm.web.app:create_app", factory=True, host="0.0.0.0", port=8000, workers=1)
