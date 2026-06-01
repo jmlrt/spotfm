@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}spotfm — Exact Duplicates{% endblock %}
+{% block content %}
+<h2>Exact Duplicates (by ID)</h2>
+<p><a href="/duplicates">← Back</a></p>
+
+{% if dupes %}
+<p>{{ pagination.total }} duplicate(s) found.</p>
+<table>
+  <thead>
+    <tr>
+      <th><a href="{{ sort_url('playlists') }}">Playlists{{ ind('playlists') }}</a></th>
+      <th><a href="{{ sort_url('artists') }}">Artist{{ ind('artists') }}</a></th>
+      <th><a href="{{ sort_url('track_name') }}">Track{{ ind('track_name') }}</a></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for d in dupes %}
+    <tr>
+      <td>{{ d.playlists }}</td>
+      <td>{{ d.artists or "—" }}</td>
+      <td>{{ d.track_name }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% include "_pagination.html" %}
+{% else %}
+<p>No exact duplicates found.</p>
+{% endif %}
+{% endblock %}

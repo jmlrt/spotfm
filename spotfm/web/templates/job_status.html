@@ -16,25 +16,11 @@
   {% if job.progress %}
   <pre style="max-height: 200px; overflow-y: auto; font-size: 0.8rem">{{ job.progress | join('\n') }}</pre>
   {% endif %}
-  {% if job.status.value == "done" and job.result %}
-  <p>{{ job.result | length }} pair(s) found.</p>
-  <table>
-    <thead>
-      <tr><th>Track 1</th><th>Artists 1</th><th>Track 2</th><th>Artists 2</th><th>Score</th></tr>
-    </thead>
-    <tbody>
-      {% for d in job.result %}
-      <tr>
-        <td>{{ d.track1 }}</td>
-        <td>{{ d.artists1 or "—" }}</td>
-        <td>{{ d.track2 }}</td>
-        <td>{{ d.artists2 or "—" }}</td>
-        <td>{{ "%.0f"|format(d.score) }}%</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-  {% elif job.status.value == "done" and job.name == "dupe-names" %}
-  <p>No similar pairs found.</p>
+  {% if job.status.value == "done" and job.name == "dupe-names" %}
+    {% if job.result %}
+    <p>{{ job.result | length }} pair(s) found. <a href="/duplicates/names">View results →</a></p>
+    {% else %}
+    <p>No similar pairs found.</p>
+    {% endif %}
   {% endif %}
 </div>

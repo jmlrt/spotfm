@@ -157,13 +157,16 @@ async def duplicates_page(request: Request):
     if redirect:
         return redirect
     job = get_latest_job("dupe-names")
-    return templates.TemplateResponse(
-        request, "duplicates.html", context={"dupes_ids": None, "job": job, "JobStatus": JobStatus}
-    )
+    return templates.TemplateResponse(request, "duplicates.html", context={"job": job, "JobStatus": JobStatus})
 
 
 @router.get("/duplicates/ids", response_class=HTMLResponse)
-async def duplicates_ids(request: Request, page: int = Query(default=1, ge=1)):
+async def duplicates_ids(
+    request: Request,
+    page: int = Query(default=1, ge=1),
+    sort: str = Query(default="track_name"),
+    dir: str = Query(default="asc"),
+):
     redirect = await require_auth(request)
     if redirect:
         return redirect
@@ -171,21 +174,69 @@ async def duplicates_ids(request: Request, page: int = Query(default=1, ge=1)):
     excluded = config.get("spotify", {}).get("excluded_playlists", [])
     with contextlib.redirect_stdout(io.StringIO()):
         dupes = spotify_dupes.find_duplicate_ids(excluded_playlist_ids=excluded)
+
+    sort_dir = dir if dir in ("asc", "desc") else "asc"
+    valid_sorts = {"track_name", "artists", "playlists"}
+    sort_key = sort if sort in valid_sorts else "track_name"
+    dupes.sort(key=lambda r: (r.get(sort_key) or "").lower(), reverse=(sort_dir == "desc"))
+
     page_dupes, pagination = paginate(dupes, page)
+    sort_fn = make_sort_url(request, sort_key, sort_dir)
+    ind = lambda col: sort_indicator(sort_key, sort_dir, col)  # noqa: E731
     return templates.TemplateResponse(
         request,
-        "duplicates.html",
+        "duplicates_ids.html",
         context={
-            "dupes_ids": page_dupes,
-            "job": None,
+            "dupes": page_dupes,
             "pagination": pagination,
             "base_url": pagination_base_url(request),
+            "sort_url": sort_fn,
+            "ind": ind,
+        },
+    )
+
+
+@router.get("/duplicates/names", response_class=HTMLResponse)
+async def duplicates_names_results(
+    request: Request,
+    page: int = Query(default=1, ge=1),
+    sort: str = Query(default="score"),
+    dir: str = Query(default="desc"),
+):
+    redirect = await require_auth(request)
+    if redirect:
+        return redirect
+    job = get_latest_job("dupe-names")
+    if not job or not job.result:
+        return RedirectResponse(url="/duplicates", status_code=302)
+
+    result = list(job.result)
+    sort_dir = dir if dir in ("asc", "desc") else "desc"
+    valid_sorts = {"track1", "artists1", "track2", "artists2", "score"}
+    sort_key = sort if sort in valid_sorts else "score"
+    if sort_key == "score":
+        result.sort(key=lambda r: r.get("score") or 0, reverse=(sort_dir == "desc"))
+    else:
+        result.sort(key=lambda r: (r.get(sort_key) or "").lower(), reverse=(sort_dir == "desc"))
+
+    page_result, pagination = paginate(result, page)
+    sort_fn = make_sort_url(request, sort_key, sort_dir)
+    ind = lambda col: sort_indicator(sort_key, sort_dir, col)  # noqa: E731
+    return templates.TemplateResponse(
+        request,
+        "duplicates_names.html",
+        context={
+            "pairs": page_result,
+            "pagination": pagination,
+            "base_url": pagination_base_url(request),
+            "sort_url": sort_fn,
+            "ind": ind,
         },
     )
 
 
 @router.post("/duplicates/names")
-async def duplicates_names(request: Request):
+async def duplicates_names_start(request: Request):
     redirect = await require_auth(request)
     if redirect:
         return redirect
@@ -223,10 +274,13 @@ async def start_update_playlists(request: Request):
     excluded = config.get("spotify", {}).get("excluded_playlists", [])
     pattern = form.get("pattern") or None
 
+    def _update_and_log():
+        sp_client.update_playlists(excluded_playlists=excluded, playlists_patterns=pattern)
+        if not pattern:
+            spotify_misc.log_track_counts(config)
+
     job = create_job("update-playlists")
-    asyncio.create_task(  # noqa: RUF006
-        run_job(job, sp_client.update_playlists, excluded_playlists=excluded, playlists_patterns=pattern)
-    )
+    asyncio.create_task(run_job(job, _update_and_log))  # noqa: RUF006
     return RedirectResponse(url=f"/jobs/{job.id}", status_code=302)
 
 
