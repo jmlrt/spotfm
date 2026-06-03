@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}spotfm — Tracks{% endblock %}
+{% block content %}
+<h2>Tracks</h2>
+
+<form method="get" action="/tracks">
+  <div class="filter-grid">
+    <label>
+      Playlist
+      <select name="playlist">
+        <option value="">All playlists</option>
+        {% for pid, pname in all_playlists %}
+        <option value="{{ pid }}" {% if filters.playlist == pid %}selected{% endif %}>{{ pname }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>
+      Artist
+      <input type="text" name="artist" value="{{ filters.artist }}" placeholder="Filter by artist">
+    </label>
+    <label>
+      Album
+      <input type="text" name="album" value="{{ filters.album }}" placeholder="Filter by album">
+    </label>
+    <label>
+      Year from
+      <input type="number" name="year_start" value="{{ filters.year_start }}" placeholder="e.g. 2000" min="1900" max="2099">
+    </label>
+    <label>
+      Year to
+      <input type="number" name="year_end" value="{{ filters.year_end }}" placeholder="e.g. 2024" min="1900" max="2099">
+    </label>
+  </div>
+  <button type="submit">Filter</button>
+  <a href="/tracks" role="button" class="outline secondary">Reset</a>
+</form>
+
+{% if tracks %}
+<p>{{ pagination.total }} tracks</p>
+<table>
+  <thead>
+    <tr>
+      <th><a href="{{ sort_url('artists') }}">Artist{{ ind('artists') }}</a></th>
+      <th><a href="{{ sort_url('name') }}">Track{{ ind('name') }}</a></th>
+      <th><a href="{{ sort_url('album') }}">Album{{ ind('album') }}</a></th>
+      <th><a href="{{ sort_url('year') }}">Year{{ ind('year') }}</a></th>
+      <th>Playlists</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for t in tracks %}
+    <tr>
+      <td>{{ t.artists or "—" }}</td>
+      <td>{{ t.name }}</td>
+      <td>{{ t.album or "—" }}</td>
+      <td>{{ t.year or "—" }}</td>
+      <td>{% for pid, pname in t.track_playlists %}<a href="/tracks?playlist={{ pid }}">{{ pname }}</a>{% if not loop.last %}, {% endif %}{% else %}—{% endfor %}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% include "_pagination.html" %}
+{% else %}
+<p>No tracks found{% if has_filters %} matching your filters{% endif %}.</p>
+{% endif %}
+{% endblock %}
