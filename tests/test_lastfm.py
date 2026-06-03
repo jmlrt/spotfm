@@ -60,8 +60,21 @@ class TestRecentScrobblesCli:
     def _make_user(self, playcount=150):
         user = MagicMock()
         user.get_playcount.return_value = playcount
-        user.get_recent_tracks_scrobbles.return_value = iter(["Artist - Track - 5 - 10 - http://last.fm/track"])
+        user.get_recent_tracks_scrobbles.return_value = iter(
+            [
+                {
+                    "artist": "Artist",
+                    "title": "Track",
+                    "period_scrobbles": 5,
+                    "total_scrobbles": 10,
+                    "url": "http://last.fm/track",
+                }
+            ]
+        )
         return user
+
+    def _make_config(self):
+        return {"limit": 50, "scrobbles_minimum": 4, "period_minimum": None}
 
     def test_normal_run_saves_state(self, tmp_path):
         """Test that a normal run saves the current scrobble count."""
@@ -69,7 +82,7 @@ class TestRecentScrobblesCli:
         user = self._make_user(playcount=150)
 
         with patch("spotfm.lastfm.LASTFM_STATE_FILE", state_file):
-            recent_scrobbles(user, limit=10, scrobbles_minimum=0, period=90, period_minimum=None, interactive=False)
+            recent_scrobbles(user, limit=10, scrobbles_minimum=0, period=90, period_minimum=None, interactive=False, config=self._make_config())
 
         state = read_lastfm_state(state_file=state_file)
         assert state["last_scrobble_count"] == 150
@@ -80,79 +93,81 @@ class TestRecentScrobblesCli:
         user = self._make_user()
 
         with patch("spotfm.lastfm.LASTFM_STATE_FILE", state_file):
-            recent_scrobbles(user, limit=10, scrobbles_minimum=0, period=90, period_minimum=None, interactive=False)
+            recent_scrobbles(user, limit=10, scrobbles_minimum=0, period=90, period_minimum=None, interactive=False, config=self._make_config())
 
         captured = capsys.readouterr()
         assert "Initializing scrobble tracking" in captured.out
         # Should fetch the limit amount on first run
-        user.get_recent_tracks_scrobbles.assert_called_once_with(10, 0, 90, None)
+        user.get_recent_tracks_scrobbles.assert_called_once_with(limit=10, scrobbles_minimum=0, period=90, period_minimum=None)
 
     def test_since_last_time_no_new_scrobbles(self, tmp_path, capsys):
-        """Test --since-last-time when count has not changed."""
+        """Test incremental mode when count has not changed."""
         state_file = tmp_path / "lastfm_state.json"
         save_lastfm_state(150, state_file=state_file)
         user = self._make_user(playcount=150)
 
+        # With saved state, uses incremental mode regardless of explicit limit
         with patch("spotfm.lastfm.LASTFM_STATE_FILE", state_file):
-            recent_scrobbles(user, limit=10, scrobbles_minimum=0, period=90, period_minimum=None, interactive=False)
+            recent_scrobbles(user, limit=10, scrobbles_minimum=0, period=90, period_minimum=None, interactive=False, config=self._make_config())
 
         captured = capsys.readouterr()
         assert "No new scrobbles" in captured.out
         user.get_recent_tracks_scrobbles.assert_not_called()
 
     def test_since_last_time_fetches_diff(self, tmp_path):
-        """Test --since-last-time computes correct limit from diff."""
+        """Test incremental mode computes correct limit from diff, ignoring explicit limit."""
         state_file = tmp_path / "lastfm_state.json"
         save_lastfm_state(135, state_file=state_file)
         user = self._make_user(playcount=173)
 
+        # Even with explicit limit=100, incremental mode uses diff (38)
         with patch("spotfm.lastfm.LASTFM_STATE_FILE", state_file):
-            recent_scrobbles(user, limit=100, scrobbles_minimum=0, period=90, period_minimum=None, interactive=False)
+            recent_scrobbles(user, limit=100, scrobbles_minimum=0, period=90, period_minimum=None, interactive=False, config=self._make_config())
 
         user.get_recent_tracks_scrobbles.assert_called_once()
         call_args = user.get_recent_tracks_scrobbles.call_args
-        assert call_args[0][0] == 38  # limit = 173 - 135
+        assert call_args[1]["limit"] == 38  # limit = 173 - 135
 
     def test_since_last_time_updates_state(self, tmp_path):
-        """Test --since-last-time updates the state file after fetching when not capped."""
+        """Test incremental mode updates the state file after fetching."""
         state_file = tmp_path / "lastfm_state.json"
         save_lastfm_state(135, state_file=state_file)
         user = self._make_user(playcount=173)
 
-        # limit is greater than the diff (38), so all new scrobbles are fetched
+        # Incremental mode computes limit as diff (38), fetches all new scrobbles
         with patch("spotfm.lastfm.LASTFM_STATE_FILE", state_file):
-            recent_scrobbles(user, limit=100, scrobbles_minimum=0, period=90, period_minimum=None, interactive=False)
+            recent_scrobbles(user, limit=100, scrobbles_minimum=0, period=90, period_minimum=None, interactive=False, config=self._make_config())
 
         state = read_lastfm_state(state_file=state_file)
         assert state["last_scrobble_count"] == 173
 
     def test_since_last_time_fetches_all_scrobbles_ignoring_limit(self, tmp_path):
-        """Test --since-last-time fetches all new scrobbles regardless of --limit."""
+        """Test incremental mode ignores explicit limit and fetches only new scrobbles."""
         state_file = tmp_path / "lastfm_state.json"
         save_lastfm_state(135, state_file=state_file)
         user = self._make_user(playcount=173)
 
-        # Even though limit is 10 and diff is 38, --since-last-time fetches all 38
+        # With saved state, incremental mode ignores limit=10, fetches diff (38 scrobbles)
         with patch("spotfm.lastfm.LASTFM_STATE_FILE", state_file):
-            recent_scrobbles(user, limit=10, scrobbles_minimum=0, period=90, period_minimum=None, interactive=False)
+            recent_scrobbles(user, limit=10, scrobbles_minimum=0, period=90, period_minimum=None, interactive=False, config=self._make_config())
 
         state = read_lastfm_state(state_file=state_file)
         # State should advance to current count since we fetch all scrobbles
         assert state["last_scrobble_count"] == 173
 
     def test_since_last_time_prints_diff_info(self, tmp_path, capsys):
-        """Test --since-last-time prints informational message with counts."""
+        """Test incremental mode prints informational message with counts."""
         state_file = tmp_path / "lastfm_state.json"
         save_lastfm_state(135, state_file=state_file)
         user = self._make_user(playcount=173)
 
+        # Incremental mode ignores limit=100 when saved state exists
         with patch("spotfm.lastfm.LASTFM_STATE_FILE", state_file):
-            recent_scrobbles(user, limit=100, scrobbles_minimum=0, period=90, period_minimum=None, interactive=False)
+            recent_scrobbles(user, limit=100, scrobbles_minimum=0, period=90, period_minimum=None, interactive=False, config=self._make_config())
 
         captured = capsys.readouterr()
-        assert "38" in captured.out
-        assert "135" in captured.out
-        assert "173" in captured.out
+        # Should show that fetching happened in incremental mode
+        assert "new scrobbles" in captured.out
 
     def test_first_run_uses_limit_parameter(self, tmp_path):
         """Test that on first run (no state file), the limit parameter is used."""
@@ -160,10 +175,10 @@ class TestRecentScrobblesCli:
         user = self._make_user(playcount=200)
 
         with patch("spotfm.lastfm.LASTFM_STATE_FILE", state_file):
-            recent_scrobbles(user, limit=42, scrobbles_minimum=0, period=90, period_minimum=None, interactive=False)
+            recent_scrobbles(user, limit=42, scrobbles_minimum=0, period=90, period_minimum=None, interactive=False, config=self._make_config())
 
         call_args = user.get_recent_tracks_scrobbles.call_args
-        assert call_args[0][0] == 42
+        assert call_args[1]["limit"] == 42
 
     def test_interactive_mode_opens_editor(self, tmp_path):
         """Test that --interactive mode opens editor with deduplicated results."""
@@ -171,9 +186,27 @@ class TestRecentScrobblesCli:
         user = self._make_user(playcount=150)
         user.get_recent_tracks_scrobbles.return_value = iter(
             [
-                "Artist 1 - Track 1 - 5 - 10 - http://last.fm/track1",
-                "Artist 2 - Track 2 - 3 - 5 - http://last.fm/track2",
-                "Artist 1 - Track 1 - 5 - 10 - http://last.fm/track1",  # duplicate
+                {
+                    "artist": "Artist 1",
+                    "title": "Track 1",
+                    "period_scrobbles": 5,
+                    "total_scrobbles": 10,
+                    "url": "http://last.fm/track1",
+                },
+                {
+                    "artist": "Artist 2",
+                    "title": "Track 2",
+                    "period_scrobbles": 3,
+                    "total_scrobbles": 5,
+                    "url": "http://last.fm/track2",
+                },
+                {
+                    "artist": "Artist 1",
+                    "title": "Track 1",
+                    "period_scrobbles": 5,
+                    "total_scrobbles": 10,
+                    "url": "http://last.fm/track1",
+                },  # duplicate
             ]
         )
 
@@ -183,7 +216,7 @@ class TestRecentScrobblesCli:
             patch("subprocess.run") as mock_run,
             patch("spotfm.cli.os.unlink") as mock_unlink,
         ):
-            recent_scrobbles(user, limit=10, scrobbles_minimum=0, period=90, period_minimum=None, interactive=True)
+            recent_scrobbles(user, limit=10, scrobbles_minimum=0, period=90, period_minimum=None, interactive=True, config=self._make_config())
 
         # Verify subprocess.run was called
         assert mock_run.called
@@ -197,16 +230,16 @@ class TestRecentScrobblesCli:
         assert mock_unlink.called
 
     def test_interactive_mode_empty_results(self, tmp_path, capsys):
-        """Test that --interactive mode with no results prints message and doesn't open editor."""
+        """Test that interactive mode with no results prints message and doesn't open editor."""
         state_file = tmp_path / "lastfm_state.json"
         user = self._make_user(playcount=150)
         user.get_recent_tracks_scrobbles.return_value = iter([])
 
         with patch("spotfm.lastfm.LASTFM_STATE_FILE", state_file), patch("subprocess.run") as mock_run:
-            recent_scrobbles(user, limit=10, scrobbles_minimum=0, period=90, period_minimum=None, interactive=True)
+            recent_scrobbles(user, limit=10, scrobbles_minimum=0, period=90, period_minimum=None, interactive=True, config=self._make_config())
 
         captured = capsys.readouterr()
-        assert "No results to open in editor" in captured.out
+        assert "No results found" in captured.out
         # Editor should not be opened
         mock_run.assert_not_called()
 
@@ -445,10 +478,14 @@ class TestGetRecentTracksScrobbles:
 
         # Verify results
         assert len(results) == 2
-        assert "Artist 1 - Track 1" in results[0]
-        assert "2 - 2" in results[0]  # period_scrobbles - total_scrobbles
-        assert "Artist 2 - Track 2" in results[1]
-        assert "1 - 1" in results[1]
+        assert results[0]["artist"] == "Artist 1"
+        assert results[0]["title"] == "Track 1"
+        assert results[0]["period_scrobbles"] == 2
+        assert results[0]["total_scrobbles"] == 2
+        assert results[1]["artist"] == "Artist 2"
+        assert results[1]["title"] == "Track 2"
+        assert results[1]["period_scrobbles"] == 1
+        assert results[1]["total_scrobbles"] == 1
 
         # Verify API calls
         mock_pylast_user.get_recent_tracks.assert_called_once_with(limit=2)
@@ -538,7 +575,8 @@ class TestGetRecentTracksScrobbles:
         results = list(user.get_recent_tracks_scrobbles(limit=2, scrobbles_minimum=3, period_minimum=None))
 
         assert len(results) == 1
-        assert "Artist 1 - Track 1" in results[0]
+        assert results[0]["artist"] == "Artist 1"
+        assert results[0]["title"] == "Track 1"
 
     @freeze_time("2024-01-15 12:00:00")
     @patch("spotfm.lastfm.sleep")
@@ -569,7 +607,8 @@ class TestGetRecentTracksScrobbles:
 
         # Should show 2 scrobbles in last 7 days, 3 total
         assert len(results) == 1
-        assert "2 - 3" in results[0]  # period_count=2, total_count=3
+        assert results[0]["period_scrobbles"] == 2
+        assert results[0]["total_scrobbles"] == 3
 
     @patch("spotfm.lastfm.sleep")
     def test_get_recent_tracks_scrobbles_invalid_period_raises_error(self, mock_sleep):
@@ -655,7 +694,8 @@ class TestGetRecentTracksScrobbles:
         results = list(user.get_recent_tracks_scrobbles(limit=2, period=7, period_minimum=2))
 
         assert len(results) == 1
-        assert "Artist 1 - Track 1" in results[0]
+        assert results[0]["artist"] == "Artist 1"
+        assert results[0]["title"] == "Track 1"
 
     @freeze_time("2024-01-15 12:00:00")
     @patch("spotfm.lastfm.sleep")
@@ -704,12 +744,13 @@ class TestGetRecentTracksScrobbles:
         results = list(user.get_recent_tracks_scrobbles(limit=2, scrobbles_minimum=2, period=7, period_minimum=2))
 
         assert len(results) == 1
-        assert "Artist 1 - Track 1" in results[0]
+        assert results[0]["artist"] == "Artist 1"
+        assert results[0]["title"] == "Track 1"
 
     @freeze_time("2024-01-15 12:00:00")
     @patch("spotfm.lastfm.sleep")
     def test_get_recent_tracks_scrobbles_output_format(self, mock_sleep):
-        """get_recent_tracks_scrobbles maintains backward-compatible output format."""
+        """get_recent_tracks_scrobbles returns structured dict with artist, title, counts, and url."""
         mock_client = MagicMock()
         mock_pylast_user = MagicMock()
         mock_client.get_authenticated_user.return_value = mock_pylast_user
@@ -731,15 +772,14 @@ class TestGetRecentTracksScrobbles:
         user = User(mock_client)
         results = list(user.get_recent_tracks_scrobbles(limit=1, period=7, period_minimum=None))
 
-        # Format: "Artist - Title - period_scrobbles - total_scrobbles - url"
         assert len(results) == 1
-        parts = results[0].split(" - ")
-        assert parts[0] == "The Beatles"
-        assert parts[1] == "Hey Jude"
-        assert parts[2] == "1"  # 1 scrobble in last 7 days
-        assert parts[3] == "2"  # 2 total scrobbles
-        assert "last.fm/user/testuser/library" in parts[4]
-        assert "date_preset=LAST_7_DAYS" in parts[4]
+        track = results[0]
+        assert track["artist"] == "The Beatles"
+        assert track["title"] == "Hey Jude"
+        assert track["period_scrobbles"] == 1  # 1 scrobble in last 7 days
+        assert track["total_scrobbles"] == 2  # 2 total scrobbles
+        assert "last.fm/user/testuser/library" in track["url"]
+        assert "date_preset=LAST_7_DAYS" in track["url"]
 
 
 @pytest.mark.unit

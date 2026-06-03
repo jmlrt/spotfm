@@ -1,7 +1,5 @@
 import asyncio
-import contextlib
 import csv
-import io
 from pathlib import Path
 
 from fastapi import APIRouter, Query, Request
@@ -172,8 +170,7 @@ async def duplicates_ids(
         return redirect
     config = request.app.state.config
     excluded = config.get("spotify", {}).get("excluded_playlists", [])
-    with contextlib.redirect_stdout(io.StringIO()):
-        dupes = spotify_dupes.find_duplicate_ids(excluded_playlist_ids=excluded)
+    dupes = spotify_dupes.find_duplicate_ids(excluded_playlist_ids=excluded)
 
     sort_dir = dir if dir in ("asc", "desc") else "asc"
     valid_sorts = {"track_name", "artists", "playlists"}
@@ -251,8 +248,7 @@ async def duplicates_names_start(request: Request):
     job = create_job("dupe-names")
 
     def _find_dupe_names(**kwargs):
-        with contextlib.redirect_stdout(io.StringIO()):
-            return spotify_dupes.find_duplicate_names(**kwargs)
+        return spotify_dupes.find_duplicate_names(**kwargs)
 
     asyncio.create_task(run_job(job, _find_dupe_names, excluded_playlist_ids=excluded))  # noqa: RUF006
     return RedirectResponse(url="/duplicates", status_code=302)

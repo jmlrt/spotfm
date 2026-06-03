@@ -51,6 +51,11 @@ A Python library and CLI tool for Spotify and Last.FM API interaction. Focuses o
 - `spotfm/sqlite.py` - SQLite singleton connection management
 - `spotfm/utils.py` - Config, caching, string sanitization
 
+**Layered Separation Rule (core vs. presentation):**
+- **Core modules** (`spotfm/spotify/`, `spotfm/lastfm.py`): return structured data (dicts/lists), use `logging` for observability, **never call `print()`**
+- **Presentation layer** (`spotfm/cli.py`, `spotfm/web/`): format and display data; **never own business logic**
+- Shared orchestration logic used by both CLI and web belongs in the core module, not duplicated in each caller
+
 ## Code Style & Requirements
 
 - **Python**: 3.14+ (PEP 758 bracketless exception syntax)
