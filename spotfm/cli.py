@@ -8,7 +8,7 @@ import tempfile
 from logging.handlers import RotatingFileHandler
 
 from spotfm import lastfm, utils
-from spotfm.lastfm import read_lastfm_state, save_lastfm_state
+from spotfm.lastfm import fetch_recent_scrobbles, read_lastfm_state
 from spotfm.spotify import client as spotify_client
 from spotfm.spotify import constants as spotify_constants
 from spotfm.spotify import dupes as spotify_dupes
@@ -31,44 +31,45 @@ def _non_negative_int(value):
     return ivalue
 
 
-def recent_scrobbles(user, limit, scrobbles_minimum, period, period_minimum, interactive):
-    current_count = user.get_playcount()
-    scrobble_count_to_save = current_count  # Track what state to save
+def _format_track(track_dict):
+    """Format a track dict as 'artist - title - period_scrobbles - total_scrobbles - url'."""
+    return f"{track_dict['artist']} - {track_dict['title']} - {track_dict['period_scrobbles']} - {track_dict['total_scrobbles']} - {track_dict['url']}"
 
-    state = read_lastfm_state()
-    if state is None:
-        # First run: initialize state with current count, fetch --limit scrobbles
-        print(f"Initializing scrobble tracking. Fetching up to {limit} recent scrobbles.")
-    else:
-        # Subsequent runs: fetch all new scrobbles since last run
-        last_scrobble_count = None
-        if isinstance(state, dict):
-            last_scrobble_count = state.get("last_scrobble_count")
-        if not isinstance(last_scrobble_count, int):
-            print("Invalid previous state. Re-initializing scrobble tracking.")
-            save_lastfm_state(current_count)
-            return
-        computed_limit = current_count - last_scrobble_count
-        if computed_limit <= 0:
-            print("No new scrobbles since last run.")
-            save_lastfm_state(current_count)
-            return
-        # Fetch all new scrobbles on subsequent runs
-        limit = computed_limit
-        print(f"Fetching {limit} new scrobbles (was {last_scrobble_count}, now {current_count}).")
 
-    # Get scrobbles generator
-    scrobbles_gen = user.get_recent_tracks_scrobbles(limit, scrobbles_minimum, period, period_minimum)
+def recent_scrobbles(user, limit, scrobbles_minimum, period, period_minimum, interactive, config):
+    # Check if this is first run BEFORE fetching (once fetch_recent_scrobbles runs, state is saved)
+    is_first_run = read_lastfm_state() is None
+
+    # Fetch scrobbles with incremental state management (orchestration in lastfm module)
+    tracks, mode = fetch_recent_scrobbles(
+        user, config, limit=limit, scrobbles_minimum=scrobbles_minimum, period=period, period_minimum=period_minimum
+    )
+
+    # CLI-layer presentation: handle user feedback and interactive mode
+    if mode == "no_new":
+        print("No new scrobbles since last run.")
+        return
+    elif mode == "incremental":
+        state = read_lastfm_state()
+        last_count = state.get("last_scrobble_count") if isinstance(state, dict) else None
+        current_count = user.get_playcount()
+        if last_count:
+            print(f"Fetching {len(tracks)} new scrobbles (was {last_count}, now {current_count}).")
+        else:
+            print(f"Initializing scrobble tracking. Fetching up to {limit} recent scrobbles.")
+    else:  # mode == "full"
+        # First run shows initialization message; subsequent runs show fetch message
+        if is_first_run:
+            print(f"Initializing scrobble tracking. Fetching up to {limit} recent scrobbles.")
+        else:
+            print(f"Fetching {len(tracks)} recent scrobbles.")
+
+    if not tracks:
+        print("No results found.")
+        return
 
     if interactive:
-        # Collect all results first so exceptions/logs surface before editor opens
-        scrobbles = list(scrobbles_gen)
-        lines = sorted(set(scrobbles))
-        if not lines:
-            print("No results to open in editor.")
-            save_lastfm_state(scrobble_count_to_save)
-            return
-
+        lines = sorted(set(_format_track(s) for s in tracks))
         editor = os.environ.get("VISUAL") or os.environ.get("EDITOR", "vim")
         editor_args = shlex.split(editor)
         with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False, encoding="utf-8", newline="\n") as f:
@@ -80,14 +81,12 @@ def recent_scrobbles(user, limit, scrobbles_minimum, period, period_minimum, int
             os.unlink(tmp)
         if result.returncode != 0:
             print(f"Editor command {' '.join(editor_args)} exited with status {result.returncode}.")
-            print("Not advancing Last.FM state; please fix the editor issue and retry.")
+            print("Last.FM state was already advanced; please fix the editor issue.")
             return
     else:
         # Stream output in non-interactive mode
-        for scrobble in scrobbles_gen:
-            print(scrobble)
-
-    save_lastfm_state(scrobble_count_to_save)
+        for track in tracks:
+            print(_format_track(track))
 
 
 def count_tracks(playlists_pattern=None):
@@ -126,7 +125,7 @@ def lastfm_cli(args, config):
             if period_minimum is None:
                 period_minimum = config.get("lastfm", {}).get("period_minimum")
 
-            recent_scrobbles(user, args.limit, scrobbles_minimum, args.period, period_minimum, args.interactive)
+            recent_scrobbles(user, args.limit, scrobbles_minimum, args.period, period_minimum, args.interactive, config.get("lastfm", {}))
 
 
 def spotify_cli(args, config):
@@ -184,7 +183,10 @@ def spotify_cli(args, config):
             spotify_dupes.find_duplicate_names(excluded_playlist_ids=excluded, threshold=threshold)
         case "find-relinked-tracks":
             excluded = config["spotify"].get("excluded_playlists", [])
-            spotify_misc.find_relinked_tracks(client.client, excluded_playlist_ids=excluded, output_file=args.output)
+            relinked = spotify_misc.find_relinked_tracks(client.client, excluded_playlist_ids=excluded, output_file=args.output)
+            if not args.output:
+                for track in relinked:
+                    print(f"Relinked - {track['playlist_name']} - {track['original_track']} -> {track['replacement_track']} - {track['original_id']} - {track['replacement_id']}")
         case "list-playlists-with-track-counts":
             playlists = spotify_misc.list_playlists_with_track_counts()
             total_entries = 0

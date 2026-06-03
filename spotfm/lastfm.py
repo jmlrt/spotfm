@@ -125,9 +125,15 @@ class User:
             # Rate limiting: 0.2s between API calls (5 req/sec = Last.FM limit)
             sleep(0.2)
 
-        # Yield results (same format as before - backward compatible)
+        # Yield structured track data for callers to format as needed
         for track, period_scrobbles, total_scrobbles, url in tracks_data:
-            yield f"{track} - {period_scrobbles} - {total_scrobbles} - {url}"
+            yield {
+                "artist": track.artist,
+                "title": track.title,
+                "period_scrobbles": period_scrobbles,
+                "total_scrobbles": total_scrobbles,
+                "url": url,
+            }
 
 
 def read_lastfm_state(state_file=None):
@@ -168,3 +174,63 @@ def save_lastfm_state(scrobble_count, state_file=None):
             with contextlib.suppress(OSError):
                 tmp_path.unlink()
         logging.error(f"Failed to save Last.FM state file at {path}: {e}")
+
+
+def fetch_recent_scrobbles(user, config, *, limit=None, scrobbles_minimum=None, period=90, period_minimum=None):
+    """Fetch recent scrobbles with incremental state management.
+
+    Handles the orchestration of reading saved state, computing effective limits,
+    and saving state after fetch. This ensures consistent behavior across CLI and web.
+
+    Args:
+        user: Last.FM User instance
+        config: Last.FM config dict with keys: limit, scrobbles_minimum, period_minimum
+        limit: Explicit limit override (if None, uses incremental mode with saved state)
+        scrobbles_minimum: Minimum total scrobbles filter (if None, uses config)
+        period: Period in days for scrobble counting (default 90)
+        period_minimum: Minimum scrobbles in period window (if None, uses config)
+
+    Returns:
+        tuple: (tracks: list[dict], mode: str) where mode is "incremental", "full", or "no_new"
+    """
+    current_count = user.get_playcount()
+    scrobble_count_to_save = current_count
+
+    # Resolve config defaults
+    effective_limit = limit if limit is not None else config.get("limit", 50)
+    effective_scrobbles_minimum = (
+        scrobbles_minimum if scrobbles_minimum is not None else config.get("scrobbles_minimum", 4)
+    )
+    effective_period_minimum = period_minimum if period_minimum is not None else config.get("period_minimum")
+
+    # Check for saved state first. If it exists, use incremental mode (ignore explicit limit)
+    state = read_lastfm_state()
+    mode = "full"
+    if state is not None and isinstance(state, dict):
+        last_scrobble_count = state.get("last_scrobble_count")
+        if isinstance(last_scrobble_count, int):
+            # Saved state exists: always use incremental mode, compute limit from diff
+            mode = "incremental"
+            computed_limit = current_count - last_scrobble_count
+            if computed_limit <= 0:
+                save_lastfm_state(current_count)
+                return [], "no_new"
+            effective_limit = computed_limit
+    else:
+        # No saved state: use full mode with provided limit or config default
+        mode = "full" if limit is not None else "full"
+
+    # Fetch scrobbles
+    tracks = list(
+        user.get_recent_tracks_scrobbles(
+            limit=effective_limit,
+            scrobbles_minimum=effective_scrobbles_minimum,
+            period=period,
+            period_minimum=effective_period_minimum,
+        )
+    )
+
+    # Save state after successful fetch
+    save_lastfm_state(scrobble_count_to_save)
+
+    return tracks, mode

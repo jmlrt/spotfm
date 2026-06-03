@@ -5,7 +5,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from spotfm import lastfm
-from spotfm.lastfm import read_lastfm_state, save_lastfm_state
+from spotfm.lastfm import fetch_recent_scrobbles, read_lastfm_state
 from spotfm.web.auth import require_auth
 
 TEMPLATES_DIR = Path(__file__).parent.parent / "templates"
@@ -14,22 +14,6 @@ templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 router = APIRouter()
 
 _FORM_CONTEXT = "form"
-
-
-def _parse_track_line(line: str) -> dict:
-    """Parse 'Artist - Title - period - total - url' into a dict with separate artist/title."""
-    parts = line.rsplit(" - ", 3)
-    if len(parts) == 4:
-        name_part = parts[0]
-        artist, _, title = name_part.partition(" - ")
-        return {
-            "artist": artist.strip(),
-            "title": title.strip() if title else name_part.strip(),
-            "period_scrobbles": parts[1],
-            "total_scrobbles": parts[2],
-            "url": parts[3],
-        }
-    return {"artist": "", "title": line, "period_scrobbles": "?", "total_scrobbles": "?", "url": ""}
 
 
 @router.get("/scrobbles", response_class=HTMLResponse)
@@ -91,48 +75,25 @@ async def scrobbles(
     )
     user = lastfm.User(lastfm_client.client)
 
-    incremental = limit_int is None
-    effective_limit: int = limit_int if limit_int is not None else lastfm_cfg.get("limit", 50)
-    current_count = None
-
-    if incremental:
-        current_count = user.get_playcount()
-        if not isinstance(last_count, int):
-            effective_limit = lastfm_cfg.get("limit", 50)
-        else:
-            effective_limit = current_count - last_count
-            if effective_limit <= 0:
-                save_lastfm_state(current_count)
-                return templates.TemplateResponse(
-                    request,
-                    "scrobbles.html",
-                    context={"state": "no_new", "error": None, "state_info": None, "cfg": lastfm_cfg},
-                )
-
-    def _cfg_int(key, default=None):
-        v = lastfm_cfg.get(key, default)
-        try:
-            return int(v) if v is not None and str(v).strip() else default
-        except ValueError, TypeError:
-            return default
-
-    raw_tracks = list(
-        user.get_recent_tracks_scrobbles(
-            limit=effective_limit,
-            scrobbles_minimum=scrobbles_minimum_int
-            if scrobbles_minimum_int is not None
-            else _cfg_int("scrobbles_minimum", 4),
-            period=period,
-            period_minimum=period_minimum_int if period_minimum_int is not None else _cfg_int("period_minimum"),
-        )
+    # Fetch scrobbles with incremental state management (orchestration in lastfm module)
+    tracks, mode = fetch_recent_scrobbles(
+        user,
+        lastfm_cfg,
+        limit=limit_int,
+        scrobbles_minimum=scrobbles_minimum_int,
+        period=period,
+        period_minimum=period_minimum_int,
     )
-    tracks = [_parse_track_line(line) for line in raw_tracks]
 
-    if incremental:
-        save_lastfm_state(current_count)
+    if mode == "no_new":
+        return templates.TemplateResponse(
+            request,
+            "scrobbles.html",
+            context={"state": "no_new", "error": None, "state_info": None, "cfg": lastfm_cfg},
+        )
 
     # Default order: descending by period scrobbles
-    tracks.sort(key=lambda r: int(r["period_scrobbles"]) if r["period_scrobbles"].isdigit() else 0, reverse=True)
+    tracks.sort(key=lambda r: r["period_scrobbles"], reverse=True)
 
     return templates.TemplateResponse(
         request,
@@ -142,6 +103,6 @@ async def scrobbles(
             "error": None,
             "tracks": tracks,
             "period": period,
-            "incremental": incremental,
+            "incremental": mode == "incremental",
         },
     )

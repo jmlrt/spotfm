@@ -43,7 +43,6 @@ Timing should not be removed without understanding Spotify API limits.
 
 import csv
 import logging
-import sys
 from datetime import datetime
 from pathlib import Path
 from time import sleep
@@ -277,7 +276,7 @@ def discover_from_playlists(client, discover_playlist_id, sources_playlists_ids)
     total_playlists = len(sources_playlists_ids)
 
     for idx, playlist_id in enumerate(sources_playlists_ids, 1):
-        print(f"fetching playlist {playlist_id} ({idx}/{total_playlists})", file=sys.stderr, flush=True)
+        logging.info(f"Fetching playlist {playlist_id} ({idx}/{total_playlists})")
         playlist = Playlist.get_playlist(playlist_id, client.client, refresh=True, sync_to_db=False)
         logging.info(f"Looking for new tracks into {playlist.id} - {playlist.name}")
 
@@ -323,9 +322,7 @@ def discover_from_playlists(client, discover_playlist_id, sources_playlists_ids)
                 # Track exists and is in other playlists
                 logging.debug(f"Skipping track {track.id} (already in playlists)")
 
-        print(f"discovered {new_this_playlist} new tracks from playlist {playlist.name}", file=sys.stderr, flush=True)
-
-    print(f"total discovered from all playlists: {len(new_tracks)} new tracks", file=sys.stderr, flush=True)
+        logging.info(f"Discovered {new_this_playlist} new tracks from playlist {playlist.name}")
 
     if len(new_tracks) > 0:
         logging.info(
@@ -473,11 +470,6 @@ def find_relinked_tracks(client, excluded_playlist_ids=None, output_file=None):
     # Output results
     if output_file:
         write_relinked_tracks_csv(relinked_tracks, output_file)
-    else:
-        for track in relinked_tracks:
-            print(
-                f"Relinked - {track['playlist_name']} - {track['original_track']} -> {track['replacement_track']} - {track['original_id']} - {track['replacement_id']}"
-            )
 
     return relinked_tracks
 
