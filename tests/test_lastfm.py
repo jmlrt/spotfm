@@ -82,7 +82,15 @@ class TestRecentScrobblesCli:
         user = self._make_user(playcount=150)
 
         with patch("spotfm.lastfm.LASTFM_STATE_FILE", state_file):
-            recent_scrobbles(user, limit=10, scrobbles_minimum=0, period=90, period_minimum=None, interactive=False, config=self._make_config())
+            recent_scrobbles(
+                user,
+                limit=10,
+                scrobbles_minimum=0,
+                period=90,
+                period_minimum=None,
+                interactive=False,
+                config=self._make_config(),
+            )
 
         state = read_lastfm_state(state_file=state_file)
         assert state["last_scrobble_count"] == 150
@@ -93,12 +101,22 @@ class TestRecentScrobblesCli:
         user = self._make_user()
 
         with patch("spotfm.lastfm.LASTFM_STATE_FILE", state_file):
-            recent_scrobbles(user, limit=10, scrobbles_minimum=0, period=90, period_minimum=None, interactive=False, config=self._make_config())
+            recent_scrobbles(
+                user,
+                limit=10,
+                scrobbles_minimum=0,
+                period=90,
+                period_minimum=None,
+                interactive=False,
+                config=self._make_config(),
+            )
 
         captured = capsys.readouterr()
         assert "Initializing scrobble tracking" in captured.out
         # Should fetch the limit amount on first run
-        user.get_recent_tracks_scrobbles.assert_called_once_with(limit=10, scrobbles_minimum=0, period=90, period_minimum=None)
+        user.get_recent_tracks_scrobbles.assert_called_once_with(
+            limit=10, scrobbles_minimum=0, period=90, period_minimum=None
+        )
 
     def test_since_last_time_no_new_scrobbles(self, tmp_path, capsys):
         """Test incremental mode when count has not changed."""
@@ -108,7 +126,15 @@ class TestRecentScrobblesCli:
 
         # With saved state, uses incremental mode regardless of explicit limit
         with patch("spotfm.lastfm.LASTFM_STATE_FILE", state_file):
-            recent_scrobbles(user, limit=10, scrobbles_minimum=0, period=90, period_minimum=None, interactive=False, config=self._make_config())
+            recent_scrobbles(
+                user,
+                limit=10,
+                scrobbles_minimum=0,
+                period=90,
+                period_minimum=None,
+                interactive=False,
+                config=self._make_config(),
+            )
 
         captured = capsys.readouterr()
         assert "No new scrobbles" in captured.out
@@ -122,7 +148,15 @@ class TestRecentScrobblesCli:
 
         # Even with explicit limit=100, incremental mode uses diff (38)
         with patch("spotfm.lastfm.LASTFM_STATE_FILE", state_file):
-            recent_scrobbles(user, limit=100, scrobbles_minimum=0, period=90, period_minimum=None, interactive=False, config=self._make_config())
+            recent_scrobbles(
+                user,
+                limit=100,
+                scrobbles_minimum=0,
+                period=90,
+                period_minimum=None,
+                interactive=False,
+                config=self._make_config(),
+            )
 
         user.get_recent_tracks_scrobbles.assert_called_once()
         call_args = user.get_recent_tracks_scrobbles.call_args
@@ -136,7 +170,15 @@ class TestRecentScrobblesCli:
 
         # Incremental mode computes limit as diff (38), fetches all new scrobbles
         with patch("spotfm.lastfm.LASTFM_STATE_FILE", state_file):
-            recent_scrobbles(user, limit=100, scrobbles_minimum=0, period=90, period_minimum=None, interactive=False, config=self._make_config())
+            recent_scrobbles(
+                user,
+                limit=100,
+                scrobbles_minimum=0,
+                period=90,
+                period_minimum=None,
+                interactive=False,
+                config=self._make_config(),
+            )
 
         state = read_lastfm_state(state_file=state_file)
         assert state["last_scrobble_count"] == 173
@@ -149,7 +191,15 @@ class TestRecentScrobblesCli:
 
         # With saved state, incremental mode ignores limit=10, fetches diff (38 scrobbles)
         with patch("spotfm.lastfm.LASTFM_STATE_FILE", state_file):
-            recent_scrobbles(user, limit=10, scrobbles_minimum=0, period=90, period_minimum=None, interactive=False, config=self._make_config())
+            recent_scrobbles(
+                user,
+                limit=10,
+                scrobbles_minimum=0,
+                period=90,
+                period_minimum=None,
+                interactive=False,
+                config=self._make_config(),
+            )
 
         state = read_lastfm_state(state_file=state_file)
         # State should advance to current count since we fetch all scrobbles
@@ -163,7 +213,15 @@ class TestRecentScrobblesCli:
 
         # Incremental mode ignores limit=100 when saved state exists
         with patch("spotfm.lastfm.LASTFM_STATE_FILE", state_file):
-            recent_scrobbles(user, limit=100, scrobbles_minimum=0, period=90, period_minimum=None, interactive=False, config=self._make_config())
+            recent_scrobbles(
+                user,
+                limit=100,
+                scrobbles_minimum=0,
+                period=90,
+                period_minimum=None,
+                interactive=False,
+                config=self._make_config(),
+            )
 
         captured = capsys.readouterr()
         # Should show that fetching happened in incremental mode
@@ -175,7 +233,15 @@ class TestRecentScrobblesCli:
         user = self._make_user(playcount=200)
 
         with patch("spotfm.lastfm.LASTFM_STATE_FILE", state_file):
-            recent_scrobbles(user, limit=42, scrobbles_minimum=0, period=90, period_minimum=None, interactive=False, config=self._make_config())
+            recent_scrobbles(
+                user,
+                limit=42,
+                scrobbles_minimum=0,
+                period=90,
+                period_minimum=None,
+                interactive=False,
+                config=self._make_config(),
+            )
 
         call_args = user.get_recent_tracks_scrobbles.call_args
         assert call_args[1]["limit"] == 42
@@ -216,7 +282,15 @@ class TestRecentScrobblesCli:
             patch("subprocess.run") as mock_run,
             patch("spotfm.cli.os.unlink") as mock_unlink,
         ):
-            recent_scrobbles(user, limit=10, scrobbles_minimum=0, period=90, period_minimum=None, interactive=True, config=self._make_config())
+            recent_scrobbles(
+                user,
+                limit=10,
+                scrobbles_minimum=0,
+                period=90,
+                period_minimum=None,
+                interactive=True,
+                config=self._make_config(),
+            )
 
         # Verify subprocess.run was called
         assert mock_run.called
@@ -236,7 +310,15 @@ class TestRecentScrobblesCli:
         user.get_recent_tracks_scrobbles.return_value = iter([])
 
         with patch("spotfm.lastfm.LASTFM_STATE_FILE", state_file), patch("subprocess.run") as mock_run:
-            recent_scrobbles(user, limit=10, scrobbles_minimum=0, period=90, period_minimum=None, interactive=True, config=self._make_config())
+            recent_scrobbles(
+                user,
+                limit=10,
+                scrobbles_minimum=0,
+                period=90,
+                period_minimum=None,
+                interactive=True,
+                config=self._make_config(),
+            )
 
         captured = capsys.readouterr()
         assert "No results found" in captured.out

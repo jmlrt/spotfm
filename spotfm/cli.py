@@ -69,7 +69,7 @@ def recent_scrobbles(user, limit, scrobbles_minimum, period, period_minimum, int
         return
 
     if interactive:
-        lines = sorted(set(_format_track(s) for s in tracks))
+        lines = sorted({_format_track(s) for s in tracks})
         editor = os.environ.get("VISUAL") or os.environ.get("EDITOR", "vim")
         editor_args = shlex.split(editor)
         with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False, encoding="utf-8", newline="\n") as f:
@@ -125,7 +125,15 @@ def lastfm_cli(args, config):
             if period_minimum is None:
                 period_minimum = config.get("lastfm", {}).get("period_minimum")
 
-            recent_scrobbles(user, args.limit, scrobbles_minimum, args.period, period_minimum, args.interactive, config.get("lastfm", {}))
+            recent_scrobbles(
+                user,
+                args.limit,
+                scrobbles_minimum,
+                args.period,
+                period_minimum,
+                args.interactive,
+                config.get("lastfm", {}),
+            )
 
 
 def spotify_cli(args, config):
@@ -183,10 +191,14 @@ def spotify_cli(args, config):
             spotify_dupes.find_duplicate_names(excluded_playlist_ids=excluded, threshold=threshold)
         case "find-relinked-tracks":
             excluded = config["spotify"].get("excluded_playlists", [])
-            relinked = spotify_misc.find_relinked_tracks(client.client, excluded_playlist_ids=excluded, output_file=args.output)
+            relinked = spotify_misc.find_relinked_tracks(
+                client.client, excluded_playlist_ids=excluded, output_file=args.output
+            )
             if not args.output:
                 for track in relinked:
-                    print(f"Relinked - {track['playlist_name']} - {track['original_track']} -> {track['replacement_track']} - {track['original_id']} - {track['replacement_id']}")
+                    print(
+                        f"Relinked - {track['playlist_name']} - {track['original_track']} -> {track['replacement_track']} - {track['original_id']} - {track['replacement_id']}"
+                    )
         case "list-playlists-with-track-counts":
             playlists = spotify_misc.list_playlists_with_track_counts()
             total_entries = 0
