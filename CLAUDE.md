@@ -83,23 +83,7 @@ A Python library and CLI tool for Spotify and Last.FM API interaction. Focuses o
 5. **Global DB Connection**: `spotfm/sqlite.py` uses module-level singleton with atexit cleanup
 6. **Duplicate Detection**: Operates on SQLite only, no API calls (optimization)
 
-## Development Practices
-
-**Before committing:**
-- Run `make test` (all tests pass)
-- Run `make lint` (no ruff violations)
-- When fixing a bug in one CLI command, proactively check ALL similar commands for the same issue
-
-**Branch creation when on a feature branch:**
-- Always check `git branch` before creating a new fix/feature branch
-- If currently on a feature branch (e.g. `perf/threadpool-phase2`), do NOT stash and switch — the stash will conflict
-- Instead: note changed files, `git checkout main && git checkout -b fix/new-branch`, re-apply edits manually with the Edit tool
-
-**Commit strategy:**
-- **ONLY commit files you changed** — use `git add <file1> <file2>` (not `git add .` or `git add -A`)
-- **Do not commit unrelated changes** — keep commits focused and atomic
-- **Example**: If you fix a bug in 3 files, commit exactly those 3 files, nothing more
-- This prevents accidentally committing IDE config, lock files, or temporary analysis artifacts
+## Test Execution & Markers
 
 **Test execution:**
 - `make test` - Full suite
@@ -111,20 +95,6 @@ A Python library and CLI tool for Spotify and Last.FM API interaction. Focuses o
 - `@pytest.mark.unit` - Fast unit tests
 - `@pytest.mark.integration` - Integration tests (use temp databases)
 - `@pytest.mark.slow` - Long-running tests (run with `pytest -m slow`)
-
-## Tool Priority Strategy
-
-**Always use dedicated tools before requesting new bash permissions:**
-
-1. **File reading** → Use `Read` tool (not `cat`)
-2. **File searching** → Use `Grep` tool (not `grep`)
-3. **File patterns** → Use `Glob` tool (not `find`)
-4. **File writing** → Use `Write` tool (not `echo`/`cat`)
-5. **File editing** → Use `Edit` tool (not `sed`)
-6. **Git commands** → Use `Bash(git:*)` (already allowed)
-7. **Build/test** → Use `make` targets (already allowed)
-
-**Benefit**: Dedicated tools provide better UX, proper permissions handling, and reduce bash permission bloat.
 
 ## 📖 For More Information
 
