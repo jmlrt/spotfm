@@ -12,7 +12,9 @@ from spotfm import utils
 
 LASTFM_BASE_URL = "https://www.last.fm"
 PREDEFINED_PERIODS = [7, 30, 90, 180, 365]
-LASTFM_MAX_LIMIT = 1000
+# pylast's User.get_recent_tracks() internally requests limit+1 (to allow filtering out
+# a "now playing" track), so we must stay one under Last.FM's hard cap of 1000.
+LASTFM_MAX_LIMIT = 999
 LASTFM_STATE_FILE = utils.WORK_DIR / "lastfm_state.json"
 
 
