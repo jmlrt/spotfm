@@ -34,7 +34,6 @@ def test_scrobbles_fetch_incremental_new(authed_client, monkeypatch):
     from unittest.mock import MagicMock
 
     import spotfm.lastfm as lastfm_module
-    import spotfm.web.routes.lastfm as route_module
 
     mock_user = MagicMock()
     mock_user.get_playcount.return_value = 1032
@@ -69,7 +68,6 @@ def test_scrobbles_fetch_no_new(authed_client, monkeypatch):
     from unittest.mock import MagicMock
 
     import spotfm.lastfm as lastfm_module
-    import spotfm.web.routes.lastfm as route_module
 
     mock_user = MagicMock()
     mock_user.get_playcount.return_value = 1000
@@ -122,7 +120,6 @@ def test_scrobbles_artist_title_split(authed_client, monkeypatch):
     from unittest.mock import MagicMock
 
     import spotfm.lastfm as lastfm_module
-    import spotfm.web.routes.lastfm as route_module
 
     mock_user = MagicMock()
     mock_user.get_playcount.return_value = 1010
