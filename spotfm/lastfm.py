@@ -12,6 +12,7 @@ from spotfm import utils
 
 LASTFM_BASE_URL = "https://www.last.fm"
 PREDEFINED_PERIODS = [7, 30, 90, 180, 365]
+LASTFM_MAX_LIMIT = 1000
 LASTFM_STATE_FILE = utils.WORK_DIR / "lastfm_state.json"
 
 
@@ -197,7 +198,7 @@ def fetch_recent_scrobbles(user, config, *, limit=None, scrobbles_minimum=None, 
     scrobble_count_to_save = current_count
 
     # Resolve config defaults
-    effective_limit = limit if limit is not None else config.get("limit", 50)
+    effective_limit = min(limit if limit is not None else config.get("limit", 50), LASTFM_MAX_LIMIT)
     effective_scrobbles_minimum = (
         scrobbles_minimum if scrobbles_minimum is not None else config.get("scrobbles_minimum", 4)
     )
@@ -215,7 +216,7 @@ def fetch_recent_scrobbles(user, config, *, limit=None, scrobbles_minimum=None, 
             if computed_limit <= 0:
                 save_lastfm_state(current_count)
                 return [], "no_new"
-            effective_limit = computed_limit
+            effective_limit = min(computed_limit, LASTFM_MAX_LIMIT)
     else:
         # No saved state: use full mode with provided limit or config default
         mode = "full" if limit is not None else "full"

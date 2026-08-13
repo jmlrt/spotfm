@@ -5,9 +5,7 @@ using both exact ID matching and fuzzy name matching.
 """
 
 import csv
-import io
 import logging
-import sys
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
@@ -15,12 +13,6 @@ from pathlib import Path
 from rapidfuzz import fuzz, process
 
 from spotfm import sqlite
-
-# ANSI color codes for terminal output (only used when outputting to TTY)
-CYAN = "\033[36m"
-YELLOW = "\033[33m"
-GREEN = "\033[32m"
-RESET = "\033[0m"
 
 
 def get_playlists_for_track(track_id):
@@ -115,16 +107,13 @@ def get_tracks_with_playlists_optimized(excluded_playlist_ids=None):
 def find_duplicate_ids(excluded_playlist_ids=None):
     """Find tracks that appear multiple times (exact ID match).
 
-    Outputs CSV format to stdout. When outputting to a terminal (TTY), includes ANSI color codes.
-    Format: playlists,artists,track
-    Fields are properly quoted to handle special characters (commas, quotes, newlines).
-    For clean CSV without ANSI codes, pipe through: grep -v "^" | sed 's/\\x1b\\[[0-9;]*m//g'
+    Returns structured track information for callers to format as needed.
 
     Args:
         excluded_playlist_ids: List of playlist IDs to exclude
 
     Returns:
-        List of dicts with duplicate track information
+        List of dicts with fields: type, track, track_name, artists, count, playlists
     """
     if excluded_playlist_ids is None:
         excluded_playlist_ids = []
@@ -151,43 +140,6 @@ def find_duplicate_ids(excluded_playlist_ids=None):
 
     # Sort alphabetically by playlists, then artists, then track name
     duplicates.sort(key=lambda x: (x["playlists"].lower(), x["artists"].lower(), x["track_name"].lower()))
-
-    # Output results as CSV to stdout
-    is_tty = sys.stdout.isatty()
-    output = io.StringIO()
-    writer = csv.writer(output, quoting=csv.QUOTE_MINIMAL)
-
-    for dup in duplicates:
-        playlists = dup["playlists"]
-        artists = dup["artists"] or ""
-        track = dup["track_name"]
-
-        # Build row with proper CSV formatting
-        row = [playlists, artists, track]
-        writer.writerow(row)
-
-    # Get CSV content and optionally add ANSI colors
-    csv_content = output.getvalue()
-    if is_tty:
-        # Parse CSV back and add color codes only to terminal output
-        lines = csv_content.strip().split("\n")
-        colored_lines = []
-        for line in lines:
-            # Parse CSV line back to fields
-            reader = csv.reader(io.StringIO(line))
-            fields = next(reader)
-            if len(fields) >= 3:
-                playlists_colored = f"{CYAN}{fields[0]}{RESET}"
-                artists_colored = f"{GREEN}{fields[1]}{RESET}" if fields[1] else ""
-                track_colored = f"{YELLOW}{fields[2]}{RESET}"
-                colored_fields = [playlists_colored, artists_colored, track_colored]
-                colored_lines.append(",".join(colored_fields))
-            else:
-                colored_lines.append(line)
-        print("\n".join(colored_lines))
-    else:
-        # Output plain CSV to non-TTY (file, pipe, etc.)
-        print(csv_content.strip())
 
     logging.info(f"Found {len(duplicates)} tracks with duplicate IDs")
     return duplicates
@@ -404,15 +356,14 @@ def find_duplicate_names(excluded_playlist_ids=None, threshold=95):
 
     Uses prefix grouping and RapidFuzz batch API to reduce O(n²) comparisons.
     Includes secondary pass for same-artist tracks to catch cross-prefix duplicates.
-    Outputs CSV-compatible comma-separated format to stdout with ANSI color codes.
-    Format: playlists1,playlists2,artists1,artists2,track1,track2,score (cyan pair1, green pair2, yellow score).
+    Returns structured track information for callers to format as needed.
 
     Args:
         excluded_playlist_ids: List of playlist IDs to exclude
         threshold: Minimum similarity score (0-100) to consider a duplicate
 
     Returns:
-        List of dicts with similar track pairs
+        List of dicts with fields: track1, artists1, playlists1, track2, artists2, playlists2, score, ratio_type
     """
     if excluded_playlist_ids is None:
         excluded_playlist_ids = []
@@ -680,54 +631,6 @@ def find_duplicate_names(excluded_playlist_ids=None, threshold=95):
     total_comparisons += pass2_comparisons
     elapsed = (datetime.now() - start_time).total_seconds()
     logging.info(f"Completed in {elapsed:.1f}s - {total_comparisons:,} comparisons, {len(duplicates)} matches found")
-
-    # Output results as CSV to stdout
-    is_tty = sys.stdout.isatty()
-    output = io.StringIO()
-    writer = csv.writer(output, quoting=csv.QUOTE_MINIMAL)
-
-    for dup in duplicates:
-        # Build row with all fields (properly quoted by csv.writer for special chars)
-        score_str = f"{dup['score']:.2f}"
-        row = [
-            dup["playlists1"],
-            dup["playlists2"],
-            dup["artists1"],
-            dup["artists2"],
-            dup["track1"],
-            dup["track2"],
-            score_str,
-        ]
-        writer.writerow(row)
-
-    # Get CSV content and optionally add ANSI colors
-    csv_content = output.getvalue()
-    if is_tty:
-        # Parse CSV back and add color codes only to terminal output
-        lines = csv_content.strip().split("\n")
-        colored_lines = []
-        for line in lines:
-            # Parse CSV line back to fields
-            reader = csv.reader(io.StringIO(line))
-            fields = next(reader)
-            if len(fields) >= 7:
-                colored_fields = [
-                    f"{CYAN}{fields[0]}{RESET}",  # playlists1
-                    f"{GREEN}{fields[1]}{RESET}",  # playlists2
-                    f"{CYAN}{fields[2]}{RESET}",  # artists1
-                    f"{GREEN}{fields[3]}{RESET}",  # artists2
-                    f"{CYAN}{fields[4]}{RESET}",  # track1
-                    f"{GREEN}{fields[5]}{RESET}",  # track2
-                    f"{YELLOW}{fields[6]}{RESET}",  # score
-                ]
-                colored_lines.append(",".join(colored_fields))
-            else:
-                colored_lines.append(line)
-        print("\n".join(colored_lines))
-    else:
-        # Output plain CSV to non-TTY (file, pipe, etc.)
-        print(csv_content.strip())
-
     logging.info(f"Found {len(duplicates)} similar track pairs")
     return duplicates
 
