@@ -217,9 +217,6 @@ def fetch_recent_scrobbles(user, config, *, limit=None, scrobbles_minimum=None, 
                 save_lastfm_state(current_count)
                 return [], "no_new"
             effective_limit = min(computed_limit, LASTFM_MAX_LIMIT)
-    else:
-        # No saved state: use full mode with provided limit or config default
-        mode = "full" if limit is not None else "full"
 
     # Fetch scrobbles
     tracks = list(
