@@ -36,13 +36,14 @@ import atexit
 import logging
 import re
 import sqlite3
+import threading
 from functools import lru_cache
 
 from spotfm import utils
 
-# Global variables for the database connection
-_db_connection = None
-_current_database = None
+# Per-thread database connections — each thread (event loop + executor workers) gets its own
+# connection, eliminating shared-connection races without needing a global lock.
+_local = threading.local()
 _migrated_databases = set()  # Track which databases have been migrated
 
 
@@ -167,30 +168,27 @@ def migrate_database_schema(database=None):
 
 
 def get_db_connection(database):
-    global _db_connection, _current_database
     # Run migration on first connection
     migrate_database_schema(database)
     # Convert to string for consistent comparison
     database_str = str(database)
-    # If database changed or no connection exists, create new connection
-    if _db_connection is None or _current_database != database_str:
-        # Close existing connection if it exists
-        if _db_connection is not None:
-            _db_connection.close()
-        _db_connection = sqlite3.connect(database)
-        _db_connection.create_function("REGEXP", 2, _regexp)
-        _db_connection.set_trace_callback(utils.DATABASE_LOG_LEVEL)
-        _current_database = database_str
-    return _db_connection
+    # If database changed or no connection exists, create new connection for this thread
+    if getattr(_local, "connection", None) is None or getattr(_local, "database", None) != database_str:
+        if getattr(_local, "connection", None) is not None:
+            _local.connection.close()
+        _local.connection = sqlite3.connect(database)
+        _local.connection.create_function("REGEXP", 2, _regexp)
+        _local.connection.set_trace_callback(utils.DATABASE_LOG_LEVEL)
+        _local.database = database_str
+    return _local.connection
 
 
 def close_db_connection():
-    global _db_connection, _current_database
-    if _db_connection is not None:
+    if getattr(_local, "connection", None) is not None:
         logging.debug("Closing database connection")
-        _db_connection.close()
-        _db_connection = None
-        _current_database = None
+        _local.connection.close()
+        _local.connection = None
+        _local.database = None
 
 
 def _reset_migration_state_for_tests():
