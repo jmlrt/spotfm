@@ -24,15 +24,26 @@ class Job:
 
 
 _jobs: dict[str, Job] = {}
+# Finished jobs are kept for results pages, but capped so a long-lived server
+# doesn't accumulate them (dupe results can be large lists)
+_MAX_COMPLETED_JOBS = 50
 _progress_lock = threading.Lock()
 _active_jobs = 0
 _level_lock = threading.Lock()
 _saved_root_level: int | None = None
 
 
+def _prune_completed_jobs():
+    completed = [job for job in _jobs.values() if job.status in (JobStatus.DONE, JobStatus.FAILED)]
+    # _jobs preserves creation order — drop the oldest completed jobs beyond the cap
+    for job in completed[: max(0, len(completed) - _MAX_COMPLETED_JOBS)]:
+        del _jobs[job.id]
+
+
 def create_job(name: str) -> Job:
     job = Job(id=str(uuid.uuid4()), name=name)
     _jobs[job.id] = job
+    _prune_completed_jobs()
     return job
 
 

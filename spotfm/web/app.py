@@ -1,3 +1,4 @@
+import hashlib
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -40,7 +41,15 @@ def create_app(config_file=None):
         yield
 
     app = FastAPI(lifespan=lifespan)
-    app.add_middleware(SessionMiddleware, secret_key=api_key, max_age=86400 * 7, https_only=False)
+    # The session cookie key defaults to a hash of the API key (stable across restarts);
+    # set [web] session_secret in spotfm.toml to use a dedicated key instead
+    session_secret = web_config.get("session_secret") or hashlib.sha256(api_key.encode()).hexdigest()
+    app.add_middleware(
+        SessionMiddleware,
+        secret_key=session_secret,
+        max_age=86400 * 7,
+        https_only=web_config.get("https_only", False),
+    )
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
     app.include_router(spotify_routes.router)

@@ -113,3 +113,45 @@ async def test_spawn_job_failure_marks_job_failed():
 
     assert job.status == JobStatus.FAILED
     assert "job exploded" in job.error
+
+
+@pytest.mark.unit
+def test_create_job_prunes_old_completed_jobs(monkeypatch):
+    """Completed jobs are capped; the newest are kept, the oldest are dropped."""
+    from spotfm.web.jobs import JobStatus, _jobs, create_job, get_job
+
+    monkeypatch.setattr("spotfm.web.jobs._MAX_COMPLETED_JOBS", 3)
+
+    first = create_job("prune-test")
+    first.status = JobStatus.DONE
+    for i in range(5):
+        job = create_job(f"done-{i}")
+        job.status = JobStatus.DONE
+
+    # One more create triggers a prune; the fresh job is PENDING so it is never pruned itself
+    pending = create_job("pending")
+
+    assert get_job(first.id) is None, "oldest completed jobs must be pruned"
+    completed = [j for j in _jobs.values() if j.status == JobStatus.DONE]
+    assert len(completed) == 3
+    assert get_job(pending.id) is not None
+
+
+@pytest.mark.unit
+def test_create_job_never_prunes_running_jobs(monkeypatch):
+    """Running jobs must survive pruning regardless of how many completed jobs exist."""
+    from spotfm.web.jobs import JobStatus, _jobs, create_job, get_job
+
+    monkeypatch.setattr("spotfm.web.jobs._MAX_COMPLETED_JOBS", 2)
+
+    running = create_job("long-running")
+    running.status = JobStatus.RUNNING
+    for i in range(6):
+        job = create_job(f"done-{i}")
+        job.status = JobStatus.DONE
+
+    create_job("pending")  # triggers a prune
+
+    assert get_job(running.id) is not None
+    completed = [j for j in _jobs.values() if j.status == JobStatus.DONE]
+    assert len(completed) == 2
