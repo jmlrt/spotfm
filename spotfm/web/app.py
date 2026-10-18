@@ -1,3 +1,4 @@
+import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -20,6 +21,10 @@ templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 
 def create_app(config_file=None):
+    # INFO records from the business modules feed the job log handlers (live logs);
+    # nothing else listens on the root logger in this process, so no restore is needed
+    logging.getLogger().setLevel(logging.INFO)
+
     config = utils.parse_config(config_file) if config_file else utils.parse_config()
 
     api_key = config.get("web", {}).get("api_key", "")

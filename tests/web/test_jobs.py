@@ -155,3 +155,27 @@ def test_create_job_never_prunes_running_jobs(monkeypatch):
     assert get_job(running.id) is not None
     completed = [j for j in _jobs.values() if j.status == JobStatus.DONE]
     assert len(completed) == 2
+
+
+@pytest.mark.asyncio
+async def test_run_job_captures_info_logs():
+    """INFO log records emitted by the job function must land in job.progress (live logs)."""
+    import logging
+
+    from spotfm.web.jobs import create_job, run_job
+
+    root = logging.getLogger()
+    previous_level = root.level
+    root.setLevel(logging.INFO)
+    try:
+        job = create_job("log-test")
+
+        def fn():
+            logging.getLogger("spotfm.jobtest").info("hello from the job")
+            return "ok"
+
+        await run_job(job, fn)
+        assert job.status == "done"
+        assert any("hello from the job" in line for line in job.progress)
+    finally:
+        root.setLevel(previous_level)
