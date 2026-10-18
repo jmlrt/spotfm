@@ -8,8 +8,7 @@
 {% endif %}
 
 {% if state == "form" and not error %}
-<form method="get" action="/scrobbles">
-  <input type="hidden" name="fetch" value="1">
+<form method="post" action="/scrobbles">
   <div class="filter-grid">
     <label>
       Limit
