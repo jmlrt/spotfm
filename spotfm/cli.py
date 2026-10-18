@@ -1,4 +1,5 @@
 import argparse
+import csv
 import logging
 import os
 import shlex
@@ -34,6 +35,30 @@ def _non_negative_int(value):
 def _format_track(track_dict):
     """Format a track dict as 'artist - title - period_scrobbles - total_scrobbles - url'."""
     return f"{track_dict['artist']} - {track_dict['title']} - {track_dict['period_scrobbles']} - {track_dict['total_scrobbles']} - {track_dict['url']}"
+
+
+def _print_duplicate_ids(duplicates):
+    """Print duplicate-ID results as CSV rows to stdout: playlists,artists,track."""
+    writer = csv.writer(sys.stdout, quoting=csv.QUOTE_MINIMAL, lineterminator="\n")
+    for dup in duplicates:
+        writer.writerow([dup["playlists"], dup["artists"] or "", dup["track_name"]])
+
+
+def _print_duplicate_names(duplicates):
+    """Print fuzzy-matched pairs as CSV rows to stdout: playlists1,playlists2,artists1,artists2,track1,track2,score."""
+    writer = csv.writer(sys.stdout, quoting=csv.QUOTE_MINIMAL, lineterminator="\n")
+    for dup in duplicates:
+        writer.writerow(
+            [
+                dup["playlists1"],
+                dup["playlists2"],
+                dup["artists1"],
+                dup["artists2"],
+                dup["track1"],
+                dup["track2"],
+                f"{dup['score']:.2f}",
+            ]
+        )
 
 
 def recent_scrobbles(user, limit, scrobbles_minimum, period, period_minimum, interactive, config):
@@ -184,11 +209,13 @@ def spotify_cli(args, config):
             )
         case "find-duplicate-ids":
             excluded = config["spotify"].get("excluded_playlists", [])
-            spotify_dupes.find_duplicate_ids(excluded_playlist_ids=excluded)
+            duplicates = spotify_dupes.find_duplicate_ids(excluded_playlist_ids=excluded)
+            _print_duplicate_ids(duplicates)
         case "find-duplicate-names":
             excluded = config["spotify"].get("excluded_playlists", [])
             threshold = args.threshold if hasattr(args, "threshold") else 95
-            spotify_dupes.find_duplicate_names(excluded_playlist_ids=excluded, threshold=threshold)
+            duplicates = spotify_dupes.find_duplicate_names(excluded_playlist_ids=excluded, threshold=threshold)
+            _print_duplicate_names(duplicates)
         case "find-relinked-tracks":
             excluded = config["spotify"].get("excluded_playlists", [])
             relinked = spotify_misc.find_relinked_tracks(
