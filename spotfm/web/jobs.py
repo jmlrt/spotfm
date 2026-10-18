@@ -57,6 +57,19 @@ def get_latest_job(name: str) -> Job | None:
     return matches[-1] if matches else None
 
 
+# The event loop only keeps weak references to tasks, so an unreferenced
+# background task can be garbage-collected mid-run — keep strong refs until done.
+_background_tasks: set[asyncio.Task] = set()
+
+
+def spawn_job(job: Job, fn, *args, **kwargs) -> asyncio.Task:
+    """Schedule run_job as a tracked background task and return it."""
+    task = asyncio.create_task(run_job(job, fn, *args, **kwargs))
+    _background_tasks.add(task)
+    task.add_done_callback(_background_tasks.discard)
+    return task
+
+
 async def run_job(job: Job, fn, *args, **kwargs):
     global _active_jobs, _saved_root_level
     job.status = JobStatus.RUNNING

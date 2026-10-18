@@ -1,4 +1,3 @@
-import asyncio
 import csv
 from pathlib import Path
 
@@ -9,7 +8,7 @@ from fastapi.templating import Jinja2Templates
 from spotfm.spotify import dupes as spotify_dupes
 from spotfm.spotify import misc as spotify_misc
 from spotfm.web.auth import require_auth
-from spotfm.web.jobs import JobStatus, create_job, get_job, get_latest_job, get_running_job, run_job
+from spotfm.web.jobs import JobStatus, create_job, get_job, get_latest_job, get_running_job, spawn_job
 from spotfm.web.pagination import make_sort_url, paginate, pagination_base_url, sort_indicator
 
 TEMPLATES_DIR = Path(__file__).parent.parent / "templates"
@@ -250,7 +249,7 @@ async def duplicates_names_start(request: Request):
     def _find_dupe_names(**kwargs):
         return spotify_dupes.find_duplicate_names(**kwargs)
 
-    asyncio.create_task(run_job(job, _find_dupe_names, excluded_playlist_ids=excluded))  # noqa: RUF006
+    spawn_job(job, _find_dupe_names, excluded_playlist_ids=excluded)
     return RedirectResponse(url="/duplicates", status_code=302)
 
 
@@ -276,7 +275,7 @@ async def start_update_playlists(request: Request):
             spotify_misc.log_track_counts(config)
 
     job = create_job("update-playlists")
-    asyncio.create_task(run_job(job, _update_and_log))  # noqa: RUF006
+    spawn_job(job, _update_and_log)
     return RedirectResponse(url=f"/jobs/{job.id}", status_code=302)
 
 
@@ -305,7 +304,7 @@ async def start_discover(request: Request):
         )
 
     job = create_job("discover")
-    asyncio.create_task(run_job(job, spotify_misc.discover_from_playlists, sp_client, discover_playlist_id, sources))  # noqa: RUF006
+    spawn_job(job, spotify_misc.discover_from_playlists, sp_client, discover_playlist_id, sources)
     return RedirectResponse(url=f"/jobs/{job.id}", status_code=302)
 
 

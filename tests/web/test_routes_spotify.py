@@ -73,13 +73,12 @@ def test_duplicates_ids_empty_db(authed_client, monkeypatch):
 
 @pytest.mark.unit
 def test_update_playlists_creates_job(authed_client, monkeypatch):
-    import asyncio
+    import spotfm.web.routes.spotify as spotify_routes
 
-    def mock_create_task(coro):
-        coro.close()
+    def mock_spawn_job(job, fn, *args, **kwargs):
         return None
 
-    monkeypatch.setattr(asyncio, "create_task", mock_create_task)
+    monkeypatch.setattr(spotify_routes, "spawn_job", mock_spawn_job)
 
     resp = authed_client.post("/jobs/update-playlists", follow_redirects=False)
     assert resp.status_code == 302

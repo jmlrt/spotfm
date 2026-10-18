@@ -91,6 +91,6 @@ def create_app(config_file=None):
 
 
 def run():
-    # Single worker is required for SQLite singleton connection safety
-    # see: spotfm/sqlite.py check_same_thread=False
+    # Single worker: the job registry and running-job guards are in-process state —
+    # multiple worker processes would each track their own jobs
     uvicorn.run("spotfm.web.app:create_app", factory=True, host="0.0.0.0", port=8000, workers=1)
