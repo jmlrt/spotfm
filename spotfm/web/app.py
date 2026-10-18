@@ -1,17 +1,15 @@
-import hashlib
 from contextlib import asynccontextmanager
 from pathlib import Path
 
 import uvicorn
-from fastapi import FastAPI, Form, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from starlette.middleware.sessions import SessionMiddleware
 
 from spotfm import utils
 from spotfm.spotify import client as spotify_client
-from spotfm.web.auth import check_api_key, require_auth
+from spotfm.web.auth import BasicAuthMiddleware
 from spotfm.web.routes import lastfm as lastfm_routes
 from spotfm.web.routes import spotify as spotify_routes
 
@@ -24,15 +22,13 @@ templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 def create_app(config_file=None):
     config = utils.parse_config(config_file) if config_file else utils.parse_config()
 
-    web_config = config.get("web", {})
-    api_key = web_config.get("api_key", "")
+    api_key = config.get("web", {}).get("api_key", "")
     if not api_key:
         raise RuntimeError("[web] api_key is missing or empty in spotfm.toml")
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         app.state.config = config
-        app.state.api_key = api_key
         spotify_cfg = config.get("spotify", {})
         app.state.spotify_client = spotify_client.Client(
             client_id=spotify_cfg["client_id"],
@@ -41,46 +37,14 @@ def create_app(config_file=None):
         yield
 
     app = FastAPI(lifespan=lifespan)
-    # The session cookie key defaults to a hash of the API key (stable across restarts);
-    # set [web] session_secret in spotfm.toml to use a dedicated key instead
-    session_secret = web_config.get("session_secret") or hashlib.sha256(api_key.encode()).hexdigest()
-    app.add_middleware(
-        SessionMiddleware,
-        secret_key=session_secret,
-        max_age=86400 * 7,
-        https_only=web_config.get("https_only", False),
-    )
+    app.add_middleware(BasicAuthMiddleware, api_key=api_key)
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
     app.include_router(spotify_routes.router)
     app.include_router(lastfm_routes.router)
 
-    @app.get("/login", response_class=HTMLResponse)
-    async def login_page(request: Request):
-        return templates.TemplateResponse(request, "login.html", context={"error": None})
-
-    @app.post("/login")
-    async def login(request: Request, api_key_input: str = Form(alias="api_key")):
-        if check_api_key(api_key_input, request.app.state.api_key):
-            request.session["authenticated"] = True
-            next_url = request.query_params.get("next", "/")
-            # Validate next_url is a safe relative path (prevent open redirect)
-            # Also reject scheme-relative URLs like //evil.com
-            if not next_url.startswith("/") or next_url.startswith("//") or "://" in next_url:
-                next_url = "/"
-            return RedirectResponse(url=next_url, status_code=302)
-        return templates.TemplateResponse(request, "login.html", context={"error": "Invalid API key"}, status_code=401)
-
-    @app.post("/logout")
-    async def logout(request: Request):
-        request.session.clear()
-        return RedirectResponse(url="/login", status_code=302)
-
     @app.get("/", response_class=HTMLResponse)
     async def dashboard(request: Request):
-        redirect = await require_auth(request)
-        if redirect:
-            return redirect
         from spotfm import sqlite
         from spotfm.utils import DATABASE
 

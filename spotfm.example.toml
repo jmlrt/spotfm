@@ -1,7 +1,5 @@
 [web]
-api_key = ""  # any random string; required to access the webapp
-# session_secret = ""  # optional; dedicated key for signing session cookies (defaults to a hash of api_key)
-# https_only = false  # set true when serving over HTTPS so the session cookie is marked Secure
+api_key = ""  # any random string; the browser asks for it once via HTTP Basic auth
 
 [lastfm]
 api_key = ""

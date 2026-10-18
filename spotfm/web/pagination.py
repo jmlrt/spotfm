@@ -38,7 +38,12 @@ def pagination_base_url(request) -> str:
 
 
 def make_sort_url(request, current_sort: str, current_dir: str):
-    """Return a callable `f(col)` that builds a sort URL for the given column."""
+    """Return a callable `f(col)` that builds a sort URL for the given column.
+
+    Server-side sorting is required for paginated tables — the client-side JS
+    (table_sort.js) only sorts the current page, so it is used on non-paginated
+    tables only.
+    """
 
     def _url(col: str) -> str:
         new_dir = "desc" if current_sort == col and current_dir == "asc" else "asc"

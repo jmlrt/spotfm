@@ -5,7 +5,6 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from spotfm import lastfm
-from spotfm.web.auth import require_auth
 from spotfm.web.jobs import JobStatus, create_job, get_running_job, run_job
 
 TEMPLATES_DIR = Path(__file__).parent.parent / "templates"
@@ -45,17 +44,11 @@ async def _scrobbles_form(request: Request, error=None):
 
 @router.get("/scrobbles", response_class=HTMLResponse)
 async def scrobbles_page(request: Request):
-    redirect = await require_auth(request)
-    if redirect:
-        return redirect
     return await _scrobbles_form(request)
 
 
 @router.post("/scrobbles", response_class=HTMLResponse)
 async def scrobbles_fetch(request: Request):
-    redirect = await require_auth(request)
-    if redirect:
-        return redirect
 
     form = await request.form()
     limit_int = _form_int(form.get("limit"))

@@ -1,3 +1,4 @@
+import base64
 from pathlib import Path
 
 import pytest
@@ -6,6 +7,11 @@ from fastapi.testclient import TestClient
 from spotfm import sqlite, utils
 
 TEST_API_KEY = "test-api-key-12345"
+
+
+def basic_auth_header(api_key: str) -> dict:
+    token = base64.b64encode(f"spotfm:{api_key}".encode()).decode()
+    return {"Authorization": f"Basic {token}"}
 
 
 def _write_test_config(path: Path) -> Path:
@@ -72,6 +78,5 @@ def client(app):
 
 @pytest.fixture
 def authed_client(client):
-    resp = client.post("/login", data={"api_key": TEST_API_KEY})
-    assert resp.status_code in (200, 302)
+    client.headers.update(basic_auth_header(TEST_API_KEY))
     return client

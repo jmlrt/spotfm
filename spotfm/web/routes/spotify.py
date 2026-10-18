@@ -7,7 +7,6 @@ from fastapi.templating import Jinja2Templates
 
 from spotfm.spotify import dupes as spotify_dupes
 from spotfm.spotify import misc as spotify_misc
-from spotfm.web.auth import require_auth
 from spotfm.web.jobs import JobStatus, create_job, get_job, get_latest_job, get_running_job, spawn_job
 from spotfm.web.pagination import make_sort_url, paginate, pagination_base_url, sort_indicator
 
@@ -24,9 +23,6 @@ async def playlists(
     sort: str = Query(default="name"),
     dir: str = Query(default="asc"),
 ):
-    redirect = await require_auth(request)
-    if redirect:
-        return redirect
     rows = spotify_misc.list_playlists_with_track_counts()
     # rows are (name, pid, count) tuples
     sort_dir = dir if dir in ("asc", "desc") else "asc"
@@ -63,9 +59,6 @@ async def tracks(
     sort: str = Query(default="name"),
     dir: str = Query(default="asc"),
 ):
-    redirect = await require_auth(request)
-    if redirect:
-        return redirect
 
     from spotfm import sqlite
     from spotfm.utils import DATABASE
@@ -150,9 +143,6 @@ async def tracks(
 
 @router.get("/duplicates", response_class=HTMLResponse)
 async def duplicates_page(request: Request):
-    redirect = await require_auth(request)
-    if redirect:
-        return redirect
     job = get_latest_job("dupe-names")
     return templates.TemplateResponse(request, "duplicates.html", context={"job": job, "JobStatus": JobStatus})
 
@@ -164,9 +154,6 @@ async def duplicates_ids(
     sort: str = Query(default="track_name"),
     dir: str = Query(default="asc"),
 ):
-    redirect = await require_auth(request)
-    if redirect:
-        return redirect
     config = request.app.state.config
     excluded = config.get("spotify", {}).get("excluded_playlists", [])
     dupes = spotify_dupes.find_duplicate_ids(excluded_playlist_ids=excluded)
@@ -199,9 +186,6 @@ async def duplicates_names_results(
     sort: str = Query(default="score"),
     dir: str = Query(default="desc"),
 ):
-    redirect = await require_auth(request)
-    if redirect:
-        return redirect
     job = get_latest_job("dupe-names")
     if not job or not job.result:
         return RedirectResponse(url="/duplicates", status_code=302)
@@ -233,9 +217,6 @@ async def duplicates_names_results(
 
 @router.post("/duplicates/names")
 async def duplicates_names_start(request: Request):
-    redirect = await require_auth(request)
-    if redirect:
-        return redirect
 
     # Block only if already running; allow re-run when done/failed
     existing = get_running_job("dupe-names")
@@ -255,9 +236,6 @@ async def duplicates_names_start(request: Request):
 
 @router.post("/jobs/update-playlists")
 async def start_update_playlists(request: Request):
-    redirect = await require_auth(request)
-    if redirect:
-        return redirect
 
     existing = get_running_job("update-playlists")
     if existing:
@@ -281,9 +259,6 @@ async def start_update_playlists(request: Request):
 
 @router.post("/jobs/discover")
 async def start_discover(request: Request):
-    redirect = await require_auth(request)
-    if redirect:
-        return redirect
 
     existing = get_running_job("discover")
     if existing:
@@ -310,9 +285,6 @@ async def start_discover(request: Request):
 
 @router.get("/jobs/{job_id}", response_class=HTMLResponse)
 async def job_status(request: Request, job_id: str):
-    redirect = await require_auth(request)
-    if redirect:
-        return redirect
     job = get_job(job_id)
     if job is None:
         return HTMLResponse("<p>Job not found</p>", status_code=404)
@@ -323,9 +295,6 @@ async def job_status(request: Request, job_id: str):
 
 @router.get("/track-counts", response_class=HTMLResponse)
 async def track_counts(request: Request, page: int = Query(default=1, ge=1)):
-    redirect = await require_auth(request)
-    if redirect:
-        return redirect
 
     config = request.app.state.config
     log_path_raw = config.get("spotify", {}).get("track_counts_log", "")

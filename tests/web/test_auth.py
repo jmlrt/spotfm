@@ -1,71 +1,50 @@
+import base64
+
 import pytest
 
-from tests.web.conftest import TEST_API_KEY
+from tests.web.conftest import TEST_API_KEY, basic_auth_header
+
+
+def _header(api_key: str) -> str:
+    return basic_auth_header(api_key)["Authorization"]
 
 
 @pytest.mark.unit
-def test_login_correct_key(client):
-    resp = client.post("/login", data={"api_key": TEST_API_KEY}, follow_redirects=False)
-    assert resp.status_code == 302
-    assert resp.headers["location"] == "/"
-
-
-@pytest.mark.unit
-def test_login_wrong_key(client):
-    resp = client.post("/login", data={"api_key": "wrong"})
+def test_unauthenticated_request_gets_401_with_challenge(client):
+    resp = client.get("/playlists")
     assert resp.status_code == 401
-    assert "Invalid API key" in resp.text
+    assert resp.headers["www-authenticate"] == 'Basic realm="spotfm"'
 
 
 @pytest.mark.unit
-def test_protected_route_redirects_unauthenticated(client):
-    resp = client.get("/playlists", follow_redirects=False)
-    assert resp.status_code == 302
-    assert "/login" in resp.headers["location"]
+def test_wrong_api_key_gets_401(client):
+    client.headers.update(basic_auth_header("wrong-key"))
+    resp = client.get("/playlists")
+    assert resp.status_code == 401
 
 
 @pytest.mark.unit
-def test_protected_route_accessible_after_login(authed_client):
+def test_authenticated_request_passes(authed_client):
     resp = authed_client.get("/playlists")
     assert resp.status_code == 200
 
 
 @pytest.mark.unit
-def test_logout_clears_session(authed_client):
-    resp = authed_client.post("/logout", follow_redirects=False)
-    assert resp.status_code == 302
-    # After logout, protected routes redirect again
-    resp = authed_client.get("/playlists", follow_redirects=False)
-    assert resp.status_code == 302
-    assert "/login" in resp.headers["location"]
+def test_username_is_ignored(authed_client):
+    # Only the password position matters — any username works
+    token = base64.b64encode(f"anyuser:{TEST_API_KEY}".encode()).decode()
+    authed_client.headers.update({"Authorization": f"Basic {token}"})
+    resp = authed_client.get("/playlists")
+    assert resp.status_code == 200
+
+
+@pytest.mark.unit
+def test_malformed_authorization_header_gets_401(client):
+    for header in ("Bearer something", "Basic !!!not-base64!!!", "Basic"):
+        client.headers.update({"Authorization": header})
+        assert client.get("/playlists").status_code == 401
 
 
 @pytest.mark.unit
 def test_dashboard_requires_auth(client):
-    resp = client.get("/", follow_redirects=False)
-    assert resp.status_code == 302
-
-
-@pytest.mark.unit
-def test_login_open_redirect_protection(client):
-    # Attempt external redirect via next param
-    resp = client.post(
-        "/login?next=https://evil.com",
-        data={"api_key": TEST_API_KEY},
-        follow_redirects=False,
-    )
-    assert resp.status_code == 302
-    # Should redirect to "/" instead of the malicious URL
-    assert resp.headers["location"] == "/"
-
-
-@pytest.mark.unit
-def test_login_safe_relative_redirect(client):
-    # Valid relative redirect should work
-    resp = client.post(
-        "/login?next=/playlists",
-        data={"api_key": TEST_API_KEY},
-        follow_redirects=False,
-    )
-    assert resp.status_code == 302
-    assert resp.headers["location"] == "/playlists"
+    assert client.get("/", follow_redirects=False).status_code == 401
