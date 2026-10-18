@@ -16,7 +16,8 @@ def verify_basic_auth(request: Request, api_key: str) -> bool:
     except ValueError, UnicodeDecodeError:
         return False
     _, _, password = decoded.partition(":")
-    return hmac.compare_digest(password, api_key)
+    # hmac.compare_digest rejects non-ASCII strings, so compare UTF-8 bytes
+    return hmac.compare_digest(password.encode(), api_key.encode())
 
 
 class BasicAuthMiddleware(BaseHTTPMiddleware):

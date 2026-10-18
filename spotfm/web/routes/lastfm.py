@@ -5,6 +5,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from spotfm import lastfm
+from spotfm.lastfm import PREDEFINED_PERIODS
 from spotfm.web.jobs import JobStatus, create_job, get_running_job, run_job
 
 TEMPLATES_DIR = Path(__file__).parent.parent / "templates"
@@ -32,6 +33,7 @@ async def _scrobbles_form(request: Request, error=None):
             "error": error,
             "state_info": {"last_scrobble_count": last_count} if isinstance(last_count, int) else None,
             "cfg": lastfm_cfg,
+            "periods": PREDEFINED_PERIODS,
             "defaults": {
                 "period": lastfm_cfg.get("period", 90),
                 "scrobbles_minimum": lastfm_cfg.get("scrobbles_minimum", 4),
@@ -55,6 +57,10 @@ async def scrobbles_fetch(request: Request):
     scrobbles_minimum_int = _form_int(form.get("scrobbles_minimum"))
     period_minimum_int = _form_int(form.get("period_minimum"))
     period = _form_int(form.get("period")) or 90
+    if period not in PREDEFINED_PERIODS:
+        return await _scrobbles_form(
+            request, error=f"Period must be one of {', '.join(map(str, PREDEFINED_PERIODS))} days"
+        )
 
     lastfm_cfg = request.app.state.config.get("lastfm", {})
     required_keys = ["api_key", "api_secret", "username", "password_hash"]

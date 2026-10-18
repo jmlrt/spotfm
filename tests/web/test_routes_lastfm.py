@@ -38,6 +38,33 @@ def test_scrobbles_form_posts(authed_client):
 
 
 @pytest.mark.unit
+def test_scrobbles_form_offers_only_supported_periods(authed_client):
+    """The period field must offer only Last.FM's supported windows (7/30/90/180/365),
+    never a free-form number input."""
+    resp = authed_client.get("/scrobbles")
+    assert resp.status_code == 200
+    assert '<select name="period">' in resp.text
+    for p in (7, 30, 90, 180, 365):
+        assert f'<option value="{p}"' in resp.text
+    assert 'name="period" min=' not in resp.text
+
+
+@pytest.mark.unit
+def test_scrobbles_fetch_rejects_unsupported_period(authed_client, monkeypatch):
+    """A period outside the supported windows must fail validation on the form,
+    not inside the fetch job (UnknownPeriodError -> failed job)."""
+    import spotfm.lastfm as lastfm_module
+
+    calls = []
+    monkeypatch.setattr(lastfm_module, "fetch_recent_scrobbles", lambda *a, **k: calls.append(1) or ([], "full"))
+
+    resp = authed_client.post("/scrobbles", data={"period": "14"})
+    assert resp.status_code == 200
+    assert "Period must be one of" in resp.text
+    assert calls == []
+
+
+@pytest.mark.unit
 def test_scrobbles_get_with_query_does_not_fetch(authed_client, monkeypatch):
     """GET /scrobbles with leftover query params (e.g. ?fetch=1) must not fetch."""
     import spotfm.lastfm as lastfm_module
@@ -207,7 +234,7 @@ def test_scrobbles_fetch_explicit_limit_with_state(authed_client, monkeypatch):
 
     # Even with explicit limit=30, incremental mode uses diff (1500-1000=500)
     resp = authed_client.post(
-        "/scrobbles", data={"limit": "30", "scrobbles_minimum": "5", "period": "60", "period_minimum": "20"}
+        "/scrobbles", data={"limit": "30", "scrobbles_minimum": "5", "period": "90", "period_minimum": "20"}
     )
 
     assert resp.status_code == 200

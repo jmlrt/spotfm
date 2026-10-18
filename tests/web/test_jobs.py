@@ -179,3 +179,49 @@ async def test_run_job_captures_info_logs():
         assert any("hello from the job" in line for line in job.progress)
     finally:
         root.setLevel(previous_level)
+
+
+@pytest.mark.asyncio
+async def test_run_job_progress_isolated_between_concurrent_jobs():
+    """Concurrent jobs must not capture each other's log lines in their progress.
+
+    Each job attaches a handler to the root logger, so without a thread filter a
+    record from job B's executor thread would also land in job A's progress.
+    """
+    import logging
+    import threading
+
+    from spotfm.web.jobs import create_job, run_job
+
+    root = logging.getLogger()
+    previous_level = root.level
+    root.setLevel(logging.INFO)
+    try:
+        job_a = create_job("cross-talk-a")
+        job_b = create_job("cross-talk-b")
+
+        logged_a = threading.Event()
+        logged_b = threading.Event()
+
+        def fn_a():
+            logging.getLogger("spotfm.crosstest").info("log from A")
+            logged_a.set()
+            logged_b.wait(timeout=5)
+            return "a"
+
+        def fn_b():
+            logged_a.wait(timeout=5)
+            logging.getLogger("spotfm.crosstest").info("log from B")
+            logged_b.set()
+            return "b"
+
+        import asyncio
+
+        await asyncio.gather(run_job(job_a, fn_a), run_job(job_b, fn_b))
+
+        assert any("log from A" in line for line in job_a.progress)
+        assert not any("log from B" in line for line in job_a.progress)
+        assert any("log from B" in line for line in job_b.progress)
+        assert not any("log from A" in line for line in job_b.progress)
+    finally:
+        root.setLevel(previous_level)

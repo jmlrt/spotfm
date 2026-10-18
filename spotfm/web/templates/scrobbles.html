@@ -16,7 +16,11 @@
     </label>
     <label>
       Period (days)
-      <input type="number" name="period" value="{{ defaults.period }}" min="1" max="365">
+      <select name="period">
+        {% for p in periods %}
+        <option value="{{ p }}" {% if p == defaults.period %}selected{% endif %}>{{ p }}</option>
+        {% endfor %}
+      </select>
     </label>
     <label>
       Min scrobbles (total)

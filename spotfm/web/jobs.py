@@ -82,7 +82,13 @@ async def run_job(job: Job, fn, *args, **kwargs):
     job.status = JobStatus.RUNNING
 
     class JobLogHandler(logging.Handler):
+        # Set once fn starts on its executor thread; records from other threads
+        # (other concurrent jobs) must not leak into this job's progress
+        job_thread_id: int | None = None
+
         def emit(self, record):
+            if record.thread != self.job_thread_id:
+                return
             msg = self.format(record)
             if msg.strip():
                 with _progress_lock:
@@ -93,6 +99,7 @@ async def run_job(job: Job, fn, *args, **kwargs):
     logging.getLogger().addHandler(handler)
 
     def run():
+        handler.job_thread_id = threading.get_ident()
         return fn(*args, **kwargs)
 
     loop = asyncio.get_running_loop()

@@ -5,6 +5,7 @@ from fastapi import APIRouter, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
+from spotfm import utils
 from spotfm.spotify import dupes as spotify_dupes
 from spotfm.spotify import misc as spotify_misc
 from spotfm.web.jobs import JobStatus, create_job, get_job, get_latest_job, get_running_job, spawn_job
@@ -237,11 +238,14 @@ async def duplicates_names_start(request: Request):
 @router.post("/jobs/update-playlists")
 async def start_update_playlists(request: Request):
 
+    # Parse the form before the guard: awaiting the body would otherwise let two
+    # concurrent requests both pass the check and start duplicate jobs
+    form = await request.form()
+
     existing = get_running_job("update-playlists")
     if existing:
         return RedirectResponse(url=f"/jobs/{existing.id}", status_code=302)
 
-    form = await request.form()
     sp_client = request.app.state.spotify_client
     config = request.app.state.config
     excluded = config.get("spotify", {}).get("excluded_playlists", [])
@@ -271,10 +275,20 @@ async def start_discover(request: Request):
     sources = spotify_cfg.get("sources_playlists", [])
 
     if not discover_playlist_id or not sources:
+        # playlists.html uses the sort/pagination helpers unconditionally, so the
+        # error page needs the same context shape as GET /playlists
+        empty_rows, pagination = paginate([], 1)
         return templates.TemplateResponse(
             request,
             "playlists.html",
-            context={"playlists": [], "error": "discover_playlist or sources_playlists not configured"},
+            context={
+                "playlists": empty_rows,
+                "error": "discover_playlist or sources_playlists not configured",
+                "pagination": pagination,
+                "base_url": pagination_base_url(request),
+                "sort_url": make_sort_url(request, "name", "asc"),
+                "ind": lambda col: sort_indicator("name", "asc", col),
+            },
             status_code=400,
         )
 
@@ -298,14 +312,9 @@ async def track_counts(request: Request, page: int = Query(default=1, ge=1)):
 
     config = request.app.state.config
     log_path_raw = config.get("spotify", {}).get("track_counts_log", "")
-    if not log_path_raw:
-        return templates.TemplateResponse(
-            request,
-            "track_counts.html",
-            context={"headers": [], "rows": [], "error": "track_counts_log not configured"},
-        )
-
-    log_path = Path(log_path_raw).expanduser()
+    # log_track_counts() falls back to WORK_DIR when the setting is absent — mirror
+    # that default so the page shows the history the update job actually wrote
+    log_path = Path(log_path_raw).expanduser() if log_path_raw else utils.WORK_DIR / "track-counts.csv"
     if not log_path.exists():
         return templates.TemplateResponse(
             request,

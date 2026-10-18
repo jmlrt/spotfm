@@ -48,3 +48,28 @@ def test_malformed_authorization_header_gets_401(client):
 @pytest.mark.unit
 def test_dashboard_requires_auth(client):
     assert client.get("/", follow_redirects=False).status_code == 401
+
+
+@pytest.mark.unit
+def test_non_ascii_password_gets_401_not_500(client):
+    # hmac.compare_digest rejects non-ASCII strings — a typo'd accented password
+    # must still be rejected cleanly instead of raising TypeError (500)
+    token = base64.b64encode("spotfm:pässwörd".encode()).decode()
+    client.headers.update({"Authorization": f"Basic {token}"})
+    resp = client.get("/playlists")
+    assert resp.status_code == 401
+
+
+@pytest.mark.unit
+def test_verify_basic_auth_supports_non_ascii_key():
+    # A non-ASCII configured key must be usable, not crash compare_digest
+    from spotfm.web.auth import verify_basic_auth
+
+    class StubRequest:
+        def __init__(self, header):
+            self.headers = {"Authorization": header}
+
+    token = base64.b64encode("user:clé-secrète".encode()).decode()
+    request = StubRequest(f"Basic {token}")
+    assert verify_basic_auth(request, "clé-secrète") is True
+    assert verify_basic_auth(request, "autre-clé") is False

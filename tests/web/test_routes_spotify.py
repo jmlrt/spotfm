@@ -86,6 +86,48 @@ def test_update_playlists_creates_job(authed_client, monkeypatch):
 
 
 @pytest.mark.unit
+def test_update_playlists_parses_form_before_running_job_guard(authed_client, monkeypatch):
+    """The running-job guard must run after the form parse: awaiting the body between
+    the check and the job creation would let two concurrent requests (double-click)
+    both pass the check and start duplicate jobs."""
+    import spotfm.web.routes.spotify as spotify_routes
+    from spotfm.web.jobs import JobStatus, create_job
+
+    order = []
+    running = create_job("update-playlists")
+    running.status = JobStatus.RUNNING
+
+    async def fake_form(self):
+        order.append("form")
+        return {}
+
+    monkeypatch.setattr("starlette.requests.Request.form", fake_form)
+    monkeypatch.setattr(spotify_routes, "get_running_job", lambda name: order.append("guard") or running)
+
+    resp = authed_client.post("/jobs/update-playlists", follow_redirects=False)
+    assert resp.status_code == 302
+    assert f"/jobs/{running.id}" in resp.headers["location"]
+    assert order == ["form", "guard"]
+
+
+@pytest.mark.unit
+def test_discover_unconfigured_renders_400_error(authed_client):
+    """The unconfigured-discover response must render the playlists page with the
+    error (playlists.html needs the sort/pagination context), not crash with a 500."""
+    original = authed_client.app.state.config
+    authed_client.app.state.config = {
+        **original,
+        "spotify": {"client_id": "id", "client_secret": "sec", "excluded_playlists": []},
+    }
+    try:
+        resp = authed_client.post("/jobs/discover", follow_redirects=False)
+        assert resp.status_code == 400
+        assert "not configured" in resp.text
+    finally:
+        authed_client.app.state.config = original
+
+
+@pytest.mark.unit
 def test_job_status_not_found(authed_client):
     resp = authed_client.get("/jobs/nonexistent-id")
     assert resp.status_code == 404
@@ -104,10 +146,24 @@ def test_job_status_found(authed_client, monkeypatch):
 
 
 @pytest.mark.unit
-def test_track_counts_missing_config(authed_client):
+def test_track_counts_default_path_used_when_unset(authed_client, tmp_path, monkeypatch):
+    """Without track_counts_log, the page must read the same default path the update
+    job writes to (utils.WORK_DIR / "track-counts.csv"), not report it unconfigured."""
+    csv_file = tmp_path / "track-counts.csv"
+    csv_file.write_text("2024-01-01;100\n2024-02-01;105\n")
+    monkeypatch.setattr("spotfm.utils.WORK_DIR", tmp_path)
+
     resp = authed_client.get("/track-counts")
     assert resp.status_code == 200
-    assert "not configured" in resp.text or "not found" in resp.text
+    assert "2024-02-01" in resp.text
+
+
+@pytest.mark.unit
+def test_track_counts_default_path_missing_file(authed_client, tmp_path, monkeypatch):
+    monkeypatch.setattr("spotfm.utils.WORK_DIR", tmp_path)
+    resp = authed_client.get("/track-counts")
+    assert resp.status_code == 200
+    assert "not found" in resp.text
 
 
 @pytest.mark.unit
