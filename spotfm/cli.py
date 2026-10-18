@@ -88,13 +88,11 @@ def recent_scrobbles(user, limit, scrobbles_minimum, period, period_minimum, int
         print("No new scrobbles since last run.")
         return
     elif mode == "incremental":
-        state = read_lastfm_state()
-        last_count = state.get("last_scrobble_count") if isinstance(state, dict) else None
+        # prev_count is the pre-fetch snapshot; re-reading state now would return
+        # the count this run just saved. Report the diff, clamped to the API cap.
         current_count = user.get_playcount()
-        if last_count:
-            print(f"Fetching {len(tracks)} new scrobbles (was {last_count}, now {current_count}).")
-        else:
-            print(f"Initializing scrobble tracking. Fetching up to {limit} recent scrobbles.")
+        fetched = min(current_count - prev_count, lastfm.LASTFM_MAX_LIMIT)
+        print(f"Fetching {fetched} new scrobbles (was {prev_count}, now {current_count}).")
     else:  # mode == "full"
         # First run shows initialization message; subsequent runs show fetch message
         if is_first_run:

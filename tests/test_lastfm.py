@@ -402,6 +402,47 @@ class TestRecentScrobblesCli:
         state = read_lastfm_state(state_file=state_file)
         assert state["last_scrobble_count"] == 173
 
+    def test_since_last_time_message_reports_diff_not_result_count(self, tmp_path, capsys):
+        """The incremental message must report the scrobble diff, clamped to the API cap."""
+        state_file = tmp_path / "lastfm_state.json"
+        save_lastfm_state(1000, state_file=state_file)
+        user = self._make_user(playcount=2500)
+
+        with patch("spotfm.lastfm.LASTFM_STATE_FILE", state_file):
+            recent_scrobbles(
+                user,
+                limit=100,
+                scrobbles_minimum=0,
+                period=90,
+                period_minimum=None,
+                interactive=False,
+                config=self._make_config(),
+            )
+
+        captured = capsys.readouterr()
+        # Diff is 1500 but the fetch is clamped to the 999 API cap
+        assert "Fetching 999 new scrobbles (was 1000, now 2500)" in captured.out
+
+    def test_since_last_time_message_with_zero_prev_count(self, tmp_path, capsys):
+        """A previous count of 0 must not be treated as missing state."""
+        state_file = tmp_path / "lastfm_state.json"
+        save_lastfm_state(0, state_file=state_file)
+        user = self._make_user(playcount=10)
+
+        with patch("spotfm.lastfm.LASTFM_STATE_FILE", state_file):
+            recent_scrobbles(
+                user,
+                limit=100,
+                scrobbles_minimum=0,
+                period=90,
+                period_minimum=None,
+                interactive=False,
+                config=self._make_config(),
+            )
+
+        captured = capsys.readouterr()
+        assert "Fetching 10 new scrobbles (was 0, now 10)" in captured.out
+
 
 @pytest.mark.unit
 class TestFetchRecentScrobbles:
