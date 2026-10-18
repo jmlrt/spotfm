@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}spotfm — Dashboard{% endblock %}
+{% block content %}
+<h2>Library</h2>
+<div class="stats-grid">
+  <article>
+    <h3>{{ counts.tracks }}</h3>
+    <p>Tracks</p>
+  </article>
+  <article>
+    <h3>{{ counts.playlists }}</h3>
+    <p>Playlists</p>
+  </article>
+  <article>
+    <h3>{{ counts.artists }}</h3>
+    <p>Artists</p>
+  </article>
+  <article>
+    <h3>{{ counts.albums }}</h3>
+    <p>Albums</p>
+  </article>
+</div>
+
+<h3>Actions</h3>
+<div class="actions-row">
+  <form action="/jobs/update-playlists" method="post">
+    <button type="submit">Update all playlists</button>
+  </form>
+  <form action="/jobs/discover" method="post">
+    <button type="submit" class="secondary">Run discover</button>
+  </form>
+</div>
+{% endblock %}

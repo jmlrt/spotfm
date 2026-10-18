@@ -1,3 +1,6 @@
+[web]
+api_key = ""  # any random string; the browser asks for it once via HTTP Basic auth
+
 [lastfm]
 api_key = ""
 api_secret = ""

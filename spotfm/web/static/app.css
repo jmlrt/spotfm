@@ -1,0 +1,108 @@
+/* ── Compact base ── */
+html { font-size: 13px; }
+
+:root {
+  --pico-table-cell-padding-block: 0.2rem;
+  --pico-table-cell-padding-inline: 0.4rem;
+  --pico-spacing: 0.75rem;
+  --pico-form-element-spacing-vertical: 0.35rem;
+  --pico-form-element-spacing-horizontal: 0.6rem;
+}
+
+h1 { font-size: 1.6rem; margin-bottom: 0.5rem; }
+h2 { font-size: 1.3rem; margin-bottom: 0.4rem; }
+h3 { font-size: 1.1rem; margin-bottom: 0.3rem; }
+
+p { margin-bottom: 0.4rem; }
+
+main { padding: 0.75rem 1.25rem; }
+
+/* ── Login ── */
+.login-box {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh;
+}
+
+.login-box article {
+  width: 100%;
+  max-width: 360px;
+}
+
+/* ── Dashboard stats ── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.stats-grid article {
+  text-align: center;
+  padding: 0.6rem;
+}
+
+.stats-grid h3 {
+  font-size: 1.6rem;
+  margin-bottom: 0.15rem;
+}
+
+.stats-grid p {
+  margin: 0;
+  color: var(--pico-muted-color);
+}
+
+/* ── Filters ── */
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+/* ── Actions ── */
+.actions-row {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.6rem;
+}
+
+.actions-row form { margin: 0; }
+
+/* ── Sortable column headers ── */
+th a {
+  color: inherit;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+th a:hover { text-decoration: underline; }
+
+/* ── Pagination ── */
+.pagination-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+  margin-top: 0.6rem;
+  font-size: 0.85rem;
+}
+
+.pagination-nav a,
+.pagination-nav strong,
+.pagination-nav span {
+  padding: 0.15rem 0.4rem;
+  border-radius: 3px;
+  line-height: 1.4;
+}
+
+.pagination-nav a { border: 1px solid var(--pico-muted-border-color); }
+.pagination-nav a:hover { background: var(--pico-secondary-hover-background); text-decoration: none; }
+.pagination-nav strong { background: var(--pico-primary-background); color: var(--pico-primary-inverse); }
+.pagination-nav .pagination-disabled { color: var(--pico-muted-color); }
+.pagination-nav .pagination-ellipsis { color: var(--pico-muted-color); }
+.pagination-nav .pagination-info { margin-left: 0.4rem; color: var(--pico-muted-color); }
+
+nav a { white-space: nowrap; }

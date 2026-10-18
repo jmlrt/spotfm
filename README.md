@@ -81,12 +81,12 @@ spfm spotify count-tracks
 
 # Find duplicate track IDs (same track in multiple playlists)
 spfm spotify find-duplicate-ids
-spfm spotify find-duplicate-ids > output.csv  # Save to CSV (includes color codes)
+spfm spotify find-duplicate-ids > output.csv  # Save to CSV
 
 # Find similar track names (fuzzy matching)
 spfm spotify find-duplicate-names
 spfm spotify find-duplicate-names -t 90          # Adjust similarity threshold (0-100)
-spfm spotify find-duplicate-names > output.csv  # Save to CSV (includes color codes)
+spfm spotify find-duplicate-names > output.csv  # Save to CSV
 
 # Find relinked tracks (Spotify replaces deleted tracks)
 spfm spotify find-relinked-tracks
@@ -95,18 +95,7 @@ spfm spotify find-relinked-tracks -o output.csv  # Save to CSV
 
 ### Parsing Duplicate Detection Output
 
-The `find-duplicate-ids` and `find-duplicate-names` commands output CSV format with ANSI color codes for terminal readability.
-
-**To parse the CSV programmatically or save to file cleanly:**
-
-```bash
-# Remove ANSI codes for clean CSV
-spfm spotify find-duplicate-ids | sed 's/\x1b\[[0-9;]*m//g' > dupes.csv
-spfm spotify find-duplicate-names | sed 's/\x1b\[[0-9;]*m//g' > similar.csv
-
-# Or use standard CSV tools directly
-spfm spotify find-duplicate-ids | sed 's/\x1b\[[0-9;]*m//g' | python3 -c "import csv, sys; reader = csv.reader(sys.stdin); [print(row) for row in reader]"
-```
+The `find-duplicate-ids` and `find-duplicate-names` commands output clean CSV to stdout — no ANSI codes, ready for piping or saving to a file.
 
 **Column reference**:
 - `find-duplicate-ids`: `playlists,artists,track`
@@ -176,6 +165,33 @@ timestamp;total_tracks;pattern_tracks
 ```
 
 Use for tracking library growth, auditing new track additions, or workflow analytics. Multiple runs per day are supported—each adds a new timestamped row.
+
+## Webapp
+
+A FastAPI web UI for browsing playlists/tracks, running duplicate detection, updating playlists, and fetching Last.FM scrobbles. Intended for single-user access on localhost or a private network.
+
+**Configuration** (in `spotfm.toml`):
+
+```toml
+[web]
+api_key = "any random string"  # the browser asks for it once via HTTP Basic auth (username is ignored)
+```
+
+**Run with Docker:**
+
+```bash
+docker compose up --build
+# then open http://localhost:8000/
+```
+
+**Or locally:**
+
+```bash
+uv sync --all-extras
+uv run spfm-web
+```
+
+The browser prompts for credentials once (password is the `api_key`, username can be anything). Long-running operations (playlist updates, discovery, duplicate-name scans, scrobble fetches) run as background jobs with live log output on their job page.
 
 ## Logging & Debugging
 

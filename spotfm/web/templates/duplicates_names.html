@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}spotfm — Fuzzy Duplicates{% endblock %}
+{% block content %}
+<h2>Fuzzy Duplicates (by Name)</h2>
+<p><a href="/duplicates">← Back</a></p>
+
+{% if pairs %}
+<p>{{ pagination.total }} pair(s) found.</p>
+<table>
+  <thead>
+    <tr>
+      <th><a href="{{ sort_url('track1') }}">Track 1{{ ind('track1') }}</a></th>
+      <th><a href="{{ sort_url('artists1') }}">Artists 1{{ ind('artists1') }}</a></th>
+      <th>Playlists 1</th>
+      <th><a href="{{ sort_url('track2') }}">Track 2{{ ind('track2') }}</a></th>
+      <th><a href="{{ sort_url('artists2') }}">Artists 2{{ ind('artists2') }}</a></th>
+      <th>Playlists 2</th>
+      <th><a href="{{ sort_url('score') }}">Score{{ ind('score') }}</a></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for d in pairs %}
+    <tr>
+      <td>{{ d.track1 }}</td>
+      <td>{{ d.artists1 or "—" }}</td>
+      <td>{{ d.playlists1 or "—" }}</td>
+      <td>{{ d.track2 }}</td>
+      <td>{{ d.artists2 or "—" }}</td>
+      <td>{{ d.playlists2 or "—" }}</td>
+      <td>{{ "%.0f"|format(d.score) }}%</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% include "_pagination.html" %}
+{% else %}
+<p>No similar pairs found.</p>
+{% endif %}
+{% endblock %}
