@@ -1,4 +1,5 @@
 import argparse
+from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -10,6 +11,7 @@ from spotfm.lastfm import (
     Track,
     UnknownPeriodError,
     User,
+    fetch_recent_scrobbles,
     read_lastfm_state,
     save_lastfm_state,
 )
@@ -324,6 +326,148 @@ class TestRecentScrobblesCli:
         assert "No results found" in captured.out
         # Editor should not be opened
         mock_run.assert_not_called()
+
+    def test_interactive_editor_failure_rolls_back_state(self, tmp_path, capsys):
+        """Editor failure on a subsequent run must restore the pre-fetch scrobble count."""
+        state_file = tmp_path / "lastfm_state.json"
+        save_lastfm_state(150, state_file=state_file)
+        user = self._make_user(playcount=173)
+
+        with (
+            patch("spotfm.lastfm.LASTFM_STATE_FILE", state_file),
+            patch.dict("os.environ", {"EDITOR": "vim", "VISUAL": ""}),
+            patch("subprocess.run") as mock_run,
+        ):
+            mock_run.return_value = SimpleNamespace(returncode=1)
+            recent_scrobbles(
+                user,
+                limit=100,
+                scrobbles_minimum=0,
+                period=90,
+                period_minimum=None,
+                interactive=True,
+                config=self._make_config(),
+            )
+
+        state = read_lastfm_state(state_file=state_file)
+        assert state["last_scrobble_count"] == 150
+        captured = capsys.readouterr()
+        assert "rolled back" in captured.out
+
+    def test_interactive_editor_failure_first_run_removes_state(self, tmp_path):
+        """Editor failure on a first run must leave no state file behind."""
+        state_file = tmp_path / "lastfm_state.json"
+        user = self._make_user(playcount=150)
+
+        with (
+            patch("spotfm.lastfm.LASTFM_STATE_FILE", state_file),
+            patch.dict("os.environ", {"EDITOR": "vim", "VISUAL": ""}),
+            patch("subprocess.run") as mock_run,
+        ):
+            mock_run.return_value = SimpleNamespace(returncode=1)
+            recent_scrobbles(
+                user,
+                limit=10,
+                scrobbles_minimum=0,
+                period=90,
+                period_minimum=None,
+                interactive=True,
+                config=self._make_config(),
+            )
+
+        assert read_lastfm_state(state_file=state_file) is None
+
+    def test_interactive_editor_success_saves_state(self, tmp_path):
+        """A successful editor run must keep the advanced state."""
+        state_file = tmp_path / "lastfm_state.json"
+        save_lastfm_state(150, state_file=state_file)
+        user = self._make_user(playcount=173)
+
+        with (
+            patch("spotfm.lastfm.LASTFM_STATE_FILE", state_file),
+            patch.dict("os.environ", {"EDITOR": "vim", "VISUAL": ""}),
+            patch("subprocess.run") as mock_run,
+        ):
+            mock_run.return_value = SimpleNamespace(returncode=0)
+            recent_scrobbles(
+                user,
+                limit=100,
+                scrobbles_minimum=0,
+                period=90,
+                period_minimum=None,
+                interactive=True,
+                config=self._make_config(),
+            )
+
+        state = read_lastfm_state(state_file=state_file)
+        assert state["last_scrobble_count"] == 173
+
+
+@pytest.mark.unit
+class TestFetchRecentScrobbles:
+    """Tests for the fetch_recent_scrobbles orchestration in the lastfm module."""
+
+    def _make_user(self, playcount):
+        user = MagicMock()
+        user.get_playcount.return_value = playcount
+        user.get_recent_tracks_scrobbles.return_value = iter(
+            [
+                {
+                    "artist": "Artist",
+                    "title": "Track",
+                    "period_scrobbles": 5,
+                    "total_scrobbles": 10,
+                    "url": "http://last.fm/track",
+                }
+            ]
+        )
+        return user
+
+    def _make_config(self):
+        return {"limit": 50, "scrobbles_minimum": 4, "period_minimum": None}
+
+    def test_incremental_within_cap_saves_current_count(self, tmp_path):
+        """A diff under the API cap fetches everything and saves the current count."""
+        state_file = tmp_path / "lastfm_state.json"
+        save_lastfm_state(1000, state_file=state_file)
+        user = self._make_user(playcount=1500)
+
+        with patch("spotfm.lastfm.LASTFM_STATE_FILE", state_file):
+            _, mode = fetch_recent_scrobbles(user, self._make_config())
+
+        assert mode == "incremental"
+        assert user.get_recent_tracks_scrobbles.call_args[1]["limit"] == 500
+        assert read_lastfm_state(state_file=state_file)["last_scrobble_count"] == 1500
+
+    def test_incremental_overflow_advances_state_by_fetched_amount(self, tmp_path):
+        """A diff over the API cap must advance state by the fetched amount, not the current count."""
+        state_file = tmp_path / "lastfm_state.json"
+        save_lastfm_state(1000, state_file=state_file)
+        user = self._make_user(playcount=2500)
+
+        with patch("spotfm.lastfm.LASTFM_STATE_FILE", state_file):
+            _, mode = fetch_recent_scrobbles(user, self._make_config())
+
+        assert mode == "incremental"
+        # Fetched only the cap, so state advances by exactly that
+        assert user.get_recent_tracks_scrobbles.call_args[1]["limit"] == 999
+        assert read_lastfm_state(state_file=state_file)["last_scrobble_count"] == 1999
+
+    def test_incremental_overflow_fetches_remainder_on_next_run(self, tmp_path):
+        """After a clamped fetch, the next run must fetch the remaining diff."""
+        state_file = tmp_path / "lastfm_state.json"
+        save_lastfm_state(1000, state_file=state_file)
+        user = self._make_user(playcount=2500)
+
+        with patch("spotfm.lastfm.LASTFM_STATE_FILE", state_file):
+            fetch_recent_scrobbles(user, self._make_config())
+            assert read_lastfm_state(state_file=state_file)["last_scrobble_count"] == 1999
+
+            _, mode = fetch_recent_scrobbles(user, self._make_config())
+
+        assert mode == "incremental"
+        assert user.get_recent_tracks_scrobbles.call_args[1]["limit"] == 501
+        assert read_lastfm_state(state_file=state_file)["last_scrobble_count"] == 2500
 
 
 @pytest.mark.unit

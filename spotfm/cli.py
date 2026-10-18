@@ -1,4 +1,5 @@
 import argparse
+import contextlib
 import csv
 import logging
 import os
@@ -9,7 +10,7 @@ import tempfile
 from logging.handlers import RotatingFileHandler
 
 from spotfm import lastfm, utils
-from spotfm.lastfm import fetch_recent_scrobbles, read_lastfm_state
+from spotfm.lastfm import fetch_recent_scrobbles, read_lastfm_state, save_lastfm_state
 from spotfm.spotify import client as spotify_client
 from spotfm.spotify import constants as spotify_constants
 from spotfm.spotify import dupes as spotify_dupes
@@ -61,9 +62,21 @@ def _print_duplicate_names(duplicates):
         )
 
 
+def _rollback_lastfm_state(prev_count):
+    """Restore the pre-fetch scrobble count so a retry re-fetches the same scrobbles."""
+    if prev_count is not None:
+        save_lastfm_state(prev_count)
+    else:
+        # First run: the fetch initialized the state file — remove it again
+        with contextlib.suppress(OSError):
+            lastfm.LASTFM_STATE_FILE.unlink(missing_ok=True)
+
+
 def recent_scrobbles(user, limit, scrobbles_minimum, period, period_minimum, interactive, config):
-    # Check if this is first run BEFORE fetching (once fetch_recent_scrobbles runs, state is saved)
-    is_first_run = read_lastfm_state() is None
+    # Snapshot state before fetching: interactive mode rolls back to it on editor failure
+    prev_state = read_lastfm_state()
+    prev_count = prev_state.get("last_scrobble_count") if isinstance(prev_state, dict) else None
+    is_first_run = prev_state is None
 
     # Fetch scrobbles with incremental state management (orchestration in lastfm module)
     tracks, mode = fetch_recent_scrobbles(
@@ -106,7 +119,8 @@ def recent_scrobbles(user, limit, scrobbles_minimum, period, period_minimum, int
             os.unlink(tmp)
         if result.returncode != 0:
             print(f"Editor command {' '.join(editor_args)} exited with status {result.returncode}.")
-            print("Last.FM state was already advanced; please fix the editor issue.")
+            _rollback_lastfm_state(prev_count)
+            print("Last.FM state rolled back; fix the editor issue and retry.")
             return
     else:
         # Stream output in non-interactive mode

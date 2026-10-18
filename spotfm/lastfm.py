@@ -219,6 +219,9 @@ def fetch_recent_scrobbles(user, config, *, limit=None, scrobbles_minimum=None, 
                 save_lastfm_state(current_count)
                 return [], "no_new"
             effective_limit = min(computed_limit, LASTFM_MAX_LIMIT)
+            # Advance state only by the amount actually fetched, so a diff larger
+            # than the API cap is completed on the next run
+            scrobble_count_to_save = last_scrobble_count + effective_limit
 
     # Fetch scrobbles
     tracks = list(
