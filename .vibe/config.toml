@@ -1,0 +1,9 @@
+# Project-local Vibe config for spotfm.
+# Loaded only when this folder is trusted (see ~/.vibe/trusted_folders.toml).
+
+[tools.bash]
+allowlist = [
+  "uv",    # uv run pytest, uv run spfm, uv sync, ...
+  "spfm",  # spotfm CLI
+  "make",
+]
