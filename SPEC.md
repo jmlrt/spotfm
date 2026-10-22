@@ -408,13 +408,14 @@ spfm spotify find-duplicate-names | sed 's/\x1b\[[0-9;]*m//g' > similar.csv  # S
 **Purpose**: Fetch recent listening history from Last.FM with automatic state tracking
 
 **State Tracking Behavior**:
-- **First run**: Initializes state file (`~/.spotfm/lastfm_state.json`) with current playcount, fetches up to `--limit` scrobbles
-- **Subsequent runs**: Fetches ALL new scrobbles since last run (ignores `--limit`), auto-updates state
+- **First run**: Initializes state file (`~/.spotfm/lastfm_state.json`) with current playcount, fetches up to `--limit` scrobbles (default: 50, configurable via `spotfm.toml`)
+- **Subsequent runs**: Fetches ALL new scrobbles since last run, auto-updates state
+- **Explicit limit override**: Passing `--limit` fetches that many of the most recent scrobbles (full fetch) instead of incremental mode, and updates state to the current playcount
 - **State file**: Stores `last_scrobble_count` and `last_run_date` for tracking
 - **Error handling**: If fetch fails, state is not advanced (safe rollback)
 
 **Parameters**:
-- `-l, --limit`: Scrobbles to fetch on first run (default: 50; ignored on subsequent runs)
+- `-l, --limit`: Number of recent scrobbles to fetch, overriding incremental mode (default: 50 on first run, all new scrobbles on subsequent runs)
 - `-s, --scrobbles-minimum`: Minimum total scrobbles to include (default: 4, configurable via `spotfm.toml`)
 - `-p, --period`: Period in days to count scrobbles within (default: 90)
 - `--period-minimum`: Minimum scrobbles required in period window (default: unset = no filter; configurable via `spotfm.toml`)
