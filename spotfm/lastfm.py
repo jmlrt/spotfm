@@ -188,7 +188,8 @@ def fetch_recent_scrobbles(user, config, *, limit=None, scrobbles_minimum=None, 
     Args:
         user: Last.FM User instance
         config: Last.FM config dict with keys: limit, scrobbles_minimum, period_minimum
-        limit: Explicit limit override (if None, uses incremental mode with saved state)
+        limit: Explicit limit override — fetches that many of the most recent scrobbles
+            even when saved state exists (if None, uses incremental mode with saved state)
         scrobbles_minimum: Minimum total scrobbles filter (if None, uses config)
         period: Period in days for scrobble counting (default 90)
         period_minimum: Minimum scrobbles in period window (if None, uses config)
@@ -206,13 +207,14 @@ def fetch_recent_scrobbles(user, config, *, limit=None, scrobbles_minimum=None, 
     )
     effective_period_minimum = period_minimum if period_minimum is not None else config.get("period_minimum")
 
-    # Check for saved state first. If it exists, use incremental mode (ignore explicit limit)
+    # Incremental mode only applies when no explicit limit was given: an explicit limit
+    # is an override that fetches that many of the most recent scrobbles (full mode).
     state = read_lastfm_state()
     mode = "full"
-    if state is not None and isinstance(state, dict):
+    if limit is None and state is not None and isinstance(state, dict):
         last_scrobble_count = state.get("last_scrobble_count")
         if isinstance(last_scrobble_count, int):
-            # Saved state exists: always use incremental mode, compute limit from diff
+            # Saved state exists: use incremental mode, compute limit from diff
             mode = "incremental"
             computed_limit = current_count - last_scrobble_count
             if computed_limit <= 0:

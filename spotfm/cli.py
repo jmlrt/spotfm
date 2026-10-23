@@ -95,8 +95,9 @@ def recent_scrobbles(user, limit, scrobbles_minimum, period, period_minimum, int
         print(f"Fetching {fetched} new scrobbles (was {prev_count}, now {current_count}).")
     else:  # mode == "full"
         # First run shows initialization message; subsequent runs show fetch message
+        effective_limit = limit if limit is not None else config.get("limit", 50)
         if is_first_run:
-            print(f"Initializing scrobble tracking. Fetching up to {limit} recent scrobbles.")
+            print(f"Initializing scrobble tracking. Fetching up to {effective_limit} recent scrobbles.")
         else:
             print(f"Fetching {len(tracks)} recent scrobbles.")
 
@@ -297,9 +298,12 @@ def main():
     lastfm_parser.add_argument(
         "-l",
         "--limit",
-        default=50,
+        default=None,
         type=_positive_int,
-        help="Number of recent scrobbles to fetch on first run (default: 50; on subsequent runs, all new scrobbles are fetched and --limit is ignored)",
+        help=(
+            "Number of recent scrobbles to fetch, overriding incremental mode"
+            " (default: config value or 50 on first run, all new scrobbles on subsequent runs)"
+        ),
     )
     lastfm_parser.add_argument(
         "-s",
