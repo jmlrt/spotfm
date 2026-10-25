@@ -93,6 +93,8 @@ spotfm/
 - `updated_at`: Last API update timestamp
 - `created_at`: First discovery timestamp (immutable)
 - `last_seen_at`: Last appearance in any playlist (updated on sync)
+- `liked`: 1 when the track is in Liked Songs (saved tracks), 0 otherwise
+- `liked_at`: When the track was saved to Liked Songs (Spotify `added_at`)
 - `genres`: Aggregated from artists (not stored, computed)
 
 #### Album
@@ -239,6 +241,57 @@ c. **`update_from_api(client)`**: Fetch from Spotify API
 
 ---
 
+## Liked Songs (Saved Tracks) Support
+
+Liked Songs is the Spotify saved-tracks library, not a playlist: `current_user_playlists`
+never returns it, so it is synced separately by `misc.update_liked_tracks()` (called at the
+end of `update-playlists` by default, opt-out via `update_liked = false` in config).
+
+### Storage
+
+- `tracks.liked` (0/1) and `tracks.liked_at` (Spotify `added_at`) — added by the automatic
+  schema migration; a column on `tracks` keeps queries simple and survives the
+  `update_playlists` cleanup (which deletes playlists not in the library).
+- Unliked tracks keep their `tracks` row with `liked = 0` (negative cache, consistent with
+  orphan handling); `liked_at` is kept for history.
+- `Track.sync_to_db()` preserves `liked`/`liked_at` across playlist re-syncs (COALESCE on the
+  existing row); liked state is only ever changed by `update_liked_tracks` via explicit UPDATEs.
+- Relinked tracks are stored under their original ID (`linked_from`), consistent with playlist sync.
+
+### Change Detection (no snapshot for the saved library)
+
+Spotify exposes no snapshot for saved tracks. The sync relies on three API primitives:
+
+1. **Fast path (no changes)**: `GET /me/tracks` returns items most-recent-first. If the
+   response `total` matches the stored liked count and the top item's `added_at` is not newer
+   than `MAX(liked_at)`, nothing changed — 1 API request, no DB writes.
+2. **Additions**: walk pages collecting items with `added_at > MAX(liked_at)`, stopping at the
+   first older item. Metadata is fetched only for tracks missing a `tracks` row (most liked
+   tracks are already synced via playlists and cost no API calls).
+3. **Removals**: no signal exists. Whenever the fast path fails, all stored liked IDs are
+   verified with `GET /me/tracks/contains` (500 IDs/request). IDs returning false get
+   `liked = 0`.
+4. **Ordering violation fallback**: if `added_at` is observed to increase while paging (the
+   newest-first assumption broken), the walk restarts in full as the only safe fallback.
+
+**API budget (~11,000 liked tracks)**: 1 request when unchanged, ~24 when something changed,
+~220 pages + per-track fetches for tracks not already in DB on first sync.
+
+### Interaction with other features
+
+- **discover_from_playlists**: liked-only tracks are now in the DB, so discover treats them as
+  known/orphaned and skips them (accepted behavior change: you already like them).
+- **find-tracks / web /tracks**: `find_tracks_by_criteria` uses LEFT JOINs; `playlist_patterns=None`
+  returns all tracks in the DB (including zero-playlist and negative-cache rows),
+  `NO_PLAYLIST_PATTERN` ("none") selects tracks in zero playlists, and `liked=True/False`
+  filters by liked state. The web /tracks page exposes both as filters plus a Liked column.
+- **count-tracks**: total is the union of playlist tracks and liked tracks (pure orphans
+  excluded); a separate liked count is printed and logged as a 4th CSV column
+  (`liked_tracks`) in `log_track_counts`.
+- **find-liked-only**: CLI command listing liked tracks in zero playlists (with `-o` CSV export).
+
+---
+
 ## Features & Commands
 
 ### Spotify Commands
@@ -252,13 +305,14 @@ c. **`update_from_api(client)`**: Fetch from Spotify API
 3. Create/update Track, Album, Artist entities
 4. Update `playlists_tracks` relationships with `added_at` timestamps
 5. Log progress and summary
-6. (Optional with `--log-counts`) Append track counts to CSV log file
+6. Sync Liked Songs (saved tracks) — incremental (see Liked Songs Sync below)
+7. (Optional with `--log-counts`) Append track counts to CSV log file
 
 **Rate limiting**: 0.1s between individual track API calls (Spotify batch endpoints removed Feb 2026)
 
 **Options**:
 - `--log-counts`: After update completes, log track counts to CSV file
-  - Appends row with timestamp and total track count
+  - Appends row with timestamp, total track count and liked track count
   - Optionally tracks secondary pattern (e.g., "IR%" for new tracks)
   - CSV location: `~/.spotfm/track-counts.csv` (configurable via `track_counts_log`)
   - Pattern tracking: Optional via `new_tracks_pattern` config
@@ -269,6 +323,7 @@ c. **`update_from_api(client)`**: Fetch from Spotify API
 # Track count logging (both optional)
 track_counts_log = "~/.spotfm/track-counts.csv"  # CSV log location
 new_tracks_pattern = "IR%"                        # Pattern for secondary count (e.g., "IR%", "New%")
+update_liked = true                               # Sync Liked Songs during update-playlists (default: true)
 ```
 
 **Examples**:

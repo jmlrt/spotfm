@@ -27,6 +27,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+**Liked Songs (Saved Tracks) Support**:
+- `update-playlists` now also syncs Liked Songs (opt-out via `update_liked = false` in config)
+  - Incremental sync: 1 API request when nothing changed since the last sync
+  - New likes detected by `added_at` threshold walk; unlikes verified via `GET /me/tracks/contains` (500 IDs/request)
+  - Metadata fetched only for liked tracks not already in the database
+  - Relinked tracks stored under their original ID (`linked_from`), consistent with playlists
+- `liked` and `liked_at` columns on `tracks` (added by the automatic schema migration)
+  - Unliked tracks keep their row (negative cache); playlist re-syncs never reset liked state
+- `find-liked-only` command: list liked tracks that are in no playlist (with `-o` CSV export)
+- Web `/tracks` page: Liked column, liked filter (all / only liked / only not liked), and "No playlist" filter
+  - Default view now lists every track in the database, including zero-playlist (negative cache) tracks
+- `count-tracks` prints total (playlist or liked; pure orphans excluded) and liked counts
+- `track-counts.csv` gains a `liked_tracks` column; pre-existing 3-column files are migrated in place
+
 **Spotify Playlist Management**:
 - `remove-tracks-from-playlist` command to remove tracks from a playlist
   - Syntax: `spfm spotify remove-tracks-from-playlist -p <playlist_id> -f <file>`

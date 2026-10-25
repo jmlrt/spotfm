@@ -85,6 +85,8 @@ class Track:
         self.updated = None
         self.artists = None
         self._genres = None
+        self.liked = 0
+        self.liked_at = None
 
     def __repr__(self):
         artists_names = [artist.name for artist in self.artists]
@@ -342,13 +344,15 @@ class Track:
 
     def update_from_db(self, client=None):
         try:
-            # Try new schema first (with lifecycle columns)
+            # Try new schema first (with lifecycle and liked columns)
             result = sqlite.select_db(
                 sqlite.DATABASE,
-                f"SELECT name, updated_at, created_at, last_seen_at FROM tracks WHERE id == '{self.id}'",
+                f"SELECT name, updated_at, created_at, last_seen_at, liked, liked_at FROM tracks WHERE id == '{self.id}'",
             ).fetchone()
             if result:
-                self.name, self.updated, self.created_at, self.last_seen_at = result
+                self.name, self.updated, self.created_at, self.last_seen_at, liked, liked_at = result
+                self.liked = 1 if liked else 0
+                self.liked_at = liked_at
         except sqlite3.OperationalError as e:
             # Fallback to old schema (columns don't exist yet)
             if "no such column" in str(e).lower():
@@ -361,6 +365,8 @@ class Track:
                     # Set default values for missing columns
                     self.created_at = str(date.today())
                     self.last_seen_at = str(date.today())
+                    self.liked = 0
+                    self.liked_at = None
             else:
                 raise
         except TypeError:
@@ -431,14 +437,25 @@ class Track:
             _set_lifecycle_columns_flag(has_lifecycle)
 
         if has_lifecycle:
-            # New schema with lifecycle tracking
+            # New schema with lifecycle tracking and liked columns.
+            # Use explicit column names: the table gained columns over time and
+            # positional INSERT would fail on newer schemas.
+            # COALESCE preserves immutable/owned values when re-syncing an existing row:
+            # - created_at: never changes after first discovery
+            # - liked/liked_at: owned by update_liked_tracks(), which uses explicit
+            #   UPDATEs; a playlist re-sync must never reset the liked state
             created = getattr(self, "created_at", str(date.today()))
             last_seen = str(date.today())
+            liked = 1 if getattr(self, "liked", 0) else 0
+            liked_at = getattr(self, "liked_at", None)
+            liked_at_val = f"'{liked_at}'" if liked_at else "NULL"
             queries.append(
-                f"INSERT OR REPLACE INTO tracks VALUES "
+                f"INSERT OR REPLACE INTO tracks (id, name, updated_at, created_at, last_seen_at, liked, liked_at) VALUES "
                 f"('{self.id}', '{self.name}', '{self.updated}', "
                 f"COALESCE((SELECT created_at FROM tracks WHERE id = '{self.id}'), '{created}'), "
-                f"'{last_seen}')"
+                f"'{last_seen}', "
+                f"COALESCE((SELECT liked FROM tracks WHERE id = '{self.id}'), {liked}), "
+                f"COALESCE((SELECT liked_at FROM tracks WHERE id = '{self.id}'), {liked_at_val}))"
             )
         else:
             # Old schema without lifecycle tracking

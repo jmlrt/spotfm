@@ -129,7 +129,9 @@ def recent_scrobbles(user, limit, scrobbles_minimum, period, period_minimum, int
 
 def count_tracks(playlists_pattern=None):
     results = spotify_misc.count_tracks(playlists_pattern)
-    print(results)
+    liked = spotify_misc.count_liked_tracks()
+    print(f"tracks: {results}")
+    print(f"liked tracks: {liked}")
 
 
 def count_tracks_by_playlists():
@@ -138,8 +140,8 @@ def count_tracks_by_playlists():
         print(f"{playlist}: {count}")
 
 
-def update_playlists(client, excluded_playlists, playlists_pattern=None):
-    client.update_playlists(excluded_playlists, playlists_pattern)
+def update_playlists(client, excluded_playlists, playlists_pattern=None, update_liked=True):
+    client.update_playlists(excluded_playlists, playlists_pattern, update_liked=update_liked)
 
 
 def lastfm_cli(args, config):
@@ -191,7 +193,12 @@ def spotify_cli(args, config):
         case "count-tracks":
             count_tracks(args.playlists)
         case "update-playlists":
-            update_playlists(client, config["spotify"]["excluded_playlists"], args.playlists)
+            update_playlists(
+                client,
+                config["spotify"]["excluded_playlists"],
+                args.playlists,
+                update_liked=config["spotify"].get("update_liked", True),
+            )
             if hasattr(args, "log_counts") and args.log_counts:
                 spotify_misc.log_track_counts(config)
         case "add-tracks-from-file":
@@ -254,6 +261,15 @@ def spotify_cli(args, config):
                 genre_pattern=args.genre,
                 output_file=args.output,
             )
+            if not args.output:  # Only print to console if no output file specified
+                for track in tracks:
+                    print(
+                        f"{track['artist_names']} - {track['track_name']} - "
+                        f"{track['album_name']} - {track['release_year']} - "
+                        f"{track['artist_genres']}"
+                    )
+        case "find-liked-only":
+            tracks = spotify_misc.find_liked_only_tracks(output_file=args.output)
             if not args.output:  # Only print to console if no output file specified
                 for track in tracks:
                     print(
@@ -348,6 +364,7 @@ def main():
             "find-relinked-tracks",
             "list-playlists-with-track-counts",
             "find-tracks",
+            "find-liked-only",
         ],
     )
     spotify_parser.add_argument(

@@ -61,7 +61,7 @@ password_hash = "your_password_hash"
 ### Spotify Commands
 
 ```bash
-# Update all playlists with latest tracks
+# Update all playlists with latest tracks (also syncs Liked Songs incrementally)
 spfm spotify update-playlists
 
 # Update playlists AND log track counts (with optional pattern tracking)
@@ -76,8 +76,12 @@ spfm spotify add-tracks-from-file tracks.txt
 # Remove tracks from a playlist (one per line, track ID or Spotify URL)
 spfm spotify remove-tracks-from-playlist -p <playlist_id> -f remove.txt
 
-# Count total tracks across playlists
+# Count total tracks (in playlists or liked) and liked tracks
 spfm spotify count-tracks
+
+# List liked tracks that are in no playlist
+spfm spotify find-liked-only
+spfm spotify find-liked-only -o liked-only.csv  # Save to CSV
 
 # Find duplicate track IDs (same track in multiple playlists)
 spfm spotify find-duplicate-ids

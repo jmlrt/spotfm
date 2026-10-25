@@ -176,7 +176,9 @@ class TestQueryDb:
 
     def test_query_db_single_insert(self, temp_database):
         """Test single INSERT query."""
-        queries = ["INSERT INTO tracks VALUES ('track1', 'Test Track', '2024-01-01', '2024-01-01', '2024-01-01')"]
+        queries = [
+            "INSERT INTO tracks (id, name, updated_at, created_at, last_seen_at) VALUES ('track1', 'Test Track', '2024-01-01', '2024-01-01', '2024-01-01')"
+        ]
         db_module.query_db(temp_database, queries)
 
         # Verify data was inserted
@@ -185,13 +187,13 @@ class TestQueryDb:
         result = cursor.execute("SELECT * FROM tracks WHERE id = 'track1'").fetchone()
         conn.close()
 
-        assert result == ("track1", "Test Track", "2024-01-01", "2024-01-01", "2024-01-01")
+        assert result == ("track1", "Test Track", "2024-01-01", "2024-01-01", "2024-01-01", 0, None)
 
     def test_query_db_multiple_queries(self, temp_database):
         """Test multiple queries in one call."""
         queries = [
-            "INSERT INTO tracks VALUES ('track1', 'Track 1', '2024-01-01', '2024-01-01', '2024-01-01')",
-            "INSERT INTO tracks VALUES ('track2', 'Track 2', '2024-01-02', '2024-01-02', '2024-01-02')",
+            "INSERT INTO tracks (id, name, updated_at, created_at, last_seen_at) VALUES ('track1', 'Track 1', '2024-01-01', '2024-01-01', '2024-01-01')",
+            "INSERT INTO tracks (id, name, updated_at, created_at, last_seen_at) VALUES ('track2', 'Track 2', '2024-01-02', '2024-01-02', '2024-01-02')",
         ]
         db_module.query_db(temp_database, queries)
 
@@ -206,8 +208,8 @@ class TestQueryDb:
         """Test executescript mode."""
         queries = [
             """
-            INSERT INTO tracks VALUES ('track1', 'Track 1', '2024-01-01', '2024-01-01', '2024-01-01');
-            INSERT INTO tracks VALUES ('track2', 'Track 2', '2024-01-02', '2024-01-02', '2024-01-02');
+            INSERT INTO tracks (id, name, updated_at, created_at, last_seen_at) VALUES ('track1', 'Track 1', '2024-01-01', '2024-01-01', '2024-01-01');
+            INSERT INTO tracks (id, name, updated_at, created_at, last_seen_at) VALUES ('track2', 'Track 2', '2024-01-02', '2024-01-02', '2024-01-02');
             """
         ]
         db_module.query_db(temp_database, queries, script=True)
@@ -229,7 +231,9 @@ class TestSelectDb:
         # Insert test data
         conn = sqlite3.connect(temp_database)
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO tracks VALUES ('track1', 'Test Track', '2024-01-01', '2024-01-01', '2024-01-01')")
+        cursor.execute(
+            "INSERT INTO tracks (id, name, updated_at, created_at, last_seen_at) VALUES ('track1', 'Test Track', '2024-01-01', '2024-01-01', '2024-01-01')"
+        )
         conn.commit()
         conn.close()
 
@@ -244,7 +248,9 @@ class TestSelectDb:
         # Insert test data
         conn = sqlite3.connect(temp_database)
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO tracks VALUES ('track1', 'Test Track', '2024-01-01', '2024-01-01', '2024-01-01')")
+        cursor.execute(
+            "INSERT INTO tracks (id, name, updated_at, created_at, last_seen_at) VALUES ('track1', 'Test Track', '2024-01-01', '2024-01-01', '2024-01-01')"
+        )
         conn.commit()
         conn.close()
 
@@ -252,7 +258,7 @@ class TestSelectDb:
         result = db_module.select_db(temp_database, "SELECT * FROM tracks WHERE id = ?", ("track1",))
         row = result.fetchone()
 
-        assert row == ("track1", "Test Track", "2024-01-01", "2024-01-01", "2024-01-01")
+        assert row == ("track1", "Test Track", "2024-01-01", "2024-01-01", "2024-01-01", 0, None)
 
     def test_select_db_no_results(self, temp_database):
         """Test SELECT query with no results."""
@@ -269,8 +275,12 @@ class TestQueryDbSelect:
         # Insert test data
         conn = sqlite3.connect(temp_database)
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO tracks VALUES ('track1', 'Test Track', '2024-01-01', '2024-01-01', '2024-01-01')")
-        cursor.execute("INSERT INTO tracks VALUES ('track2', 'Track Two', '2024-01-02', '2024-01-02', '2024-01-02')")
+        cursor.execute(
+            "INSERT INTO tracks (id, name, updated_at, created_at, last_seen_at) VALUES ('track1', 'Test Track', '2024-01-01', '2024-01-01', '2024-01-01')"
+        )
+        cursor.execute(
+            "INSERT INTO tracks (id, name, updated_at, created_at, last_seen_at) VALUES ('track2', 'Track Two', '2024-01-02', '2024-01-02', '2024-01-02')"
+        )
         conn.commit()
         conn.close()
 
@@ -278,15 +288,17 @@ class TestQueryDbSelect:
         results = db_module.query_db_select(temp_database, "SELECT * FROM tracks ORDER BY id")
 
         assert len(results) == 2
-        assert results[0] == ("track1", "Test Track", "2024-01-01", "2024-01-01", "2024-01-01")
-        assert results[1] == ("track2", "Track Two", "2024-01-02", "2024-01-02", "2024-01-02")
+        assert results[0] == ("track1", "Test Track", "2024-01-01", "2024-01-01", "2024-01-01", 0, None)
+        assert results[1] == ("track2", "Track Two", "2024-01-02", "2024-01-02", "2024-01-02", 0, None)
 
     def test_query_db_select_with_params(self, temp_database):
         """Test query_db_select with parameters."""
         # Insert test data
         conn = sqlite3.connect(temp_database)
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO tracks VALUES ('track1', 'Test Track', '2024-01-01', '2024-01-01', '2024-01-01')")
+        cursor.execute(
+            "INSERT INTO tracks (id, name, updated_at, created_at, last_seen_at) VALUES ('track1', 'Test Track', '2024-01-01', '2024-01-01', '2024-01-01')"
+        )
         conn.commit()
         conn.close()
 
@@ -311,7 +323,9 @@ class TestQueryDbWithResults:
         # Insert test data first
         db_module.query_db(
             temp_database,
-            ["INSERT INTO tracks VALUES ('track1', 'Test Track', '2024-01-01', '2024-01-01', '2024-01-01')"],
+            [
+                "INSERT INTO tracks (id, name, updated_at, created_at, last_seen_at) VALUES ('track1', 'Test Track', '2024-01-01', '2024-01-01', '2024-01-01')"
+            ],
         )
 
         # Query with results=True
@@ -319,7 +333,7 @@ class TestQueryDbWithResults:
 
         assert results is not None
         assert len(results) == 1
-        assert results[0] == ("track1", "Test Track", "2024-01-01", "2024-01-01", "2024-01-01")
+        assert results[0] == ("track1", "Test Track", "2024-01-01", "2024-01-01", "2024-01-01", 0, None)
 
 
 @pytest.mark.unit

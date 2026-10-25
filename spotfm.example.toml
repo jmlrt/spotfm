@@ -27,3 +27,7 @@ sources_playlists = [
 
 # personal playlist where new tracks will be added with the discover-from-playlists command
 discover_playlist = "" # <playlist_id>
+
+# also sync Liked Songs (saved tracks) during update-playlists; incremental,
+# costs a single API request when nothing changed since the last sync
+update_liked = true

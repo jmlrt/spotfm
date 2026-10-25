@@ -143,3 +143,61 @@ def test_cli_output_not_tty_still_prints(capsys, monkeypatch, cli_config):
 
     _run_spotify_command(monkeypatch, "find-duplicate-ids", cli_config)
     assert "PL1,Artist A,Track One" in capsys.readouterr().out
+
+
+@pytest.mark.unit
+def test_find_liked_only_prints_rows(capsys, monkeypatch, cli_config):
+    """find-liked-only must print liked-only tracks to stdout."""
+    from spotfm.spotify import misc as spotify_misc
+
+    tracks = [
+        {
+            "track_id": "t1",
+            "track_name": "Track One",
+            "release_year": "2020",
+            "album_name": "Album",
+            "liked": True,
+            "artist_names": "Artist A",
+            "artist_genres": "rap",
+        }
+    ]
+    monkeypatch.setattr(spotify_misc, "find_liked_only_tracks", lambda output_file=None: tracks)
+
+    _run_spotify_command(monkeypatch, "find-liked-only", cli_config)
+    out = capsys.readouterr().out
+    assert "Artist A - Track One - Album - 2020 - rap" in out
+
+
+@pytest.mark.unit
+def test_count_tracks_prints_total_and_liked(capsys, monkeypatch, cli_config):
+    """count-tracks prints both the total and the liked count."""
+    from spotfm.spotify import misc as spotify_misc
+
+    monkeypatch.setattr(spotify_misc, "count_tracks", lambda playlists_patterns=None: 5)
+    monkeypatch.setattr(spotify_misc, "count_liked_tracks", lambda: 3)
+
+    _run_spotify_command(monkeypatch, "count-tracks", cli_config)
+    out = capsys.readouterr().out
+    assert "tracks: 5" in out
+    assert "liked tracks: 3" in out
+
+
+@pytest.mark.unit
+def test_update_playlists_reads_update_liked_config(monkeypatch, cli_config):
+    """update_liked=false in config disables the liked sync."""
+    monkeypatch.setattr(spotify_client_module, "Client", MagicMock())
+    config = {"spotify": {**cli_config["spotify"], "update_liked": False}}
+
+    _run_spotify_command(monkeypatch, "update-playlists", config)
+    client = spotify_client_module.Client.return_value
+    client.update_playlists.assert_called_once_with(["ex1"], None, update_liked=False)
+
+
+@pytest.mark.unit
+def test_update_playlists_enables_liked_by_default(monkeypatch, cli_config):
+    """Without the config key, the liked sync is on."""
+    monkeypatch.setattr(spotify_client_module, "Client", MagicMock())
+
+    _run_spotify_command(monkeypatch, "update-playlists", cli_config)
+    client = spotify_client_module.Client.return_value
+    client.update_playlists.assert_called_once_with(["ex1"], None, update_liked=True)

@@ -19,7 +19,9 @@ CREATE TABLE IF NOT EXISTS tracks(
   name TEXT NOT NULL,
   updated_at TEXT NOT NULL,
   created_at TEXT,      -- When first discovered
-  last_seen_at TEXT     -- Last seen in any playlist
+  last_seen_at TEXT,    -- Last seen in any playlist
+  liked INTEGER DEFAULT 0, -- 1 when in Liked Songs (saved tracks)
+  liked_at TEXT         -- When the track was saved to Liked Songs (Spotify added_at)
 );
 
 -- DROP TABLE albums;

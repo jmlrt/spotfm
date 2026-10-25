@@ -184,3 +184,70 @@ def test_track_counts_renders_csv(authed_client, tmp_path, monkeypatch):
     assert "2024-02-01" in resp.text
 
     authed_client.app.state.config = original_state
+
+
+@pytest.mark.unit
+def test_tracks_liked_filter_passthrough(authed_client, monkeypatch):
+    """liked=liked maps to liked=True in the core query."""
+    import spotfm.spotify.misc as misc_module
+
+    captured = {}
+    monkeypatch.setattr(misc_module, "find_tracks_by_criteria", lambda **kwargs: captured.update(kwargs) or [])
+    resp = authed_client.get("/tracks?liked=liked")
+    assert resp.status_code == 200
+    assert captured["liked"] is True
+
+
+@pytest.mark.unit
+def test_tracks_not_liked_filter_passthrough(authed_client, monkeypatch):
+    import spotfm.spotify.misc as misc_module
+
+    captured = {}
+    monkeypatch.setattr(misc_module, "find_tracks_by_criteria", lambda **kwargs: captured.update(kwargs) or [])
+    resp = authed_client.get("/tracks?liked=not")
+    assert resp.status_code == 200
+    assert captured["liked"] is False
+
+
+@pytest.mark.unit
+def test_tracks_playlist_none_maps_to_no_playlist_mode(authed_client, monkeypatch):
+    import spotfm.spotify.misc as misc_module
+
+    captured = {}
+    monkeypatch.setattr(misc_module, "find_tracks_by_criteria", lambda **kwargs: captured.update(kwargs) or [])
+    resp = authed_client.get("/tracks?playlist=none")
+    assert resp.status_code == 200
+    assert captured["playlist_patterns"] == misc_module.NO_PLAYLIST_PATTERN
+
+
+@pytest.mark.unit
+def test_tracks_no_playlist_filter_passes_none(authed_client, monkeypatch):
+    """No playlist selected: all tracks (liked-only and zero-playlist included)."""
+    import spotfm.spotify.misc as misc_module
+
+    captured = {}
+    monkeypatch.setattr(misc_module, "find_tracks_by_criteria", lambda **kwargs: captured.update(kwargs) or [])
+    resp = authed_client.get("/tracks")
+    assert resp.status_code == 200
+    assert captured["playlist_patterns"] is None
+    assert captured["liked"] is None
+
+
+@pytest.mark.unit
+def test_tracks_page_renders_liked_column(authed_client, temp_database, monkeypatch):
+    from spotfm import sqlite as sqlite_module
+
+    sqlite_module.migrate_database_schema(temp_database)
+    conn = sqlite3.connect(str(temp_database))
+    conn.execute(
+        "INSERT INTO tracks (id, name, updated_at, liked, liked_at) VALUES ('t1', 'Liked One', '2026-01-01', 1, '2026-01-01')"
+    )
+    conn.execute("INSERT INTO tracks (id, name, updated_at, liked) VALUES ('t2', 'Plain One', '2026-01-01', 0)")
+    conn.commit()
+    conn.close()
+
+    resp = authed_client.get("/tracks")
+    assert resp.status_code == 200
+    assert "Liked" in resp.text
+    assert "Liked One" in resp.text
+    assert "Yes" in resp.text

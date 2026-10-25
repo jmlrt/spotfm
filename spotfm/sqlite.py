@@ -88,6 +88,7 @@ def migrate_database_schema(database=None):
         try:
             cursor.execute("SELECT created_at FROM tracks LIMIT 1")
             cursor.execute("SELECT snapshot_id FROM playlists LIMIT 1")
+            cursor.execute("SELECT liked FROM tracks LIMIT 1")
             logging.info("Database schema is up-to-date")
             conn.close()
             _migrated_databases.add(database_str)
@@ -114,6 +115,21 @@ def migrate_database_schema(database=None):
         try:
             cursor.execute("ALTER TABLE playlists ADD COLUMN snapshot_id TEXT")
             logging.info("Added snapshot_id column to playlists table")
+        except sqlite3.OperationalError as e:
+            if "duplicate column" not in str(e).lower():
+                raise
+
+        # Add liked songs columns to tracks table (Liked Songs / saved tracks support)
+        try:
+            cursor.execute("ALTER TABLE tracks ADD COLUMN liked INTEGER DEFAULT 0")
+            logging.info("Added liked column to tracks table")
+        except sqlite3.OperationalError as e:
+            if "duplicate column" not in str(e).lower():
+                raise
+
+        try:
+            cursor.execute("ALTER TABLE tracks ADD COLUMN liked_at TEXT")
+            logging.info("Added liked_at column to tracks table")
         except sqlite3.OperationalError as e:
             if "duplicate column" not in str(e).lower():
                 raise
