@@ -729,8 +729,8 @@ def find_tracks_by_criteria(
                           Can be a single string or list of strings.
                           Supports exact playlist IDs (22 alphanumeric chars) or
                           SQL LIKE patterns (e.g., 'Discover%' matches 'Discover Dest').
-                          None: no playlist filter — all tracks in the database
-                          (including tracks in zero playlists).
+                          None: no playlist filter — tracks in at least one playlist
+                          OR liked (negative-cache orphans excluded).
                           NO_PLAYLIST_PATTERN ('none'): only tracks in zero playlists.
         start_date: Start date for album release date filtering (YYYY-MM-DD).
         end_date: End date for album release date filtering (YYYY-MM-DD).
@@ -802,6 +802,12 @@ def find_tracks_by_criteria(
 
     if no_playlist_mode:
         where_clauses.append("NOT EXISTS (SELECT 1 FROM playlists_tracks AS pt WHERE pt.track_id = t.id)")
+    elif playlist_ids is None:
+        # Default (no playlist filter): playlist members or liked tracks, mirroring
+        # count-tracks union semantics. Tracks neither in a playlist nor liked
+        # (negative-cache orphans) are excluded; they remain visible via the
+        # explicit NO_PLAYLIST_PATTERN filter.
+        where_clauses.append("(EXISTS (SELECT 1 FROM playlists_tracks AS pt WHERE pt.track_id = t.id) OR t.liked = 1)")
 
     # Filter by liked state
     if liked is True:

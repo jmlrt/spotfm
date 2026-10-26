@@ -282,9 +282,11 @@ Spotify exposes no snapshot for saved tracks. The sync relies on three API primi
 - **discover_from_playlists**: liked-only tracks are now in the DB, so discover treats them as
   known/orphaned and skips them (accepted behavior change: you already like them).
 - **find-tracks / web /tracks**: `find_tracks_by_criteria` uses LEFT JOINs; `playlist_patterns=None`
-  returns all tracks in the DB (including zero-playlist and negative-cache rows),
-  `NO_PLAYLIST_PATTERN` ("none") selects tracks in zero playlists, and `liked=True/False`
-  filters by liked state. The web /tracks page exposes both as filters plus a Liked column.
+  returns playlist members and liked tracks (mirroring count-tracks union semantics — pure
+  orphans, tracks neither in a playlist nor liked, are excluded), `NO_PLAYLIST_PATTERN`
+  ("none") selects tracks in zero playlists (the explicit window into the negative cache),
+  and `liked=True/False` filters by liked state. The web /tracks page exposes both as
+  filters plus a Liked column.
 - **count-tracks**: total is the union of playlist tracks and liked tracks (pure orphans
   excluded); a separate liked count is printed and logged as a 4th CSV column
   (`liked_tracks`) in `log_track_counts`.

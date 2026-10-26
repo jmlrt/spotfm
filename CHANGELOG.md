@@ -37,7 +37,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Unliked tracks keep their row (negative cache); playlist re-syncs never reset liked state
 - `find-liked-only` command: list liked tracks that are in no playlist (with `-o` CSV export)
 - Web `/tracks` page: Liked column, liked filter (all / only liked / only not liked), and "No playlist" filter
-  - Default view now lists every track in the database, including zero-playlist (negative cache) tracks
+  - Default view lists playlist members and liked tracks (negative-cache orphans excluded);
+    the explicit "No playlist" filter remains the window into the negative cache
 - `count-tracks` prints total (playlist or liked; pure orphans excluded) and liked counts
 - `track-counts.csv` gains a `liked_tracks` column; pre-existing 3-column files are migrated in place
 

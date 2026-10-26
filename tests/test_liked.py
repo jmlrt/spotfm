@@ -369,9 +369,10 @@ class TestFindTracksLikedFilters:
         conn.commit()
         conn.close()
 
-    def test_no_playlist_filter_returns_all_tracks(self):
+    def test_no_playlist_filter_returns_playlist_or_liked(self):
+        """Default view mirrors count-tracks union: pure orphans (t4) excluded."""
         results = misc.find_tracks_by_criteria(playlist_patterns=None)
-        assert sorted(r["track_id"] for r in results) == ["t1", "t2", "t3", "t4"]
+        assert sorted(r["track_id"] for r in results) == ["t1", "t2", "t3"]
 
     def test_none_pattern_returns_zero_playlist_tracks(self):
         results = misc.find_tracks_by_criteria(playlist_patterns=misc.NO_PLAYLIST_PATTERN)
@@ -382,8 +383,14 @@ class TestFindTracksLikedFilters:
         assert sorted(r["track_id"] for r in results) == ["t2", "t3"]
 
     def test_not_liked_filter(self):
+        """Not-liked view is intersected with the union: pure orphans stay hidden."""
         results = misc.find_tracks_by_criteria(playlist_patterns=None, liked=False)
-        assert sorted(r["track_id"] for r in results) == ["t1", "t4"]
+        assert sorted(r["track_id"] for r in results) == ["t1"]
+
+    def test_no_playlist_and_not_liked_shows_negative_cache(self):
+        """The explicit No-playlist filter remains the window into negative cache."""
+        results = misc.find_tracks_by_criteria(playlist_patterns=misc.NO_PLAYLIST_PATTERN, liked=False)
+        assert [r["track_id"] for r in results] == ["t4"]
 
     def test_playlist_filter_still_scopes_to_playlist(self):
         results = misc.find_tracks_by_criteria(playlist_patterns=["p1"])
