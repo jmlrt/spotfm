@@ -615,20 +615,13 @@ class TestCounts:
 
 @pytest.mark.unit
 class TestClientWiring:
-    def test_update_playlists_passes_update_liked_flag(self, monkeypatch):
-        """cli.update_playlists forwards the config flag to Client.update_playlists."""
-        from spotfm.cli import update_playlists
-
-        client = MagicMock()
-        update_playlists(client, ["ex1"], None, update_liked=False)
-        client.update_playlists.assert_called_once_with(["ex1"], None, update_liked=False)
-
-    def test_update_playlists_defaults_to_liked_enabled(self, monkeypatch):
+    def test_update_playlists_is_playlists_only(self, monkeypatch):
+        """cli.update_playlists forwards only playlist arguments — no liked coupling."""
         from spotfm.cli import update_playlists
 
         client = MagicMock()
         update_playlists(client, ["ex1"], None)
-        client.update_playlists.assert_called_once_with(["ex1"], None, update_liked=True)
+        client.update_playlists.assert_called_once_with(["ex1"], None)
 
 
 @pytest.mark.unit
@@ -660,8 +653,8 @@ class TestLikedSyncEdgeCases:
         assert result["unchanged"] is False
         assert [len(chunk) for chunk in client.calls["contains"]] == [50] * 10 + [1]
 
-    def test_update_playlists_syncs_liked(self, temp_database, monkeypatch):
-        """Client.update_playlists runs the liked sync when update_liked=True (default)."""
+    def test_update_playlists_does_not_touch_saved_tracks(self, temp_database, monkeypatch):
+        """update-playlists is playlists-only: the saved-tracks API is never called."""
         from spotfm.spotify.client import Client
 
         _setup_db(monkeypatch, temp_database)
@@ -669,34 +662,7 @@ class TestLikedSyncEdgeCases:
         client = object.__new__(Client)  # bypass spotipy OAuth in __init__
         client.client = MagicMock()
         monkeypatch.setattr(Client, "get_playlists_id", lambda self, excluded_playlists=None: [])
-        calls = {"liked": 0}
-
-        def fake_update_liked(sp_client):
-            calls["liked"] += 1
-
-        # client.py imports update_liked_tracks into its own namespace at module load
-        monkeypatch.setattr("spotfm.spotify.client.update_liked_tracks", fake_update_liked)
 
         client.update_playlists(excluded_playlists=[], playlists_patterns=None)
 
-        assert calls["liked"] == 1
-
-    def test_update_playlists_skips_liked_when_disabled(self, temp_database, monkeypatch):
-        """update_liked=False leaves the liked sync out."""
-        from spotfm.spotify.client import Client
-
-        _setup_db(monkeypatch, temp_database)
-
-        client = object.__new__(Client)
-        client.client = MagicMock()
-        monkeypatch.setattr(Client, "get_playlists_id", lambda self, excluded_playlists=None: [])
-        calls = {"liked": 0}
-
-        def fake_update_liked(sp_client):
-            calls["liked"] += 1
-
-        monkeypatch.setattr("spotfm.spotify.client.update_liked_tracks", fake_update_liked)
-
-        client.update_playlists(excluded_playlists=[], playlists_patterns=None, update_liked=False)
-
-        assert calls["liked"] == 0
+        client.client.current_user_saved_tracks.assert_not_called()

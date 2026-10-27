@@ -6,7 +6,7 @@ from spotipy.oauth2 import CacheFileHandler, SpotifyOAuth
 
 from spotfm import sqlite
 from spotfm.spotify.constants import REDIRECT_URI, SCOPE, TOKEN_CACHE_FILE
-from spotfm.spotify.misc import resolve_playlist_patterns_to_ids, update_liked_tracks
+from spotfm.spotify.misc import resolve_playlist_patterns_to_ids
 from spotfm.spotify.playlist import Playlist
 
 # TODO:
@@ -49,12 +49,15 @@ class Client:
 
         return playlists_ids
 
-    def update_playlists(self, excluded_playlists=None, playlists_patterns=None, update_liked=True):
+    def update_playlists(self, excluded_playlists=None, playlists_patterns=None):
         """
         Update playlists from Spotify API.
 
         Refetches playlist metadata and track lists. Track/album/artist
         metadata is preserved in cache/DB since it rarely changes.
+
+        Liked Songs (saved tracks) are NOT synced here: they are a separate
+        library with its own sync, triggered by the update-liked command/job.
 
         Args:
             excluded_playlists: List of playlist IDs to exclude
@@ -64,8 +67,6 @@ class Client:
                                         "%Discover%" (name pattern)
                                         ["playlist1", "playlist2"] (multiple patterns)
                                If provided, only updates playlists matching these filters
-            update_liked: Also sync Liked Songs (saved tracks). Incremental: costs
-                          1 API request when nothing changed since the last sync.
         """
         if excluded_playlists is None:
             excluded_playlists = []
@@ -111,8 +112,3 @@ class Client:
                 cur.execute("DELETE FROM playlists")
             con.commit()
             logging.info("Cleaned up %d deleted playlists from database", len(playlist_ids))
-
-        # Sync Liked Songs (saved tracks) — incremental, 1 API request when unchanged
-        if update_liked:
-            logging.info("Syncing Liked Songs (saved tracks)")
-            update_liked_tracks(self.client)

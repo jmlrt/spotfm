@@ -61,7 +61,7 @@ password_hash = "your_password_hash"
 ### Spotify Commands
 
 ```bash
-# Update all playlists with latest tracks (also syncs Liked Songs incrementally)
+# Update all playlists with latest tracks
 spfm spotify update-playlists
 
 # Sync Liked Songs (saved tracks) only

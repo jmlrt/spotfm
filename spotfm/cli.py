@@ -140,8 +140,8 @@ def count_tracks_by_playlists():
         print(f"{playlist}: {count}")
 
 
-def update_playlists(client, excluded_playlists, playlists_pattern=None, update_liked=True):
-    client.update_playlists(excluded_playlists, playlists_pattern, update_liked=update_liked)
+def update_playlists(client, excluded_playlists, playlists_pattern=None):
+    client.update_playlists(excluded_playlists, playlists_pattern)
 
 
 def lastfm_cli(args, config):
@@ -193,12 +193,7 @@ def spotify_cli(args, config):
         case "count-tracks":
             count_tracks(args.playlists)
         case "update-playlists":
-            update_playlists(
-                client,
-                config["spotify"]["excluded_playlists"],
-                args.playlists,
-                update_liked=config["spotify"].get("update_liked", True),
-            )
+            update_playlists(client, config["spotify"]["excluded_playlists"], args.playlists)
             if hasattr(args, "log_counts") and args.log_counts:
                 spotify_misc.log_track_counts(config)
         case "update-liked":

@@ -183,24 +183,13 @@ def test_count_tracks_prints_total_and_liked(capsys, monkeypatch, cli_config):
 
 
 @pytest.mark.unit
-def test_update_playlists_reads_update_liked_config(monkeypatch, cli_config):
-    """update_liked=false in config disables the liked sync."""
-    monkeypatch.setattr(spotify_client_module, "Client", MagicMock())
-    config = {"spotify": {**cli_config["spotify"], "update_liked": False}}
-
-    _run_spotify_command(monkeypatch, "update-playlists", config)
-    client = spotify_client_module.Client.return_value
-    client.update_playlists.assert_called_once_with(["ex1"], None, update_liked=False)
-
-
-@pytest.mark.unit
-def test_update_playlists_enables_liked_by_default(monkeypatch, cli_config):
-    """Without the config key, the liked sync is on."""
+def test_update_playlists_does_not_sync_liked(monkeypatch, cli_config):
+    """update-playlists is playlists-only; the liked sync is the update-liked command."""
     monkeypatch.setattr(spotify_client_module, "Client", MagicMock())
 
     _run_spotify_command(monkeypatch, "update-playlists", cli_config)
     client = spotify_client_module.Client.return_value
-    client.update_playlists.assert_called_once_with(["ex1"], None, update_liked=True)
+    client.update_playlists.assert_called_once_with(["ex1"], None)
 
 
 @pytest.mark.unit

@@ -28,9 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 **Liked Songs (Saved Tracks) Support**:
-- `update-playlists` now also syncs Liked Songs (opt-out via `update_liked = false` in config)
-  - New `update-liked` command and web button: sync Liked Songs alone, without
-    touching playlists (combine with `update_liked = false` to fully decouple the two syncs)
+- `update-liked` command and web button: sync Liked Songs (saved tracks), fully
+  independent from playlists; `update-playlists` remains playlists-only
   - Incremental sync: 1 API request when nothing changed since the last sync
     (the fast path compares against the state observed at the previous sync, so
     libraries containing unavailable items still cost a single request)
@@ -47,6 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Web `/tracks` page: Liked column, liked filter (all / only liked / only not liked), and "No playlist" filter
   - Default view lists playlist members and liked tracks (negative-cache orphans excluded);
     the explicit "No playlist" filter remains the window into the negative cache
+- Web dashboard: Liked songs stat card; Tracks count is now playlist ∪ liked (pure orphans excluded)
 - `count-tracks` prints total (playlist or liked; pure orphans excluded) and liked counts
 - `track-counts.csv` gains a `liked_tracks` column; pre-existing 3-column files are migrated in place
 

@@ -244,9 +244,9 @@ c. **`update_from_api(client)`**: Fetch from Spotify API
 ## Liked Songs (Saved Tracks) Support
 
 Liked Songs is the Spotify saved-tracks library, not a playlist: `current_user_playlists`
-never returns it, so it is synced separately by `misc.update_liked_tracks()` (called at the
-end of `update-playlists` by default, opt-out via `update_liked = false` in config, or on
-demand via the standalone `update-liked` command / web button).
+never returns it, so it has its own sync, `misc.update_liked_tracks()`, triggered
+exclusively by the standalone `update-liked` command / web button. `update-playlists`
+is playlists-only.
 
 ### Storage
 
@@ -327,8 +327,9 @@ threshold are also skipped by the `<=` cutoff.
 3. Create/update Track, Album, Artist entities
 4. Update `playlists_tracks` relationships with `added_at` timestamps
 5. Log progress and summary
-6. Sync Liked Songs (saved tracks) — incremental (see Liked Songs Sync below)
-7. (Optional with `--log-counts`) Append track counts to CSV log file
+6. (Optional with `--log-counts`) Append track counts to CSV log file
+
+Playlists only: Liked Songs are not synced here (see the `update-liked` command).
 
 **Rate limiting**: 0.1s between individual track API calls (Spotify batch endpoints removed Feb 2026)
 
@@ -345,7 +346,6 @@ threshold are also skipped by the `<=` cutoff.
 # Track count logging (both optional)
 track_counts_log = "~/.spotfm/track-counts.csv"  # CSV log location
 new_tracks_pattern = "IR%"                        # Pattern for secondary count (e.g., "IR%", "New%")
-update_liked = true                               # Sync Liked Songs during update-playlists (default: true)
 ```
 
 **Examples**:
@@ -361,14 +361,12 @@ spfm spotify update-playlists --log-counts
 ```
 
 #### `update-liked`
-**Purpose**: Sync Liked Songs (saved tracks) alone, without touching playlists
+**Purpose**: Sync Liked Songs (saved tracks) — the only trigger for the liked sync
 
-**Behavior**: runs the same incremental liked sync that `update-playlists`
-performs at its end (see [Liked Songs Support](#liked-songs-saved-tracks-support)):
-1 API request when nothing changed, `added_at` threshold walk for additions,
-contains sweep for removals, and track-count logging at the end. Use it to
-refresh liked data without paying for a full playlist update — or combined
-with `update_liked = false` to decouple the two syncs entirely.
+**Behavior**: the incremental liked sync described in
+[Liked Songs Support](#liked-songs-saved-tracks-support): 1 API request when
+nothing changed, `added_at` threshold walk for additions, contains sweep for
+removals, and track-count logging at the end.
 
 **Web**: an "Update liked songs" button (dashboard and playlists pages) starts
 an `update-liked` job equivalent to the command.

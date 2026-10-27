@@ -181,6 +181,45 @@ def test_track_counts_default_path_missing_file(authed_client, tmp_path, monkeyp
 
 
 @pytest.mark.unit
+def test_track_counts_renders_liked_column(authed_client, tmp_path, monkeypatch):
+    """The liked_tracks CSV column renders on the /track-counts page."""
+    csv_file = tmp_path / "track-counts.csv"
+    csv_file.write_text("timestamp;total_tracks;pattern_tracks;liked_tracks\n2024-01-01;100;;50\n2024-02-01;105;2;52\n")
+    monkeypatch.setattr("spotfm.utils.WORK_DIR", tmp_path)
+
+    resp = authed_client.get("/track-counts")
+    assert resp.status_code == 200
+    assert "liked_tracks" in resp.text
+    assert "52" in resp.text
+
+
+@pytest.mark.unit
+def test_dashboard_shows_liked_and_union_tracks(authed_client, temp_database):
+    """Dashboard: tracks = playlist members + liked (pure orphans excluded), plus a liked stat."""
+    from spotfm import sqlite as sqlite_module
+
+    sqlite_module.migrate_database_schema(temp_database)
+    conn = sqlite3.connect(str(temp_database))
+    conn.execute("INSERT INTO playlists (id, name, owner, updated_at) VALUES ('p1', 'PL1', 'u', '2026-01-01')")
+    conn.execute("INSERT INTO tracks (id, name, updated_at) VALUES ('t1', 'In Playlist', '2026-01-01')")
+    conn.execute(
+        "INSERT INTO tracks (id, name, updated_at, liked, liked_at) VALUES ('t2', 'Liked Only', '2026-01-01', 1, '2026-01-01')"
+    )
+    conn.execute("INSERT INTO tracks (id, name, updated_at) VALUES ('t3', 'Orphan', '2026-01-01')")
+    conn.execute("INSERT INTO playlists_tracks VALUES ('p1', 't1', '2026-01-01')")
+    conn.commit()
+    conn.close()
+
+    resp = authed_client.get("/")
+    assert resp.status_code == 200
+    assert "Liked songs" in resp.text
+    # tracks: t1 (playlist) + t2 (liked); pure orphan t3 excluded
+    assert "<h3>2</h3>" in resp.text
+    # liked: t2 only
+    assert "<h3>1</h3>" in resp.text
+
+
+@pytest.mark.unit
 def test_track_counts_renders_csv(authed_client, tmp_path, monkeypatch):
     csv_file = tmp_path / "track-counts.csv"
     csv_file.write_text("2024-01-01,100\n2024-02-01,105\n")

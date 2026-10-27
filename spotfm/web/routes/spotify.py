@@ -268,11 +268,7 @@ async def start_update_playlists(request: Request):
     pattern = form.get("pattern") or None
 
     def _update_and_log():
-        sp_client.update_playlists(
-            excluded_playlists=excluded,
-            playlists_patterns=pattern,
-            update_liked=config.get("spotify", {}).get("update_liked", True),
-        )
+        sp_client.update_playlists(excluded_playlists=excluded, playlists_patterns=pattern)
         if not pattern:
             spotify_misc.log_track_counts(config)
 

@@ -53,11 +53,15 @@ def create_app(config_file=None):
         from spotfm import sqlite
         from spotfm.utils import DATABASE
 
+        # Track universe mirrors count-tracks: playlist members + liked tracks
+        # (pure negative-cache orphans excluded)
+        union_tracks = "SELECT track_id FROM playlists_tracks UNION SELECT id FROM tracks WHERE liked = 1"
         queries = {
-            "tracks": "SELECT COUNT(DISTINCT track_id) FROM playlists_tracks",
+            "tracks": f"SELECT COUNT(*) FROM ({union_tracks})",
+            "liked": "SELECT COUNT(*) FROM tracks WHERE liked = 1",
             "playlists": "SELECT COUNT(*) FROM playlists",
-            "artists": "SELECT COUNT(DISTINCT ta.artist_id) FROM tracks_artists ta JOIN playlists_tracks pt ON ta.track_id = pt.track_id",
-            "albums": "SELECT COUNT(DISTINCT at.album_id) FROM albums_tracks at JOIN playlists_tracks pt ON at.track_id = pt.track_id",
+            "artists": f"SELECT COUNT(DISTINCT ta.artist_id) FROM tracks_artists ta WHERE ta.track_id IN ({union_tracks})",
+            "albums": f"SELECT COUNT(DISTINCT at.album_id) FROM albums_tracks at WHERE at.track_id IN ({union_tracks})",
         }
         counts = {}
         for key, query in queries.items():
