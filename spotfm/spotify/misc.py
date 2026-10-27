@@ -43,14 +43,20 @@ Timing should not be removed without understanding Spotify API limits.
 
 import csv
 import logging
+import threading
 from datetime import datetime
 from pathlib import Path
 from time import sleep
+
+from spotipy.exceptions import SpotifyException
 
 from spotfm import sqlite, utils
 from spotfm.spotify.constants import MARKET
 from spotfm.spotify.playlist import Playlist
 from spotfm.spotify.track import Track
+
+# Serializes log_track_counts' read/migrate/append within this process
+_track_counts_lock = threading.Lock()
 
 # Liked Songs (saved tracks) sync tuning.
 # Spotify exposes no snapshot for the saved-tracks library, so change detection
@@ -190,7 +196,10 @@ def _apply_liked_additions(client, additions):
     """
     track_ids = list(additions)
 
-    missing = [tid for tid in track_ids if tid not in _tracks_in_db(track_ids)]
+    # Single batched lookup (a comprehension calling _tracks_in_db per element
+    # would re-run the whole chunked sweep once per ID)
+    in_db = _tracks_in_db(track_ids)
+    missing = [tid for tid in track_ids if tid not in in_db]
     if missing:
         relinked = {}
         plain = []
@@ -205,21 +214,24 @@ def _apply_liked_additions(client, additions):
             logging.info("Hydrating %d relinked liked tracks under their original IDs", len(relinked))
             for idx, (tid, item) in enumerate(relinked.items()):
                 if idx:
-                    # update_from_track's single-entity album/artist fetches are
-                    # not rate-limited (existing convention); throttle between
-                    # hydrations to keep the sync within the ~10 req/s budget
+                    # Throttle between hydrations. update_from_track's single-entity
+                    # album/artist fetches follow the codebase's unthrottled convention,
+                    # so a small burst per item is possible; the per-item catch below
+                    # keeps an API error from aborting the whole sync.
                     sleep(LIKED_FETCH_DELAY)
                 try:
                     track = Track(tid, client)
                     track.update_from_track(item["track"], client)
                     track.sync_to_db(client)
-                except (KeyError, TypeError) as e:
+                except (KeyError, TypeError, SpotifyException) as e:
                     logging.warning("Skipping relinked liked track %s: %s", tid, e)
 
         if plain:
             logging.info("Fetching metadata for %d liked tracks not yet in database", len(plain))
             fetched = Track.get_tracks(plain, client, sync_to_db=True)
-            still_missing = {tid for tid in plain if tid not in _tracks_in_db(plain)}
+            # Re-check with a single batched lookup (not per-element)
+            persisted = _tracks_in_db(plain)
+            still_missing = {tid for tid in plain if tid not in persisted}
             for track in fetched:
                 if track is not None and track.id in still_missing:
                     # Pickle-cache hit returned without a database write
@@ -1151,28 +1163,37 @@ def log_track_counts(config=None):
     # Stable 4-column schema regardless of whether pattern is configured
     fieldnames = ["timestamp", "total_tracks", "pattern_tracks", "liked_tracks"]
 
-    # One-time migration of pre-liked-schema files: rewrite the old 3-column
-    # rows with an empty liked_tracks cell so appends never interleave schemas
-    if log_path.exists() and log_path.stat().st_size > 0:
-        with open(log_path, newline="") as f:
-            existing_rows = list(csv.reader(f, delimiter=";"))
-        if existing_rows and existing_rows[0] == fieldnames[:3]:
-            with open(log_path, "w", newline="") as f:
-                writer = csv.writer(f, delimiter=";")
-                writer.writerow(fieldnames)
-                for old_row in existing_rows[1:]:
-                    writer.writerow([*old_row, ""])
+    # Serialize read/migrate/append within this process: the update-playlists and
+    # update-liked jobs run in parallel executor threads, and an unserialized
+    # migration rewrite could erase a row the other job just appended. (Cross-
+    # process concurrency — CLI while the web app runs — is not covered.)
+    with _track_counts_lock:
+        # One-time migration of pre-liked-schema files: rewrite the old 3-column
+        # rows with an empty liked_tracks cell so appends never interleave schemas.
+        # The rewrite is published atomically (temp file + replace) so readers
+        # (the /track-counts page) never observe a truncated file.
+        if log_path.exists() and log_path.stat().st_size > 0:
+            with open(log_path, newline="") as f:
+                existing_rows = list(csv.reader(f, delimiter=";"))
+            if existing_rows and existing_rows[0] == fieldnames[:3]:
+                tmp_path = log_path.with_name(log_path.name + ".tmp")
+                with open(tmp_path, "w", newline="") as f:
+                    writer = csv.writer(f, delimiter=";")
+                    writer.writerow(fieldnames)
+                    for old_row in existing_rows[1:]:
+                        writer.writerow([*old_row, ""])
+                tmp_path.replace(log_path)
 
-    # Check if file needs headers: doesn't exist OR is empty
-    needs_header = not log_path.exists() or log_path.stat().st_size == 0
+        # Check if file needs headers: doesn't exist OR is empty
+        needs_header = not log_path.exists() or log_path.stat().st_size == 0
 
-    with open(log_path, "a", newline="") as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter=";")
+        with open(log_path, "a", newline="") as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter=";")
 
-        if needs_header:
-            writer.writeheader()
+            if needs_header:
+                writer.writeheader()
 
-        writer.writerow(row)
+            writer.writerow(row)
 
     # Log with appropriate message based on configuration
     if new_tracks_pattern:

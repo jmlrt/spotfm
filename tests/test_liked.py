@@ -360,6 +360,26 @@ class TestUpdateLikedTracks:
         assert result["added"] == 1
         assert _get_track_row(temp_database, "original_id") is None
 
+    def test_relinked_hydration_api_error_is_skipped(self, temp_database, monkeypatch):
+        """A 429/HTTP error during relinked hydration skips that track, not the sync."""
+        from spotipy.exceptions import SpotifyException
+
+        _setup_db(monkeypatch, temp_database)
+
+        def fake_update_from_track(self, raw_track, client):
+            raise SpotifyException(429, -1, "rate limited")
+
+        monkeypatch.setattr(Track, "update_from_track", fake_update_from_track)
+
+        client = make_saved_client(
+            pages=[[_saved_item("relinked_id", "2026-02-01T00:00:00Z", linked_from="original_id")]]
+        )
+
+        result = misc.update_liked_tracks(client)
+
+        assert result["added"] == 1  # the liked UPDATE still ran
+        assert _get_track_row(temp_database, "original_id") is None
+
     def test_collect_saved_tracks_fetches_first_page_and_deduplicates(self):
         """Without a first page the walk fetches it; duplicate ids are collected once."""
         item = _saved_item("t1", "2026-01-01T00:00:00Z")

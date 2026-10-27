@@ -198,6 +198,7 @@ def spotify_cli(args, config):
                 spotify_misc.log_track_counts(config)
         case "update-liked":
             spotify_misc.update_liked_tracks(client.client)
+            spotify_misc.log_track_counts(config)
         case "add-tracks-from-file":
             spotify_misc.add_tracks_from_file(client, args.file)
         case "add-tracks-from-file-batch":

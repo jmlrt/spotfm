@@ -194,14 +194,17 @@ def test_update_playlists_does_not_sync_liked(monkeypatch, cli_config):
 
 @pytest.mark.unit
 def test_update_liked_runs_standalone_sync(monkeypatch, cli_config):
-    """update-liked syncs Liked Songs alone, without touching playlists."""
+    """update-liked syncs Liked Songs alone and logs counts, without touching playlists."""
     from spotfm.spotify import misc as spotify_misc
 
     synced = {}
+    logged = {}
     monkeypatch.setattr(spotify_misc, "update_liked_tracks", lambda client: synced.setdefault("client", client))
+    monkeypatch.setattr(spotify_misc, "log_track_counts", lambda config: logged.setdefault("called", True))
 
     _run_spotify_command(monkeypatch, "update-liked", cli_config)
 
     client = spotify_client_module.Client.return_value
     assert synced["client"] is client.client
     client.update_playlists.assert_not_called()
+    assert logged.get("called") is True  # mirrors the web update-liked job
