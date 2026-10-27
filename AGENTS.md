@@ -69,7 +69,7 @@ A Python library and CLI tool for Spotify and Last.FM API interaction. Focuses o
    - ThreadPoolExecutor (5 workers) parallelizes track API calls with submission-based rate limiting
    - Client configured with `retries=0` (no auto-retry); sleep is the primary rate limiting strategy
    - Liked Songs sync (`misc.update_liked_tracks`): 0.1s between `/me/tracks` pages, between 40-URI contains chunks, and between relinked hydrations
-   - See SPEC.md section 5 for the detailed strategy
+   - See SPEC.md "Critical Design Decisions" → "Rate Limiting" (subsection 5) for the detailed strategy
 2. **Spotify API Migration** (Feb 2026): Batch endpoints removed; all Track/Album/Artist fetching uses individual API calls
    - Playlist add_tracks uses batch_size=50 (Spotify API limit for add operations)
    - Playlist remove_tracks uses batch_size=100 (Spotify API limit for remove operations)

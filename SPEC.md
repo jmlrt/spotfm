@@ -13,10 +13,12 @@ Last updated: 2026-03-15
 3. [Data Model](#data-model)
 4. [Caching Strategy](#caching-strategy)
 5. [Entity Lifecycle](#entity-lifecycle)
-6. [Features & Commands](#features--commands)
-7. [Critical Design Decisions](#critical-design-decisions)
-8. [Testing Strategy](#testing-strategy)
-9. [Future Enhancements](#future-enhancements)
+6. [Orphaned Tracks & Track Lifecycle](#orphaned-tracks--track-lifecycle)
+7. [Liked Songs (Saved Tracks) Support](#liked-songs-saved-tracks-support)
+8. [Features & Commands](#features--commands)
+9. [Critical Design Decisions](#critical-design-decisions)
+10. [Testing Strategy](#testing-strategy)
+11. [Future Enhancements](#future-enhancements)
 
 ---
 
@@ -124,6 +126,11 @@ spotfm/
 - `albums_tracks`: Links albums to tracks
 - `albums_artists`: Links albums to artists
 - `artists_genres`: Links artists to genres (many genres per artist)
+
+### Sync State Tables
+
+- `liked_sync_state`: single row (`id = 1`); `spotify_total` and `newest_added_at` observed
+  at the last liked sync — the fast-path comparison state (see [Liked Songs Support](#liked-songs-saved-tracks-support))
 
 ---
 
@@ -630,6 +637,7 @@ playlist_name = sanitize_string(user_input)  # Removes single quotes
 
 **Other Operations**:
 - Playlist track additions: 0.1s between each track addition (playlist modification helpers in misc.py)
+- Liked Songs sync: 0.1s between `/me/tracks` pages, between 40-URI contains chunks, and between relinked hydrations (`misc.update_liked_tracks`; relinked hydrations can burst a few single-entity fetches internally)
 - Last.FM API calls: 0.2s between requests (~5 req/s) (Last.FM client methods in lastfm.py)
 
 **Implementation Details**:
