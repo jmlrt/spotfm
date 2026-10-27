@@ -29,8 +29,44 @@
   - Impact: Improves security, prevents injection via user input
   - Files: `spotfm/sqlite.py`, `spotfm/spotify/*.py`, tests
   - **Effort**: Medium (~3-5 hours)
+  - **Note**: `sqlite.execute_many()` (parameterized executemany) landed with the
+    Liked Songs PR (#57) and the liked-sync queries are parameterized; remaining
+    work is migrating the f-string queries across the rest of the codebase
+
+#### Track Selection with Batch Actions (Web /tracks Page)
+- Add checkboxes to select tracks on the /tracks page, then run actions on the selection:
+  - **Like / unlike**: save/unsave on Spotify (spotipy `current_user_saved_tracks_add` /
+    `current_user_saved_tracks_delete`), then update the local `liked` state
+  - **Batch playlist edit**:
+    - Add selected tracks to an existing playlist or a new one
+    - Remove selected tracks from a playlist
+    - Move selected tracks from one playlist to another
+    - UI: tick the playlists the selected tracks are part of (or should be part of),
+      then apply the change to the whole selection
+- Core logic in `spotfm/spotify/misc.py` (structured data, logging only, no printing);
+  routes/actions in `spotfm/web/routes/spotify.py`; UI in `spotfm/web/templates/tracks.html`
+- Respect the entity rules from SPEC: `liked` state is only mutated by explicit
+  parameterized UPDATEs; never delete orphaned track rows
+- **Effort**: High (~1-2 days)
+- **Scope**: standalone PR
 
 ### 🟢 LOW PRIORITY
+
+#### Job Page Log Follows the Last Line
+- The job status page renders the log in a scrollable `<pre>` pinned to the top
+  (first job line); it should auto-scroll to the latest line on load and on each
+  refresh while the job is running, so the tail is always visible
+- Files: `spotfm/web/templates/job_status.html`
+- **Effort**: Low (~30 minutes)
+- **Scope**: standalone PR
+
+#### Resizable Columns on Tracks Page
+- Make the table columns of the web /tracks page resizable (drag column edges);
+  consider sharing the mechanism via `base.html` for reuse on other tables
+  (playlists, duplicates)
+- Files: `spotfm/web/templates/tracks.html` (small JS/CSS addition)
+- **Effort**: Low (~1-2 hours)
+- **Scope**: standalone PR
 
 #### Random Playlist Generator
 - Generate randomized playlist with N tracks from user's library
