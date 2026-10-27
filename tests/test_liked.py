@@ -103,8 +103,10 @@ class TestLikedMigration:
         """Migration adds liked/liked_at to a pre-liked schema database."""
         conn = sqlite3.connect(str(temp_database))
         columns = [row[1] for row in conn.execute("PRAGMA table_info(tracks)").fetchall()]
+        tables = [row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type = 'table'").fetchall()]
         conn.close()
         assert "liked" not in columns  # conftest schema predates liked support
+        assert "liked_sync_state" not in tables
 
         sqlite.migrate_database_schema(temp_database)
 
@@ -116,6 +118,11 @@ class TestLikedMigration:
         assert "liked" in columns
         assert "liked_at" in columns
         assert existing_defaults >= 0  # query runs: existing rows default to liked = 0
+
+        conn = sqlite3.connect(str(temp_database))
+        tables = [row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type = 'table'").fetchall()]
+        conn.close()
+        assert "liked_sync_state" in tables
 
     def test_migration_is_idempotent(self, temp_database):
         sqlite.migrate_database_schema(temp_database)
@@ -167,6 +174,37 @@ class TestUpdateLikedTracks:
 
         assert result == {"added": 0, "removed": 0, "total": 2, "unchanged": True}
         assert client.calls["saved_tracks"] == 1  # exactly one request
+        assert client.calls["next"] == 0
+        assert client.calls["contains"] == []
+
+    def test_fast_path_with_unavailable_items(self, temp_database, monkeypatch):
+        """Libraries with unavailable items sync in 1 request once the state is stored.
+
+        Unavailable items (track null) count in the API total and can be the
+        newest item, but never get a tracks row: the liked count stays below
+        the total forever. The fast path must compare against the state
+        (total + top added_at) observed at the previous sync instead.
+        """
+        _setup_db(monkeypatch, temp_database)
+        _insert_track(temp_database, "t1")
+
+        pages = [
+            [
+                _saved_item(None, "2026-02-01T00:00:00Z"),  # unavailable, newest
+                _saved_item("t1", "2026-01-01T00:00:00Z"),
+            ]
+        ]
+
+        first = misc.update_liked_tracks(make_saved_client(pages, total=2))
+        assert first["unchanged"] is False
+        assert first["added"] == 1
+        assert _liked_ids(temp_database) == ["t1"]
+
+        # Second identical sync: stored state matches — 1 request, no contains sweep
+        client = make_saved_client(pages, total=2)
+        result = misc.update_liked_tracks(client)
+        assert result == {"added": 0, "removed": 0, "total": 2, "unchanged": True}
+        assert client.calls["saved_tracks"] == 1
         assert client.calls["next"] == 0
         assert client.calls["contains"] == []
 

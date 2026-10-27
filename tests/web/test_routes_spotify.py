@@ -251,3 +251,34 @@ def test_tracks_page_renders_liked_column(authed_client, temp_database, monkeypa
     assert "Liked" in resp.text
     assert "Liked One" in resp.text
     assert "Yes" in resp.text
+
+
+@pytest.mark.unit
+def test_tracks_sort_by_liked_mixed_rows(authed_client, temp_database, monkeypatch):
+    """Sorting by liked must not crash on pages mixing liked and not-liked rows.
+
+    Regression: liked False was coerced to "" by the sort key while True stayed
+    a bool, and comparing them raises TypeError (a 500 on the /tracks page).
+    """
+    from spotfm import sqlite as sqlite_module
+
+    sqlite_module.migrate_database_schema(temp_database)
+    conn = sqlite3.connect(str(temp_database))
+    conn.execute(
+        "INSERT INTO tracks (id, name, updated_at, liked, liked_at) VALUES ('t1', 'Liked One', '2026-01-01', 1, '2026-01-01')"
+    )
+    conn.execute("INSERT INTO tracks (id, name, updated_at, liked) VALUES ('t2', 'Plain One', '2026-01-01', 0)")
+    conn.commit()
+    conn.close()
+
+    # The default view excludes pure orphans; playlist=none is the window that
+    # shows zero-playlist tracks, so both rows are visible and sortable there
+    for direction in ("asc", "desc"):
+        resp = authed_client.get(f"/tracks?playlist=none&sort=liked&dir={direction}")
+        assert resp.status_code == 200
+        assert "Liked One" in resp.text
+        assert "Plain One" in resp.text
+
+    # desc puts the liked track first
+    resp = authed_client.get("/tracks?playlist=none&sort=liked&dir=desc")
+    assert resp.text.index("Liked One") < resp.text.index("Plain One")

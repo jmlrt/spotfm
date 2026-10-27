@@ -106,7 +106,16 @@ async def tracks(
     sort_dir = dir if dir in ("asc", "desc") else "asc"
     valid_sorts = {"name", "artists", "album", "year", "liked"}
     sort_key = sort if sort in valid_sorts else "name"
-    track_rows.sort(key=lambda r: r.get(sort_key) or "", reverse=(sort_dir == "desc"))
+
+    def _sort_value(row):
+        value = row.get(sort_key)
+        # liked is a bool: coerce to int so False sorts as 0 instead of ""
+        # (an empty str), which cannot be compared with True and would raise
+        if isinstance(value, bool):
+            return int(value)
+        return value or ""
+
+    track_rows.sort(key=_sort_value, reverse=(sort_dir == "desc"))
 
     page_rows, pagination = paginate(track_rows, page)
 

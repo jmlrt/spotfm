@@ -114,5 +114,5 @@ class Client:
 
         # Sync Liked Songs (saved tracks) — incremental, 1 API request when unchanged
         if update_liked:
-            print("syncing liked songs", file=sys.stderr, flush=True)
+            logging.info("Syncing Liked Songs (saved tracks)")
             update_liked_tracks(self.client)

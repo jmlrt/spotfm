@@ -156,12 +156,11 @@ def _apply_liked_additions(client, additions):
         logging.info("Fetching metadata for %d liked tracks not yet in database", len(missing))
         Track.get_tracks(missing, client, sync_to_db=True)
 
-    queries = []
-    for track_id in track_ids:
-        liked_at = additions[track_id]
-        liked_at_val = f"'{liked_at}'" if liked_at else "NULL"
-        queries.append(f"UPDATE tracks SET liked = 1, liked_at = {liked_at_val} WHERE id = '{track_id}'")
-    sqlite.query_db(sqlite.DATABASE, queries)
+    sqlite.execute_many(
+        sqlite.DATABASE,
+        "UPDATE tracks SET liked = 1, liked_at = ? WHERE id = ?",
+        [(additions[track_id], track_id) for track_id in track_ids],
+    )
     logging.info("Marked %d tracks as liked in database", len(track_ids))
     return len(track_ids)
 
@@ -184,12 +183,37 @@ def _detect_and_remove_unliked(client):
         removed.extend(track_id for track_id, liked in zip(chunk, flags, strict=False) if not liked)
 
     if removed:
-        queries = [f"UPDATE tracks SET liked = 0 WHERE id = '{track_id}'" for track_id in removed]
-        sqlite.query_db(sqlite.DATABASE, queries)
+        sqlite.execute_many(
+            sqlite.DATABASE, "UPDATE tracks SET liked = 0 WHERE id = ?", [(track_id,) for track_id in removed]
+        )
         logging.info("Cleared liked flag for %d tracks unliked on Spotify", len(removed))
     else:
         logging.info("All %d stored liked tracks are still liked", len(liked_ids))
     return len(removed)
+
+
+def _load_liked_sync_state():
+    """Return (spotify_total, newest_added_at) observed at the last sync, or (None, None).
+
+    The state is kept in liked_sync_state. Unavailable items (track null) count
+    in the API total and can be the newest item, but they never get a tracks
+    row; comparing against the state observed at the last sync keeps the fast
+    path working for such libraries, where the stored liked count alone can
+    stay permanently below the API total.
+    """
+    row = sqlite.select_db(
+        sqlite.DATABASE, "SELECT spotify_total, newest_added_at FROM liked_sync_state WHERE id = 1"
+    ).fetchone()
+    return (row[0], row[1]) if row else (None, None)
+
+
+def _store_liked_sync_state(total, newest_added_at):
+    """Persist the observed saved-tracks state for the next sync's fast path."""
+    sqlite.execute_many(
+        sqlite.DATABASE,
+        "INSERT OR REPLACE INTO liked_sync_state (id, spotify_total, newest_added_at) VALUES (1, ?, ?)",
+        [(total, newest_added_at)],
+    )
 
 
 def update_liked_tracks(client):
@@ -205,10 +229,17 @@ def update_liked_tracks(client):
     1. /me/tracks returns items most-recent-first. New likes are collected by
        paging until an item's added_at is older than the newest liked_at stored
        in the database.
-    2. Removals have no signal: whenever the fast path (total matches and no
-       newer added_at) fails, all stored liked IDs are verified with
-       GET /me/tracks/contains. Unlikes clear the liked flag; the tracks row is
-       kept as negative cache.
+    2. Removals have no signal: whenever the fast path fails, all stored liked
+       IDs are verified with GET /me/tracks/contains. Unlikes clear the liked
+       flag; the tracks row is kept as negative cache.
+
+    The fast path skips the sync when the first page is identical to the state
+    observed at the last sync (stored in liked_sync_state: same total and same
+    top added_at), or when the total matches the stored liked count and no item
+    is newer than the newest stored liked_at. The stored state matters for
+    libraries containing unavailable items: they count in the API total and can
+    be the newest item, but never get a tracks row, so the liked count alone
+    can stay permanently below the API total.
 
     Tracks relinked by market-based replacement are stored under their original
     ID (linked_from), consistent with playlist sync.
@@ -222,17 +253,20 @@ def update_liked_tracks(client):
     db_count, db_max_liked_at = sqlite.select_db(
         sqlite.DATABASE, "SELECT COUNT(*), MAX(liked_at) FROM tracks WHERE liked = 1"
     ).fetchone()
+    state_total, state_newest = _load_liked_sync_state()
 
     results = client.current_user_saved_tracks(limit=LIKED_PAGE_SIZE, market=MARKET)
     total = results.get("total") or 0
     items = results.get("items") or []
     newest_added_at = items[0].get("added_at") if items else None
 
-    if (
+    count_match = (
         db_count
         and total == db_count
         and (newest_added_at is None or db_max_liked_at is None or newest_added_at <= db_max_liked_at)
-    ):
+    )
+    state_match = state_total is not None and total == state_total and newest_added_at == state_newest
+    if count_match or state_match:
         logging.info("Liked Songs unchanged (%d tracks, total matches), skipping sync", db_count)
         logging.info("Command: update_liked_tracks | No changes detected (%d liked tracks)", db_count)
         return {"added": 0, "removed": 0, "total": total, "unchanged": True}
@@ -249,6 +283,8 @@ def update_liked_tracks(client):
     # Fast path failed: something changed (or first sync) — verify all stored
     # liked IDs against the library to detect unlikes
     removed = _detect_and_remove_unliked(client)
+
+    _store_liked_sync_state(total, newest_added_at)
 
     logging.info(
         "Command: update_liked_tracks | %d added, %d removed, %d liked tracks in database (Spotify total: %d)",

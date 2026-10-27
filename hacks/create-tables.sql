@@ -82,4 +82,11 @@ CREATE TABLE IF NOT EXISTS albums_artists(
    PRIMARY KEY (album_id, artist_id),
    FOREIGN KEY (album_id) REFERENCES albums (id),
    FOREIGN KEY (artist_id) REFERENCES artists (id)
- )
+ );
+
+-- Persisted sync state for Liked Songs (single row, id = 1)
+CREATE TABLE IF NOT EXISTS liked_sync_state(
+  id INTEGER PRIMARY KEY CHECK (id = 1),
+  spotify_total INTEGER,   -- Last Spotify saved-tracks total observed by update_liked_tracks
+  newest_added_at TEXT     -- added_at of the top item at the last sync
+);

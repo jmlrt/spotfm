@@ -30,6 +30,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 **Liked Songs (Saved Tracks) Support**:
 - `update-playlists` now also syncs Liked Songs (opt-out via `update_liked = false` in config)
   - Incremental sync: 1 API request when nothing changed since the last sync
+    (the fast path compares against the state observed at the previous sync, so
+    libraries containing unavailable items still cost a single request)
   - New likes detected by `added_at` threshold walk; unlikes verified via `GET /me/tracks/contains` (500 IDs/request)
   - Metadata fetched only for liked tracks not already in the database
   - Relinked tracks stored under their original ID (`linked_from`), consistent with playlists

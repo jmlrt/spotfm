@@ -262,9 +262,13 @@ end of `update-playlists` by default, opt-out via `update_liked = false` in conf
 
 Spotify exposes no snapshot for saved tracks. The sync relies on three API primitives:
 
-1. **Fast path (no changes)**: `GET /me/tracks` returns items most-recent-first. If the
-   response `total` matches the stored liked count and the top item's `added_at` is not newer
-   than `MAX(liked_at)`, nothing changed — 1 API request, no DB writes.
+1. **Fast path (no changes)**: `GET /me/tracks` returns items most-recent-first. Nothing
+   changed — 1 API request, no DB writes — when the first page matches the state observed at
+   the last sync (persisted in `liked_sync_state`: same `total` and same top `added_at`), or
+   when the total matches the stored liked count and the top item's `added_at` is not newer
+   than `MAX(liked_at)`. The stored state matters because unavailable items (track null)
+   count in the API total and can be the newest item, but never get a `tracks` row — the
+   liked count alone can stay permanently below the API total.
 2. **Additions**: walk pages collecting items with `added_at > MAX(liked_at)`, stopping at the
    first older item. Metadata is fetched only for tracks missing a `tracks` row (most liked
    tracks are already synced via playlists and cost no API calls).
