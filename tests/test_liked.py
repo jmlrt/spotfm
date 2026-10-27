@@ -165,8 +165,9 @@ class TestUpdateLikedTracks:
         _insert_track(temp_database, "t1", liked=1, liked_at="2026-01-01T00:00:00Z")
         _insert_track(temp_database, "t2", liked=1, liked_at="2025-12-01T00:00:00Z")
 
+        # /me/tracks returns items most-recent-first
         client = make_saved_client(
-            pages=[[_saved_item("t2", "2025-12-01T00:00:00Z"), _saved_item("t1", "2026-01-01T00:00:00Z")]],
+            pages=[[_saved_item("t1", "2026-01-01T00:00:00Z"), _saved_item("t2", "2025-12-01T00:00:00Z")]],
             total=2,
         )
 
@@ -290,6 +291,85 @@ class TestUpdateLikedTracks:
         assert _get_track_row(temp_database, "original_id")[1] == 1
         assert _get_track_row(temp_database, "relinked_id") is None  # replacement ID never stored
 
+    def test_relinked_addition_hydrates_original_id(self, temp_database, monkeypatch):
+        """A relinked like whose original ID has no row is hydrated under that original ID.
+
+        Track.get_tracks() fetches under the original ID but persists the row
+        under the market replacement ID (the API response id), leaving the
+        original ID without a row and the liked UPDATE a silent no-op. The
+        relinked addition is hydrated from the raw saved item instead.
+        """
+        _setup_db(monkeypatch, temp_database)
+
+        def fake_update_from_track(self, raw_track, client):
+            self.name = "Relinked Track"
+            self.album_id = "album1"
+            self.updated = "2026-01-01"
+            self.artists = []
+
+        monkeypatch.setattr(Track, "update_from_track", fake_update_from_track)
+
+        client = make_saved_client(
+            pages=[[_saved_item("relinked_id", "2026-02-01T00:00:00Z", linked_from="original_id")]]
+        )
+
+        misc.update_liked_tracks(client)
+
+        assert _get_track_row(temp_database, "original_id")[1] == 1
+        assert _get_track_row(temp_database, "relinked_id") is None  # replacement ID never stored
+
+    def test_cached_track_without_row_is_persisted(self, temp_database, monkeypatch):
+        """Pickle-cache hits from get_tracks are persisted before the liked UPDATE.
+
+        get_tracks returns cached tracks without writing them to the database
+        even with sync_to_db=True (e.g. cached by an earlier sync_to_db=False
+        discover fetch); the liked UPDATE would silently mark nothing.
+        """
+        _setup_db(monkeypatch, temp_database)
+
+        cached_track = Track("t_cached")
+        cached_track.name = "Cached Track"
+        cached_track.album_id = "album1"
+        cached_track.updated = "2026-01-01"
+        cached_track.artists = []
+        monkeypatch.setattr(misc.Track, "get_tracks", staticmethod(lambda ids, client=None, **kwargs: [cached_track]))
+
+        client = make_saved_client(pages=[[_saved_item("t_cached", "2026-02-01T00:00:00Z")]])
+
+        misc.update_liked_tracks(client)
+
+        assert _get_track_row(temp_database, "t_cached")[1] == 1
+        assert _get_track_row(temp_database, "t_cached")[2] == "2026-02-01T00:00:00Z"
+
+    def test_relinked_hydration_failure_is_skipped(self, temp_database, monkeypatch):
+        """A relinked addition whose hydration fails is skipped without failing the sync."""
+        _setup_db(monkeypatch, temp_database)
+
+        def fake_update_from_track(self, raw_track, client):
+            raise KeyError("album")
+
+        monkeypatch.setattr(Track, "update_from_track", fake_update_from_track)
+
+        client = make_saved_client(
+            pages=[[_saved_item("relinked_id", "2026-02-01T00:00:00Z", linked_from="original_id")]]
+        )
+
+        result = misc.update_liked_tracks(client)
+
+        # The liked UPDATE still ran (a no-op without a row); the sync survived
+        assert result["added"] == 1
+        assert _get_track_row(temp_database, "original_id") is None
+
+    def test_collect_saved_tracks_fetches_first_page_and_deduplicates(self):
+        """Without a first page the walk fetches it; duplicate ids are collected once."""
+        item = _saved_item("t1", "2026-01-01T00:00:00Z")
+        client = make_saved_client(pages=[[item, _saved_item("t1", "2026-01-01T00:00:00Z")]])
+
+        saved, ordered = misc._collect_saved_tracks(client)  # first_page=None: fetch from the client
+
+        assert saved == {"t1": item}
+        assert ordered is True
+
     def test_unavailable_items_skipped(self, temp_database, monkeypatch):
         """Items with a null track (unavailable) are ignored."""
         _setup_db(monkeypatch, temp_database)
@@ -318,13 +398,14 @@ class TestUpdateLikedTracks:
         _insert_track(temp_database, "t_new1")
         _insert_track(temp_database, "t_new2")
 
-        # added_at increases mid-page (violation), then an old item ends the threshold walk
+        # added_at increases mid-page (violation), then an old item that would
+        # normally end the threshold walk
         client = make_saved_client(
             pages=[
                 [
                     _saved_item("t_new1", "2026-03-01T00:00:00Z"),
                     _saved_item("t_new2", "2026-04-01T00:00:00Z"),  # newer than the item above
-                    _saved_item("t_old", "2025-06-01T00:00:00Z"),  # threshold stop
+                    _saved_item("t_old", "2025-06-01T00:00:00Z"),  # threshold cutoff item
                 ]
             ],
             total=3,
@@ -332,9 +413,65 @@ class TestUpdateLikedTracks:
 
         misc.update_liked_tracks(client)
 
-        # The threshold walk flagged the violation and re-walked from scratch
-        assert client.calls["saved_tracks"] == 2
+        # The violation was detected before the cutoff could stop the walk:
+        # the cutoff is disabled and the same walk completes as a full walk
+        assert client.calls["saved_tracks"] == 1
         assert _liked_ids(temp_database) == ["t_new1", "t_new2", "t_old"]
+
+    def test_ordering_violation_after_cutoff_item_detected(self, temp_database, monkeypatch):
+        """A violation hiding after the cutoff item is still detected (full walk).
+
+        The whole page is validated for added_at ordering before the threshold
+        cutoff is applied; stopping at the first older item would miss the
+        out-of-order addition behind it.
+        """
+        _setup_db(monkeypatch, temp_database)
+        _insert_track(temp_database, "t_old", liked=1, liked_at="2026-01-01T00:00:00Z")
+        _insert_track(temp_database, "t_hidden")
+
+        # The cutoff item comes first; the violation (a newer addition) follows it
+        client = make_saved_client(
+            pages=[
+                [
+                    _saved_item("t_old", "2025-06-01T00:00:00Z"),  # threshold cutoff item
+                    _saved_item("t_hidden", "2026-04-01T00:00:00Z"),  # newer than the item above
+                ]
+            ],
+            total=2,
+        )
+
+        misc.update_liked_tracks(client)
+
+        # The cutoff never fired (the page's ordering was invalid), so the
+        # hidden addition was collected despite sitting behind the cutoff item
+        assert client.calls["saved_tracks"] == 1
+        assert _liked_ids(temp_database) == ["t_hidden", "t_old"]
+
+    def test_disordered_first_page_disables_fast_path(self, temp_database, monkeypatch):
+        """A disordered first page makes both fast-path signals untrustworthy."""
+        _setup_db(monkeypatch, temp_database)
+        _insert_track(temp_database, "t1", liked=1, liked_at="2026-01-01T00:00:00Z")
+        _insert_track(temp_database, "t2")
+        _insert_track(temp_database, "t_new")
+
+        # total matches the stored count and the top item is not newer — but the
+        # page ordering is violated, so the sync must not take the fast path
+        client = make_saved_client(
+            pages=[
+                [
+                    _saved_item("t2", "2025-12-01T00:00:00Z"),
+                    _saved_item("t_new", "2026-03-01T00:00:00Z"),  # newer than the item above
+                ]
+            ],
+            total=2,
+        )
+
+        result = misc.update_liked_tracks(client)
+
+        assert result["unchanged"] is False
+        # The cutoff never fired (invalid ordering): both items were collected
+        assert result["added"] == 2
+        assert _get_track_row(temp_database, "t_new")[1] == 1
 
 
 @pytest.mark.unit
@@ -497,7 +634,7 @@ class TestClientWiring:
 @pytest.mark.unit
 class TestLikedSyncEdgeCases:
     def test_contains_check_batches_large_libraries(self, temp_database, monkeypatch):
-        """More than LIKED_CONTAINS_CHUNK ids: contains is called per 500-id chunk."""
+        """More than LIKED_CONTAINS_CHUNK ids: contains is called per 50-id chunk (API limit)."""
         _setup_db(monkeypatch, temp_database)
 
         # 501 liked tracks already in the database, all still liked
@@ -521,7 +658,7 @@ class TestLikedSyncEdgeCases:
         client = make_saved_client(pages=[[first_item]], total=500)
         result = misc.update_liked_tracks(client)
         assert result["unchanged"] is False
-        assert [len(chunk) for chunk in client.calls["contains"]] == [500, 1]
+        assert [len(chunk) for chunk in client.calls["contains"]] == [50] * 10 + [1]
 
     def test_update_playlists_syncs_liked(self, temp_database, monkeypatch):
         """Client.update_playlists runs the liked sync when update_liked=True (default)."""

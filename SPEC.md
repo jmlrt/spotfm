@@ -268,18 +268,33 @@ Spotify exposes no snapshot for saved tracks. The sync relies on three API primi
    when the total matches the stored liked count and the top item's `added_at` is not newer
    than `MAX(liked_at)`. The stored state matters because unavailable items (track null)
    count in the API total and can be the newest item, but never get a `tracks` row — the
-   liked count alone can stay permanently below the API total.
+   liked count alone can stay permanently below the API total. Either signal is only
+   trusted when the first page's `added_at` ordering is valid.
 2. **Additions**: walk pages collecting items with `added_at > MAX(liked_at)`, stopping at the
    first older item. Metadata is fetched only for tracks missing a `tracks` row (most liked
-   tracks are already synced via playlists and cost no API calls).
+   tracks are already synced via playlists and cost no API calls). Two fetch quirks are
+   handled: pickle-cache hits from `Track.get_tracks()` are persisted explicitly (cache hits
+   return without a DB write), and relinked additions are hydrated under their original ID
+   from the raw saved item (fetching them would persist under the market replacement ID,
+   leaving the original ID without a row).
 3. **Removals**: no signal exists. Whenever the fast path fails, all stored liked IDs are
-   verified with `GET /me/tracks/contains` (500 IDs/request). IDs returning false get
-   `liked = 0`.
-4. **Ordering violation fallback**: if `added_at` is observed to increase while paging (the
-   newest-first assumption broken), the walk restarts in full as the only safe fallback.
+   verified with `GET /me/tracks/contains` (50 IDs/request, the API limit). IDs returning
+   false get `liked = 0`.
+4. **Ordering violation fallback**: each fetched page's `added_at` ordering is validated
+   before the threshold cutoff is applied. If `added_at` is observed to increase (the
+   newest-first assumption broken), the cutoff is disabled and the walk completes as a
+   full walk — the only safe fallback. Violations in pages beyond the cutoff are
+   unobservable; any observed violation is treated as making the result untrustworthy.
 
-**API budget (~11,000 liked tracks)**: 1 request when unchanged, ~24 when something changed,
-~220 pages + per-track fetches for tracks not already in DB on first sync.
+**API budget (~11,000 liked tracks)**: 1 request when unchanged, ~220 when something changed
+(1-2 pages + contains sweep at 50 ids/request), ~220 pages + per-track fetches for tracks
+not already in DB on first sync.
+
+**Known limitation**: a track whose metadata fetch fails during a sync (API error,
+unavailable) stays unmarked forever — the threshold walk stops at the newest stored
+`liked_at` and never revisits older additions. The deficit self-heals only via a full walk
+(an observed ordering violation) or a database rebuild. Same-ms `added_at` ties at the
+threshold are also skipped by the `<=` cutoff.
 
 ### Interaction with other features
 

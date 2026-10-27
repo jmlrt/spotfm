@@ -32,8 +32,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Incremental sync: 1 API request when nothing changed since the last sync
     (the fast path compares against the state observed at the previous sync, so
     libraries containing unavailable items still cost a single request)
-  - New likes detected by `added_at` threshold walk; unlikes verified via `GET /me/tracks/contains` (500 IDs/request)
-  - Metadata fetched only for liked tracks not already in the database
+  - New likes detected by `added_at` threshold walk; unlikes verified via `GET /me/tracks/contains` (50 IDs/request, the API limit)
+  - Each fetched page's ordering is validated before any early stop; an observed
+    violation falls back to a full walk
+  - Metadata fetched only for liked tracks not already in the database; pickle-cache
+    hits are persisted explicitly and relinked tracks are hydrated under their
+    original ID (consistent with playlist sync)
   - Relinked tracks stored under their original ID (`linked_from`), consistent with playlists
 - `liked` and `liked_at` columns on `tracks` (added by the automatic schema migration)
   - Unliked tracks keep their row (negative cache); playlist re-syncs never reset liked state

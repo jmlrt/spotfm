@@ -56,7 +56,7 @@ from spotfm.spotify.track import Track
 # Spotify exposes no snapshot for the saved-tracks library, so change detection
 # relies on response ordering (newest first) and total-count reconciliation.
 LIKED_PAGE_SIZE = 50  # Max page size for GET /me/tracks
-LIKED_CONTAINS_CHUNK = 500  # Max ids per GET /me/tracks/contains call
+LIKED_CONTAINS_CHUNK = 50  # Max ids per GET /me/tracks/contains call (API limit)
 LIKED_FETCH_DELAY = 0.1  # Seconds between API calls (prevents 429 errors)
 LIKED_DB_CHUNK = 900  # SQLite bound-parameter batch size (limit is 999)
 
@@ -85,19 +85,44 @@ def _extract_saved_track_id(item):
     return track["id"]
 
 
+def _scan_page_ordering(items, ordered, prev_added_at):
+    """Validate that added_at is non-increasing across a fetched page.
+
+    The whole page is scanned before any threshold cutoff is applied: a
+    violation after the cutoff item must still be observed, or an addition
+    hiding behind an out-of-order item would be missed without triggering the
+    full-walk fallback. Violations in pages that are never fetched remain
+    unobservable; any observed violation makes the cutoff unsafe.
+
+    Returns (ordered, last_added_at) for the caller to carry across pages.
+    """
+    for item in items:
+        added_at = item.get("added_at")
+        if added_at:
+            if ordered and prev_added_at and added_at > prev_added_at:
+                logging.warning("Saved tracks not ordered by added_at; change detection may miss additions")
+                ordered = False
+            prev_added_at = added_at
+    return ordered, prev_added_at
+
+
 def _collect_saved_tracks(client, first_page=None, threshold=None):
-    """Page through /me/tracks collecting (track_id, added_at) pairs.
+    """Page through /me/tracks collecting raw saved-tracks items by track ID.
 
     Items are returned most-recent-first by added_at. When threshold (the newest
     liked_at stored in the database) is given, paging stops at the first item
     older than or equal to it: everything deeper is older and already known.
     When threshold is None, all pages are walked (first sync or fallback).
+    Each fetched page is fully validated for added_at ordering before the
+    cutoff is applied; once a violation is observed, the cutoff is disabled and
+    the walk continues to the end (the result is already a full walk).
 
     Returns a tuple (saved, ordered):
-    - saved: dict of track_id -> added_at (unavailable/non-track items skipped)
+    - saved: dict of track_id -> raw saved-tracks item (unavailable/non-track
+      items skipped)
     - ordered: False when added_at ordering was observed to be violated, which
-      makes threshold-based early stop unsafe (caller should fall back to a
-      full walk).
+      makes the threshold-based early stop unsafe (the additions dict is then
+      already the result of a full walk).
     """
     saved = {}
     ordered = True
@@ -106,25 +131,34 @@ def _collect_saved_tracks(client, first_page=None, threshold=None):
         first_page = client.current_user_saved_tracks(limit=LIKED_PAGE_SIZE, market=MARKET)
     results = first_page
     while True:
-        for item in results.get("items") or []:
+        items = results.get("items") or []
+        ordered, prev_added_at = _scan_page_ordering(items, ordered, prev_added_at)
+        for item in items:
             added_at = item.get("added_at")
-            if ordered and added_at and prev_added_at and added_at > prev_added_at:
-                logging.warning("Saved tracks not ordered by added_at; change detection may miss additions")
-                ordered = False
-            if added_at:
-                prev_added_at = added_at
-            if threshold is not None and added_at and added_at <= threshold:
+            if ordered and threshold is not None and added_at and added_at <= threshold:
                 return saved, ordered
             track_id = _extract_saved_track_id(item)
             if track_id is None:
                 logging.debug("Skipping unavailable or non-track saved item")
                 continue
             if track_id not in saved:
-                saved[track_id] = added_at
+                saved[track_id] = item
         if not results.get("next"):
             return saved, ordered
         sleep(LIKED_FETCH_DELAY)
         results = client.next(results)
+
+
+def _tracks_in_db(track_ids):
+    """Return the subset of track_ids that already have a row in the tracks table."""
+    in_db = set()
+    for chunk in _chunked(track_ids, LIKED_DB_CHUNK):
+        placeholders = ",".join(["?"] * len(chunk))
+        rows = sqlite.select_db(
+            sqlite.DATABASE, f"SELECT id FROM tracks WHERE id IN ({placeholders})", chunk
+        ).fetchall()
+        in_db.update(row[0] for row in rows)
+    return in_db
 
 
 def _apply_liked_additions(client, additions):
@@ -133,9 +167,19 @@ def _apply_liked_additions(client, additions):
     Metadata is only fetched for tracks missing a tracks row: the vast majority
     of liked tracks are already synced via playlists and need no API calls.
 
+    Two fetch quirks are handled for missing tracks:
+    - Track.get_tracks() returns pickle-cache hits without writing them to the
+      database, even with sync_to_db=True; any fetched track that still has no
+      row is persisted explicitly.
+    - A relinked track (linked_from) fetched under its original ID is persisted
+      by get_tracks under the market replacement ID (the API response id),
+      leaving the original ID without a row and the liked UPDATE a silent
+      no-op. Relinked additions are hydrated directly from the raw saved item
+      under the original ID instead, consistent with playlist sync.
+
     Args:
         client: Spotify client instance
-        additions: dict of track_id -> added_at
+        additions: dict of track_id -> raw saved-tracks item
 
     Returns:
         Number of tracks marked liked (tracks whose metadata could not be
@@ -143,23 +187,40 @@ def _apply_liked_additions(client, additions):
     """
     track_ids = list(additions)
 
-    in_db = set()
-    for chunk in _chunked(track_ids, LIKED_DB_CHUNK):
-        placeholders = ",".join(["?"] * len(chunk))
-        rows = sqlite.select_db(
-            sqlite.DATABASE, f"SELECT id FROM tracks WHERE id IN ({placeholders})", chunk
-        ).fetchall()
-        in_db.update(row[0] for row in rows)
-
-    missing = [tid for tid in track_ids if tid not in in_db]
+    missing = [tid for tid in track_ids if tid not in _tracks_in_db(track_ids)]
     if missing:
-        logging.info("Fetching metadata for %d liked tracks not yet in database", len(missing))
-        Track.get_tracks(missing, client, sync_to_db=True)
+        relinked = {}
+        plain = []
+        for tid in missing:
+            track_data = additions[tid].get("track") or {}
+            if track_data.get("linked_from", {}).get("id"):
+                relinked[tid] = additions[tid]
+            else:
+                plain.append(tid)
+
+        if relinked:
+            logging.info("Hydrating %d relinked liked tracks under their original IDs", len(relinked))
+            for tid, item in relinked.items():
+                try:
+                    track = Track(tid, client)
+                    track.update_from_track(item["track"], client)
+                    track.sync_to_db(client)
+                except (KeyError, TypeError) as e:
+                    logging.warning("Skipping relinked liked track %s: %s", tid, e)
+
+        if plain:
+            logging.info("Fetching metadata for %d liked tracks not yet in database", len(plain))
+            fetched = Track.get_tracks(plain, client, sync_to_db=True)
+            still_missing = {tid for tid in plain if tid not in _tracks_in_db(plain)}
+            for track in fetched:
+                if track is not None and track.id in still_missing:
+                    # Pickle-cache hit returned without a database write
+                    track.sync_to_db(client)
 
     sqlite.execute_many(
         sqlite.DATABASE,
         "UPDATE tracks SET liked = 1, liked_at = ? WHERE id = ?",
-        [(additions[track_id], track_id) for track_id in track_ids],
+        [(additions[track_id].get("added_at"), track_id) for track_id in track_ids],
     )
     logging.info("Marked %d tracks as liked in database", len(track_ids))
     return len(track_ids)
@@ -168,9 +229,9 @@ def _apply_liked_additions(client, additions):
 def _detect_and_remove_unliked(client):
     """Verify stored liked tracks are still liked; unset the flag for unlikes.
 
-    Uses GET /me/tracks/contains (500 ids per call) over all stored liked IDs.
-    Unliked tracks keep their tracks row (negative cache) and their liked_at
-    value (historical); only the liked flag is cleared.
+    Uses GET /me/tracks/contains (50 ids per call, the API limit) over all
+    stored liked IDs. Unliked tracks keep their tracks row (negative cache)
+    and their liked_at value (historical); only the liked flag is cleared.
     """
     liked_ids = [
         row[0] for row in sqlite.select_db(sqlite.DATABASE, "SELECT id FROM tracks WHERE liked = 1").fetchall()
@@ -221,25 +282,29 @@ def update_liked_tracks(client):
 
     API call budget for ~11,000 liked tracks:
     - No changes since last sync: 1 request (first page: total + top added_at)
-    - Changes: 1-2 pages to collect additions + ~22 contains checks for removals
+    - Changes: 1-2 pages to collect additions + ~220 contains checks for
+      removals (50 ids per request, the API limit)
     - First sync: ~220 pages; per-track metadata fetches only for tracks not
       already in the database (usually a small fraction)
 
     Change detection (the saved-tracks library has no snapshot equivalent):
     1. /me/tracks returns items most-recent-first. New likes are collected by
        paging until an item's added_at is older than the newest liked_at stored
-       in the database.
+       in the database. Each fetched page's ordering is validated before the
+       threshold cutoff is applied; an observed violation disables the cutoff
+       and the walk completes as a full walk.
     2. Removals have no signal: whenever the fast path fails, all stored liked
        IDs are verified with GET /me/tracks/contains. Unlikes clear the liked
        flag; the tracks row is kept as negative cache.
 
-    The fast path skips the sync when the first page is identical to the state
+    The fast path skips the sync when the first page matches the state
     observed at the last sync (stored in liked_sync_state: same total and same
     top added_at), or when the total matches the stored liked count and no item
-    is newer than the newest stored liked_at. The stored state matters for
-    libraries containing unavailable items: they count in the API total and can
-    be the newest item, but never get a tracks row, so the liked count alone
-    can stay permanently below the API total.
+    is newer than the newest stored liked_at. Either signal is only trusted
+    when the first page's added_at ordering is valid. The stored state matters
+    for libraries containing unavailable items: they count in the API total and
+    can be the newest item, but never get a tracks row, so the liked count
+    alone can stay permanently below the API total.
 
     Tracks relinked by market-based replacement are stored under their original
     ID (linked_from), consistent with playlist sync.
@@ -260,23 +325,25 @@ def update_liked_tracks(client):
     items = results.get("items") or []
     newest_added_at = items[0].get("added_at") if items else None
 
+    # The first page is already fetched: validate its ordering before trusting
+    # either fast-path signal — a disordered page can hide additions anywhere
+    page_ordered, _ = _scan_page_ordering(items, True, None)
+
     count_match = (
         db_count
         and total == db_count
         and (newest_added_at is None or db_max_liked_at is None or newest_added_at <= db_max_liked_at)
     )
     state_match = state_total is not None and total == state_total and newest_added_at == state_newest
-    if count_match or state_match:
+    if page_ordered and (count_match or state_match):
         logging.info("Liked Songs unchanged (%d tracks, total matches), skipping sync", db_count)
         logging.info("Command: update_liked_tracks | No changes detected (%d liked tracks)", db_count)
         return {"added": 0, "removed": 0, "total": total, "unchanged": True}
 
     threshold = db_max_liked_at if db_count else None
-    additions, ordered = _collect_saved_tracks(client, first_page=results, threshold=threshold)
-    if not ordered:
-        # Ordering assumption broken: a full walk is the only safe fallback
-        logging.warning("Saved tracks ordering violated; performing full walk")
-        additions, _ = _collect_saved_tracks(client, first_page=None, threshold=None)
+    # An observed ordering violation disables the threshold cutoff inside the
+    # walk, so its result is already a complete full walk — no re-walk needed
+    additions, _ = _collect_saved_tracks(client, first_page=results, threshold=threshold)
 
     added = _apply_liked_additions(client, additions) if additions else 0
 
