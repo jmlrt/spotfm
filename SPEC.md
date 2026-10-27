@@ -279,16 +279,17 @@ Spotify exposes no snapshot for saved tracks. The sync relies on three API primi
    from the raw saved item (fetching them would persist under the market replacement ID,
    leaving the original ID without a row).
 3. **Removals**: no signal exists. Whenever the fast path fails, all stored liked IDs are
-   verified with `GET /me/tracks/contains` (50 IDs/request, the API limit). IDs returning
-   false get `liked = 0`.
+   verified with `GET /me/library/contains` (40 IDs/request, the API limit — spotipy routes
+   the saved-tracks contains check there, not to the deprecated `/me/tracks/contains`, which
+   allowed 50). IDs returning false get `liked = 0`.
 4. **Ordering violation fallback**: each fetched page's `added_at` ordering is validated
    before the threshold cutoff is applied. If `added_at` is observed to increase (the
    newest-first assumption broken), the cutoff is disabled and the walk completes as a
    full walk — the only safe fallback. Violations in pages beyond the cutoff are
    unobservable; any observed violation is treated as making the result untrustworthy.
 
-**API budget (~11,000 liked tracks)**: 1 request when unchanged, ~220 when something changed
-(1-2 pages + contains sweep at 50 ids/request), ~220 pages + per-track fetches for tracks
+**API budget (~11,000 liked tracks)**: 1 request when unchanged, ~275 when something changed
+(1-2 pages + contains sweep at 40 ids/request), ~220 pages + per-track fetches for tracks
 not already in DB on first sync.
 
 **Known limitation**: a track whose metadata fetch fails during a sync (API error,

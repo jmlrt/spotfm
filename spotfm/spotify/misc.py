@@ -56,7 +56,10 @@ from spotfm.spotify.track import Track
 # Spotify exposes no snapshot for the saved-tracks library, so change detection
 # relies on response ordering (newest first) and total-count reconciliation.
 LIKED_PAGE_SIZE = 50  # Max page size for GET /me/tracks
-LIKED_CONTAINS_CHUNK = 50  # Max ids per GET /me/tracks/contains call (API limit)
+# spotipy's current_user_saved_tracks_contains routes to GET /me/library/contains
+# (replacement for the deprecated /me/tracks/contains), documented max: 40 URIs.
+# The deprecated endpoint allowed 50 — 50 here returns 400 "Too many uris requested".
+LIKED_CONTAINS_CHUNK = 40  # Max URIs per GET /me/library/contains call (API limit)
 LIKED_FETCH_DELAY = 0.1  # Seconds between API calls (prevents 429 errors)
 LIKED_DB_CHUNK = 900  # SQLite bound-parameter batch size (limit is 999)
 
@@ -234,7 +237,7 @@ def _apply_liked_additions(client, additions):
 def _detect_and_remove_unliked(client):
     """Verify stored liked tracks are still liked; unset the flag for unlikes.
 
-    Uses GET /me/tracks/contains (50 ids per call, the API limit) over all
+    Uses GET /me/library/contains (40 ids per call, the API limit) over all
     stored liked IDs. Unliked tracks keep their tracks row (negative cache)
     and their liked_at value (historical); only the liked flag is cleared.
     """
@@ -287,8 +290,8 @@ def update_liked_tracks(client):
 
     API call budget for ~11,000 liked tracks:
     - No changes since last sync: 1 request (first page: total + top added_at)
-    - Changes: 1-2 pages to collect additions + ~220 contains checks for
-      removals (50 ids per request, the API limit)
+    - Changes: 1-2 pages to collect additions + ~275 contains checks for
+      removals (40 ids per request, the API limit)
     - First sync: ~220 pages; per-track metadata fetches only for tracks not
       already in the database (usually a small fraction)
 
@@ -299,7 +302,7 @@ def update_liked_tracks(client):
        threshold cutoff is applied; an observed violation disables the cutoff
        and the walk completes as a full walk.
     2. Removals have no signal: whenever the fast path fails, all stored liked
-       IDs are verified with GET /me/tracks/contains. Unlikes clear the liked
+       IDs are verified with GET /me/library/contains. Unlikes clear the liked
        flag; the tracks row is kept as negative cache.
 
     The fast path skips the sync when the first page matches the state

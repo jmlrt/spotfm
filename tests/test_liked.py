@@ -627,7 +627,7 @@ class TestClientWiring:
 @pytest.mark.unit
 class TestLikedSyncEdgeCases:
     def test_contains_check_batches_large_libraries(self, temp_database, monkeypatch):
-        """More than LIKED_CONTAINS_CHUNK ids: contains is called per 50-id chunk (API limit)."""
+        """More than LIKED_CONTAINS_CHUNK ids: contains is called per 40-uri chunk (API limit)."""
         _setup_db(monkeypatch, temp_database)
 
         # 501 liked tracks already in the database, all still liked
@@ -651,7 +651,7 @@ class TestLikedSyncEdgeCases:
         client = make_saved_client(pages=[[first_item]], total=500)
         result = misc.update_liked_tracks(client)
         assert result["unchanged"] is False
-        assert [len(chunk) for chunk in client.calls["contains"]] == [50] * 10 + [1]
+        assert [len(chunk) for chunk in client.calls["contains"]] == [40] * 12 + [21]
 
     def test_update_playlists_does_not_touch_saved_tracks(self, temp_database, monkeypatch):
         """update-playlists is playlists-only: the saved-tracks API is never called."""
