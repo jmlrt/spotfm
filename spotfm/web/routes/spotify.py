@@ -281,6 +281,24 @@ async def start_update_playlists(request: Request):
     return RedirectResponse(url=f"/jobs/{job.id}", status_code=302)
 
 
+@router.post("/jobs/update-liked")
+async def start_update_liked(request: Request):
+    existing = get_running_job("update-liked")
+    if existing:
+        return RedirectResponse(url=f"/jobs/{existing.id}", status_code=302)
+
+    sp_client = request.app.state.spotify_client
+    config = request.app.state.config
+
+    def _update_liked_and_log():
+        spotify_misc.update_liked_tracks(sp_client.client)
+        spotify_misc.log_track_counts(config)
+
+    job = create_job("update-liked")
+    spawn_job(job, _update_liked_and_log)
+    return RedirectResponse(url=f"/jobs/{job.id}", status_code=302)
+
+
 @router.post("/jobs/discover")
 async def start_discover(request: Request):
     existing = get_running_job("discover")

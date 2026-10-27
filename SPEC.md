@@ -245,7 +245,8 @@ c. **`update_from_api(client)`**: Fetch from Spotify API
 
 Liked Songs is the Spotify saved-tracks library, not a playlist: `current_user_playlists`
 never returns it, so it is synced separately by `misc.update_liked_tracks()` (called at the
-end of `update-playlists` by default, opt-out via `update_liked = false` in config).
+end of `update-playlists` by default, opt-out via `update_liked = false` in config, or on
+demand via the standalone `update-liked` command / web button).
 
 ### Storage
 
@@ -358,6 +359,19 @@ spfm spotify update-playlists --log-counts
 # With pattern configured in spotfm.toml, logs both total and pattern-specific counts
 spfm spotify update-playlists --log-counts
 ```
+
+#### `update-liked`
+**Purpose**: Sync Liked Songs (saved tracks) alone, without touching playlists
+
+**Behavior**: runs the same incremental liked sync that `update-playlists`
+performs at its end (see [Liked Songs Support](#liked-songs-saved-tracks-support)):
+1 API request when nothing changed, `added_at` threshold walk for additions,
+contains sweep for removals, and track-count logging at the end. Use it to
+refresh liked data without paying for a full playlist update — or combined
+with `update_liked = false` to decouple the two syncs entirely.
+
+**Web**: an "Update liked songs" button (dashboard and playlists pages) starts
+an `update-liked` job equivalent to the command.
 
 **Log Output Examples**:
 Without pattern configured:

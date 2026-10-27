@@ -200,7 +200,12 @@ def _apply_liked_additions(client, additions):
 
         if relinked:
             logging.info("Hydrating %d relinked liked tracks under their original IDs", len(relinked))
-            for tid, item in relinked.items():
+            for idx, (tid, item) in enumerate(relinked.items()):
+                if idx:
+                    # update_from_track's single-entity album/artist fetches are
+                    # not rate-limited (existing convention); throttle between
+                    # hydrations to keep the sync within the ~10 req/s budget
+                    sleep(LIKED_FETCH_DELAY)
                 try:
                     track = Track(tid, client)
                     track.update_from_track(item["track"], client)

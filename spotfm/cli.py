@@ -201,6 +201,8 @@ def spotify_cli(args, config):
             )
             if hasattr(args, "log_counts") and args.log_counts:
                 spotify_misc.log_track_counts(config)
+        case "update-liked":
+            spotify_misc.update_liked_tracks(client.client)
         case "add-tracks-from-file":
             spotify_misc.add_tracks_from_file(client, args.file)
         case "add-tracks-from-file-batch":
@@ -365,6 +367,7 @@ def main():
             "list-playlists-with-track-counts",
             "find-tracks",
             "find-liked-only",
+            "update-liked",
         ],
     )
     spotify_parser.add_argument(

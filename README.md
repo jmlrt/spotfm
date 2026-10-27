@@ -64,6 +64,9 @@ password_hash = "your_password_hash"
 # Update all playlists with latest tracks (also syncs Liked Songs incrementally)
 spfm spotify update-playlists
 
+# Sync Liked Songs (saved tracks) only
+spfm spotify update-liked
+
 # Update playlists AND log track counts (with optional pattern tracking)
 spfm spotify update-playlists --log-counts
 

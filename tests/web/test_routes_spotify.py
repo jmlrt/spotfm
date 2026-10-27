@@ -86,6 +86,20 @@ def test_update_playlists_creates_job(authed_client, monkeypatch):
 
 
 @pytest.mark.unit
+def test_update_liked_creates_job(authed_client, monkeypatch):
+    import spotfm.web.routes.spotify as spotify_routes
+
+    def mock_spawn_job(job, fn, *args, **kwargs):
+        return None
+
+    monkeypatch.setattr(spotify_routes, "spawn_job", mock_spawn_job)
+
+    resp = authed_client.post("/jobs/update-liked", follow_redirects=False)
+    assert resp.status_code == 302
+    assert "/jobs/" in resp.headers["location"]
+
+
+@pytest.mark.unit
 def test_update_playlists_parses_form_before_running_job_guard(authed_client, monkeypatch):
     """The running-job guard must run after the form parse: awaiting the body between
     the check and the job creation would let two concurrent requests (double-click)

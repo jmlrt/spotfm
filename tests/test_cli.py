@@ -201,3 +201,18 @@ def test_update_playlists_enables_liked_by_default(monkeypatch, cli_config):
     _run_spotify_command(monkeypatch, "update-playlists", cli_config)
     client = spotify_client_module.Client.return_value
     client.update_playlists.assert_called_once_with(["ex1"], None, update_liked=True)
+
+
+@pytest.mark.unit
+def test_update_liked_runs_standalone_sync(monkeypatch, cli_config):
+    """update-liked syncs Liked Songs alone, without touching playlists."""
+    from spotfm.spotify import misc as spotify_misc
+
+    synced = {}
+    monkeypatch.setattr(spotify_misc, "update_liked_tracks", lambda client: synced.setdefault("client", client))
+
+    _run_spotify_command(monkeypatch, "update-liked", cli_config)
+
+    client = spotify_client_module.Client.return_value
+    assert synced["client"] is client.client
+    client.update_playlists.assert_not_called()

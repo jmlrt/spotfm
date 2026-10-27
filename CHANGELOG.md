@@ -29,6 +29,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 **Liked Songs (Saved Tracks) Support**:
 - `update-playlists` now also syncs Liked Songs (opt-out via `update_liked = false` in config)
+  - New `update-liked` command and web button: sync Liked Songs alone, without
+    touching playlists (combine with `update_liked = false` to fully decouple the two syncs)
   - Incremental sync: 1 API request when nothing changed since the last sync
     (the fast path compares against the state observed at the previous sync, so
     libraries containing unavailable items still cost a single request)
