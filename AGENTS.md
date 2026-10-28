@@ -18,6 +18,10 @@ A Python library and CLI tool for Spotify and Last.FM API interaction. Focuses o
 
 - Run all Python commands through `uv` in this repo, e.g. `uv run pytest`
 - Formatting: ruff (120 char line length), Python 3.14+ (PEP 758 bracketless exception syntax)
+- Shell commands already run in the repo root: use plain `git log`, `git status`, `git ls-files`, ... — not `git -C <path>` — so Vibe's bash allowlist (whole-word prefix match) auto-approves them instead of prompting
+- Mutating commands — `git commit`/`git push`, `make publish`/`build`/`clean`, dependency changes, library-mutating `spfm` ops, `uv run python` — prompt by design: never re-invoke the same operation in a different form to get around a prompt
+- For searching and filtering, use the allowlisted tools (`grep`, `find`, `head`, `tail`, `sort`, `wc`), not `rg`, `fd`, `awk`, or `sed`
+- Verify with `make test-unit` or targeted `uv run pytest -k ...`, not ad-hoc `uv run python -c` one-liners
 
 ## Critical Warnings
 
