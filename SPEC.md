@@ -696,8 +696,9 @@ See [TODO.md](TODO.md) for detailed specifications:
 ## References
 
 - **User Documentation**: [README.md](README.md)
+- **FAQ**: [FAQ.md](FAQ.md)
 - **Contributing Guide**: [CONTRIBUTING.md](CONTRIBUTING.md)
-- **Agent Guidance**: [CLAUDE.md](CLAUDE.md)
+- **Agent Guidance**: [AGENTS.md](AGENTS.md)
 - **Roadmap**: [TODO.md](TODO.md)
 - **Release Notes**: [CHANGELOG.md](CHANGELOG.md)
 

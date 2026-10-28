@@ -193,6 +193,8 @@ uv run spfm-web
 
 The browser prompts for credentials once (password is the `api_key`, username can be anything). Long-running operations (playlist updates, discovery, duplicate-name scans, scrobble fetches) run as background jobs with live log output on their job page.
 
+For common Docker and Spotify authentication questions (first-time auth in a container, token cache sharing, stuck jobs), see the [FAQ](FAQ.md).
+
 ## Logging & Debugging
 
 **Audit Log**: All track add/remove operations are logged to `~/.spotfm/spotfm.log` (rotating file, 1MB max with 3 backups). The audit log captures track IDs for every operation, making it easy to debug issues and remediate tracks added/removed by mistake.
