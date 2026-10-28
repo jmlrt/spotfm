@@ -74,6 +74,9 @@ allowlist = [
     # clean stay behind the prompt.
     "git add",
     "git commit",
+    # GitHub CLI: auth status only (read-only). Other `gh` commands -
+    # PR edits, repo operations, arbitrary API writes - stay behind the prompt.
+    "gh auth status",
     # make: only the sync/lint/format/test/export targets (the allowlist
     # prefix-matches whole words, so each variant is listed). Notably NOT
     # allowed: make publish (pushes tags, uploads to PyPI), make build/clean
