@@ -25,6 +25,7 @@ A Python library and CLI tool for Spotify and Last.FM API interaction. Focuses o
 - DO NOT delete orphaned tracks from the `tracks` table (tracks with no playlists)
 - Orphaned tracks serve as a "negative cache" preventing re-adding intentionally removed tracks
 - Deleting them will cause `discover_from_playlists` to re-add previously removed tracks
+- Same for liked tracks: unliking only flips the `liked` flag; the row (and `liked_at`, for history) is kept
 
 **Database Testing:**
 - All tests MUST use temp databases via `monkeypatch.setattr(utils, "DATABASE", temp_database)`
@@ -49,9 +50,10 @@ A Python library and CLI tool for Spotify and Last.FM API interaction. Focuses o
 - `spotfm/spotify/track.py` - Track model with lifecycle tracking
 - `spotfm/spotify/album.py`, `artist.py`, `playlist.py` - Entity models
 - `spotfm/spotify/dupes.py` - Duplicate detection (ID and fuzzy match)
-- `spotfm/spotify/misc.py` - High-level commands (discover, add, remove, count)
-- `spotfm/sqlite.py` - SQLite singleton connection management
+- `spotfm/spotify/misc.py` - High-level commands (discover, add, remove, count, liked-songs sync, track queries)
+- `spotfm/sqlite.py` - SQLite singleton connection management, schema migration, parameterized write helpers
 - `spotfm/utils.py` - Config, caching, string sanitization
+- `spotfm/web/` - FastAPI web UI (routes/, jobs/, templates/); jobs run in-process, single worker
 
 **Layered Separation Rule (core vs. presentation):**
 - Core modules (`spotfm/spotify/`, `spotfm/lastfm.py`): return structured data (dicts/lists), use `logging` for observability, never call `print()`
@@ -66,16 +68,25 @@ A Python library and CLI tool for Spotify and Last.FM API interaction. Focuses o
    - Single-entity fetches via `Album.get_album()` / `Artist.get_artist()` are not rate-limited
    - ThreadPoolExecutor (5 workers) parallelizes track API calls with submission-based rate limiting
    - Client configured with `retries=0` (no auto-retry); sleep is the primary rate limiting strategy
-   - See SPEC.md section 5 for the detailed strategy
+   - Liked Songs sync (`misc.update_liked_tracks`): 0.1s between `/me/tracks` pages, between 40-URI contains chunks, and between relinked hydrations
+   - See SPEC.md "Critical Design Decisions" → "Rate Limiting" (subsection 5) for the detailed strategy
 2. **Spotify API Migration** (Feb 2026): Batch endpoints removed; all Track/Album/Artist fetching uses individual API calls
    - Playlist add_tracks uses batch_size=50 (Spotify API limit for add operations)
    - Playlist remove_tracks uses batch_size=100 (Spotify API limit for remove operations)
    - Exception handling distinguishes KeyError/ValueError (unavailable) from unexpected errors
-3. **`sync_to_db` in discover context** — `Track.get_tracks()` and `Playlist.get_tracks()` default to `sync_to_db=True`. Any caller that needs to check "is this track new before writing it?" must pass `sync_to_db=False` (e.g. `discover_from_playlists`). Forgetting this causes discover to silently add nothing.
-4. **SQL Injection Risk**: F-strings used in queries (TODO: migrate to parameterized)
-5. **Global DB Connection**: `spotfm/sqlite.py` uses module-level singleton with atexit cleanup
-6. **Duplicate Detection**: Operates on SQLite only, no API calls (optimization)
-7. **String Safety**: `utils.sanitize_string()` removes single quotes (SQL safety)
+3. **Saved-tracks endpoint limits** (verified against Spotify's official OpenAPI schema): spotipy's `current_user_saved_tracks_contains` routes to `GET /me/library/contains` — **max 40 URIs** (the deprecated `/me/tracks/contains` allowed 50; 50-URI chunks fail with 400 "Too many uris requested"). `current_user_saved_tracks` uses `GET /me/tracks` — **not deprecated**, no `GET /me/library` paging replacement exists (the `/me/library` family covers save/remove/contains only), and its shared `QueryLimit` is default 20 / max 50 (matches `LIKED_PAGE_SIZE`). For endpoint limits and deprecation status, prefer the machine-readable schema (`https://developer.spotify.com/reference/web-api/open-api-schema.yaml`) over the reference pages (cookie walls/404s have already misled this project once); before trusting a limit, also check which URL the installed spotipy version actually requests.
+4. **`sync_to_db` in discover context** — `Track.get_tracks()` and `Playlist.get_tracks()` default to `sync_to_db=True`. Any caller that needs to check "is this track new before writing it?" must pass `sync_to_db=False` (e.g. `discover_from_playlists`). Forgetting this causes discover to silently add nothing.
+5. **`Track.get_tracks()` quirks** (both bite silently):
+   - Pickle-cache hits return the Track without writing it to SQLite, even when `sync_to_db=True`. Callers that need a `tracks` row must re-check the DB and persist (see `_apply_liked_additions`).
+   - Relinked (market-replaced) tracks fetched under their original ID come back in the response under the replacement ID: `get_tracks` persists the row under the replacement ID and drops the track from the returned list. Resolve `linked_from` before hydration instead (see `playlist.py` track extraction and `_apply_liked_additions`).
+6. **Liked Songs**: a separate library, synced ONLY by `update-liked` (CLI command / web job); `update-playlists` is playlists-only. `tracks.liked`/`liked_at` are owned by the liked sync via explicit parameterized UPDATEs; `Track.sync_to_db()` COALESCE-preserves them, so playlist re-syncs must never reset liked state. Fast-path state (last observed total + top `added_at`) lives in `liked_sync_state`. Both the CLI command and the web job log track counts after a successful sync.
+7. **SQL Injection Risk**: F-strings used in queries (TODO: migrate to parameterized). New code must use parameterized statements — `sqlite.select_db()` with params, or `sqlite.execute_many()` for batched writes (added with the Liked Songs PR).
+8. **Global DB Connection**: `spotfm/sqlite.py` uses module-level singleton with atexit cleanup
+9. **Duplicate Detection**: Operates on SQLite only, no API calls (optimization)
+10. **String Safety**: `utils.sanitize_string()` removes single quotes (SQL safety)
+11. **Schema migrations**: new columns/tables go in `sqlite.migrate_database_schema()` (idempotent, guarded by the up-to-date check) AND `hacks/create-tables.sql`; conftest's temp schema intentionally predates migrations so tests exercise them.
+12. **No query helpers inside comprehension conditions**: `[x for x in xs if x not in query(xs)]` re-runs the query once per element (a real 11,000x blow-up shipped and was only caught by review — tests with small fixtures do not expose it). Hoist the query result to a variable first.
+13. **Track-counts CSV writes** (`log_track_counts`): serialized in-process via `_track_counts_lock` (the update-playlists and update-liked web jobs run on parallel executor threads); the one-time schema migration rewrites atomically (temp file + replace) so readers never see a truncated file. Cross-process concurrency (CLI while the web app runs) is NOT covered — do not assume it is. Any new append-style log file should follow the same pattern.
 
 ## Testing
 

@@ -56,11 +56,11 @@ async def tracks(
     album: str = "",
     year_start: str = "",
     year_end: str = "",
+    liked: str = "",
     page: int = Query(default=1, ge=1),
     sort: str = Query(default="name"),
     dir: str = Query(default="asc"),
 ):
-
     from spotfm import sqlite
     from spotfm.utils import DATABASE
 
@@ -68,11 +68,18 @@ async def tracks(
 
     start_date = f"{year_start}-01-01" if year_start else None
     end_date = f"{year_end}-12-31" if year_end else None
-    playlist_patterns = playlist if playlist else "%"
+    if playlist == "none":
+        playlist_patterns = spotify_misc.NO_PLAYLIST_PATTERN
+    elif playlist:
+        playlist_patterns = playlist
+    else:
+        playlist_patterns = None
+    liked_filter = {"liked": True, "not": False}.get(liked)
     raw = spotify_misc.find_tracks_by_criteria(
         playlist_patterns=playlist_patterns,
         start_date=start_date,
         end_date=end_date,
+        liked=liked_filter,
     )
     track_rows = []
     for row in raw:
@@ -89,16 +96,26 @@ async def tracks(
                 "year": row["release_year"],
                 "album": album_name,
                 "artists": artist_names,
+                "liked": row["liked"],
             }
         )
 
-    has_filters = bool(playlist or artist or album or year_start or year_end)
+    has_filters = bool(playlist or artist or album or year_start or year_end or liked)
 
     # Sort before paginating
     sort_dir = dir if dir in ("asc", "desc") else "asc"
-    valid_sorts = {"name", "artists", "album", "year"}
+    valid_sorts = {"name", "artists", "album", "year", "liked"}
     sort_key = sort if sort in valid_sorts else "name"
-    track_rows.sort(key=lambda r: r.get(sort_key) or "", reverse=(sort_dir == "desc"))
+
+    def _sort_value(row):
+        value = row.get(sort_key)
+        # liked is a bool: coerce to int so False sorts as 0 instead of ""
+        # (an empty str), which cannot be compared with True and would raise
+        if isinstance(value, bool):
+            return int(value)
+        return value or ""
+
+    track_rows.sort(key=_sort_value, reverse=(sort_dir == "desc"))
 
     page_rows, pagination = paginate(track_rows, page)
 
@@ -137,6 +154,7 @@ async def tracks(
                 "album": album,
                 "year_start": year_start,
                 "year_end": year_end,
+                "liked": liked,
             },
         },
     )
@@ -218,7 +236,6 @@ async def duplicates_names_results(
 
 @router.post("/duplicates/names")
 async def duplicates_names_start(request: Request):
-
     # Block only if already running; allow re-run when done/failed
     existing = get_running_job("dupe-names")
     if existing:
@@ -237,7 +254,6 @@ async def duplicates_names_start(request: Request):
 
 @router.post("/jobs/update-playlists")
 async def start_update_playlists(request: Request):
-
     # Parse the form before the guard: awaiting the body would otherwise let two
     # concurrent requests both pass the check and start duplicate jobs
     form = await request.form()
@@ -261,9 +277,26 @@ async def start_update_playlists(request: Request):
     return RedirectResponse(url=f"/jobs/{job.id}", status_code=302)
 
 
+@router.post("/jobs/update-liked")
+async def start_update_liked(request: Request):
+    existing = get_running_job("update-liked")
+    if existing:
+        return RedirectResponse(url=f"/jobs/{existing.id}", status_code=302)
+
+    sp_client = request.app.state.spotify_client
+    config = request.app.state.config
+
+    def _update_liked_and_log():
+        spotify_misc.update_liked_tracks(sp_client.client)
+        spotify_misc.log_track_counts(config)
+
+    job = create_job("update-liked")
+    spawn_job(job, _update_liked_and_log)
+    return RedirectResponse(url=f"/jobs/{job.id}", status_code=302)
+
+
 @router.post("/jobs/discover")
 async def start_discover(request: Request):
-
     existing = get_running_job("discover")
     if existing:
         return RedirectResponse(url=f"/jobs/{existing.id}", status_code=302)
@@ -309,7 +342,6 @@ async def job_status(request: Request, job_id: str):
 
 @router.get("/track-counts", response_class=HTMLResponse)
 async def track_counts(request: Request, page: int = Query(default=1, ge=1)):
-
     config = request.app.state.config
     log_path_raw = config.get("spotify", {}).get("track_counts_log", "")
     # log_track_counts() falls back to WORK_DIR when the setting is absent — mirror

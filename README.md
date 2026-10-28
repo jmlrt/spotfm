@@ -64,6 +64,9 @@ password_hash = "your_password_hash"
 # Update all playlists with latest tracks
 spfm spotify update-playlists
 
+# Sync Liked Songs (saved tracks) only
+spfm spotify update-liked
+
 # Update playlists AND log track counts (with optional pattern tracking)
 spfm spotify update-playlists --log-counts
 
@@ -76,8 +79,12 @@ spfm spotify add-tracks-from-file tracks.txt
 # Remove tracks from a playlist (one per line, track ID or Spotify URL)
 spfm spotify remove-tracks-from-playlist -p <playlist_id> -f remove.txt
 
-# Count total tracks across playlists
+# Count total tracks (in playlists or liked) and liked tracks
 spfm spotify count-tracks
+
+# List liked tracks that are in no playlist
+spfm spotify find-liked-only
+spfm spotify find-liked-only -o liked-only.csv  # Save to CSV
 
 # Find duplicate track IDs (same track in multiple playlists)
 spfm spotify find-duplicate-ids
@@ -138,6 +145,8 @@ Track playlist statistics over time using the `--log-counts` flag with `update-p
 spfm spotify update-playlists --log-counts
 ```
 
+`update-liked` (CLI and web) appends a row automatically after each successful sync — no flag needed.
+
 Appends a row to `~/.spotfm/track-counts.csv` after each run. Customize via `spotfm.toml`:
 
 ```toml
@@ -152,23 +161,25 @@ new_tracks_pattern = "IR%"
 
 **Output without pattern:**
 ```csv
-timestamp;total_tracks;pattern_tracks
-2026-03-15 09:30;14204;
-2026-03-15 14:45;14205;
+timestamp;total_tracks;pattern_tracks;liked_tracks
+2026-03-15 09:30;14204;;11000
+2026-03-15 14:45;14205;;11003
 ```
 
 **Output with pattern configured:**
 ```csv
-timestamp;total_tracks;pattern_tracks
-2026-03-15 09:30;14204;3637
-2026-03-15 14:45;14205;3640
+timestamp;total_tracks;pattern_tracks;liked_tracks
+2026-03-15 09:30;14204;3637;11000
+2026-03-15 14:45;14205;3640;11003
 ```
+
+Pre-existing 3-column files are migrated in place on the next logged run (old rows keep an empty `liked_tracks` cell).
 
 Use for tracking library growth, auditing new track additions, or workflow analytics. Multiple runs per day are supported—each adds a new timestamped row.
 
 ## Webapp
 
-A FastAPI web UI for browsing playlists/tracks, running duplicate detection, updating playlists, and fetching Last.FM scrobbles. Intended for single-user access on localhost or a private network.
+A FastAPI web UI for browsing playlists/tracks, running duplicate detection, updating playlists, syncing Liked Songs, and fetching Last.FM scrobbles. Intended for single-user access on localhost or a private network.
 
 **Configuration** (in `spotfm.toml`):
 

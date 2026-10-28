@@ -9,9 +9,18 @@
       Playlist
       <select name="playlist">
         <option value="">All playlists</option>
+        <option value="none" {% if filters.playlist == "none" %}selected{% endif %}>No playlist</option>
         {% for pid, pname in all_playlists %}
         <option value="{{ pid }}" {% if filters.playlist == pid %}selected{% endif %}>{{ pname }}</option>
         {% endfor %}
+      </select>
+    </label>
+    <label>
+      Liked
+      <select name="liked">
+        <option value="">All tracks</option>
+        <option value="liked" {% if filters.liked == "liked" %}selected{% endif %}>Only liked</option>
+        <option value="not" {% if filters.liked == "not" %}selected{% endif %}>Only not liked</option>
       </select>
     </label>
     <label>
@@ -44,6 +53,7 @@
       <th><a href="{{ sort_url('name') }}">Track{{ ind('name') }}</a></th>
       <th><a href="{{ sort_url('album') }}">Album{{ ind('album') }}</a></th>
       <th><a href="{{ sort_url('year') }}">Year{{ ind('year') }}</a></th>
+      <th><a href="{{ sort_url('liked') }}">Liked{{ ind('liked') }}</a></th>
       <th>Playlists</th>
     </tr>
   </thead>
@@ -54,6 +64,7 @@
       <td>{{ t.name }}</td>
       <td>{{ t.album or "—" }}</td>
       <td>{{ t.year or "—" }}</td>
+      <td>{% if t.liked %}Yes{% else %}—{% endif %}</td>
       <td>{% for pid, pname in t.track_playlists %}<a href="/tracks?playlist={{ pid }}">{{ pname }}</a>{% if not loop.last %}, {% endif %}{% else %}—{% endfor %}</td>
     </tr>
     {% endfor %}

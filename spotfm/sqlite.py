@@ -88,6 +88,8 @@ def migrate_database_schema(database=None):
         try:
             cursor.execute("SELECT created_at FROM tracks LIMIT 1")
             cursor.execute("SELECT snapshot_id FROM playlists LIMIT 1")
+            cursor.execute("SELECT liked FROM tracks LIMIT 1")
+            cursor.execute("SELECT newest_added_at FROM liked_sync_state LIMIT 1")
             logging.info("Database schema is up-to-date")
             conn.close()
             _migrated_databases.add(database_str)
@@ -117,6 +119,37 @@ def migrate_database_schema(database=None):
         except sqlite3.OperationalError as e:
             if "duplicate column" not in str(e).lower():
                 raise
+
+        # Add liked songs columns to tracks table (Liked Songs / saved tracks support)
+        try:
+            cursor.execute("ALTER TABLE tracks ADD COLUMN liked INTEGER DEFAULT 0")
+            logging.info("Added liked column to tracks table")
+        except sqlite3.OperationalError as e:
+            if "duplicate column" not in str(e).lower():
+                raise
+
+        try:
+            cursor.execute("ALTER TABLE tracks ADD COLUMN liked_at TEXT")
+            logging.info("Added liked_at column to tracks table")
+        except sqlite3.OperationalError as e:
+            if "duplicate column" not in str(e).lower():
+                raise
+
+        # Persisted sync state for Liked Songs: the Spotify saved-tracks total
+        # and top added_at observed by update_liked_tracks at the last sync.
+        # Unavailable items (track null) count in the API total and can be the
+        # newest item but never get a tracks row, so the fast path must compare
+        # against this stored state, not against the liked row count.
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS liked_sync_state (
+                id INTEGER PRIMARY KEY CHECK (id = 1),
+                spotify_total INTEGER,
+                newest_added_at TEXT
+            )
+            """
+        )
+        logging.info("Created liked_sync_state table")
 
         # Backfill data for existing tracks
         logging.info("Backfilling lifecycle data for existing tracks...")
@@ -251,6 +284,23 @@ def query_db(database, queries, script=False, results=False):
     con.commit()
     if results:
         return query_results
+
+
+def execute_many(database, query, params_list):
+    """Execute a parameterized statement with many parameter sets, then commit.
+
+    Preferred over building query strings with interpolated values: values stay
+    data, never SQL syntax.
+
+    Args:
+        database: Path to SQLite database
+        query: SQL statement using ? placeholders
+        params_list: Iterable of parameter tuples, one per execution
+    """
+    con = get_db_connection(database)
+    cur = con.cursor()
+    cur.executemany(query, params_list)
+    con.commit()
 
 
 def select_db(database, query, params=""):

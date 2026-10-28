@@ -143,3 +143,68 @@ def test_cli_output_not_tty_still_prints(capsys, monkeypatch, cli_config):
 
     _run_spotify_command(monkeypatch, "find-duplicate-ids", cli_config)
     assert "PL1,Artist A,Track One" in capsys.readouterr().out
+
+
+@pytest.mark.unit
+def test_find_liked_only_prints_rows(capsys, monkeypatch, cli_config):
+    """find-liked-only must print liked-only tracks to stdout."""
+    from spotfm.spotify import misc as spotify_misc
+
+    tracks = [
+        {
+            "track_id": "t1",
+            "track_name": "Track One",
+            "release_year": "2020",
+            "album_name": "Album",
+            "liked": True,
+            "artist_names": "Artist A",
+            "artist_genres": "rap",
+        }
+    ]
+    monkeypatch.setattr(spotify_misc, "find_liked_only_tracks", lambda output_file=None: tracks)
+
+    _run_spotify_command(monkeypatch, "find-liked-only", cli_config)
+    out = capsys.readouterr().out
+    assert "Artist A - Track One - Album - 2020 - rap" in out
+
+
+@pytest.mark.unit
+def test_count_tracks_prints_total_and_liked(capsys, monkeypatch, cli_config):
+    """count-tracks prints both the total and the liked count."""
+    from spotfm.spotify import misc as spotify_misc
+
+    monkeypatch.setattr(spotify_misc, "count_tracks", lambda playlists_patterns=None: 5)
+    monkeypatch.setattr(spotify_misc, "count_liked_tracks", lambda: 3)
+
+    _run_spotify_command(monkeypatch, "count-tracks", cli_config)
+    out = capsys.readouterr().out
+    assert "tracks: 5" in out
+    assert "liked tracks: 3" in out
+
+
+@pytest.mark.unit
+def test_update_playlists_does_not_sync_liked(monkeypatch, cli_config):
+    """update-playlists is playlists-only; the liked sync is the update-liked command."""
+    monkeypatch.setattr(spotify_client_module, "Client", MagicMock())
+
+    _run_spotify_command(monkeypatch, "update-playlists", cli_config)
+    client = spotify_client_module.Client.return_value
+    client.update_playlists.assert_called_once_with(["ex1"], None)
+
+
+@pytest.mark.unit
+def test_update_liked_runs_standalone_sync(monkeypatch, cli_config):
+    """update-liked syncs Liked Songs alone and logs counts, without touching playlists."""
+    from spotfm.spotify import misc as spotify_misc
+
+    synced = {}
+    logged = {}
+    monkeypatch.setattr(spotify_misc, "update_liked_tracks", lambda client: synced.setdefault("client", client))
+    monkeypatch.setattr(spotify_misc, "log_track_counts", lambda config: logged.setdefault("called", True))
+
+    _run_spotify_command(monkeypatch, "update-liked", cli_config)
+
+    client = spotify_client_module.Client.return_value
+    assert synced["client"] is client.client
+    client.update_playlists.assert_not_called()
+    assert logged.get("called") is True  # mirrors the web update-liked job

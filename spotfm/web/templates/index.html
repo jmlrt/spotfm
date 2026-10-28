@@ -8,6 +8,10 @@
     <p>Tracks</p>
   </article>
   <article>
+    <h3>{{ counts.liked }}</h3>
+    <p>Liked songs</p>
+  </article>
+  <article>
     <h3>{{ counts.playlists }}</h3>
     <p>Playlists</p>
   </article>
@@ -25,6 +29,9 @@
 <div class="actions-row">
   <form action="/jobs/update-playlists" method="post">
     <button type="submit">Update all playlists</button>
+  </form>
+  <form action="/jobs/update-liked" method="post">
+    <button type="submit" class="secondary">Update liked songs</button>
   </form>
   <form action="/jobs/discover" method="post">
     <button type="submit" class="secondary">Run discover</button>

@@ -754,12 +754,12 @@ class TestLogTrackCounts:
         # Verify file was created
         assert log_file.exists()
 
-        # Verify content has header and one row (stable schema always has 3 columns)
+        # Verify content has header and one row (stable schema always has 4 columns)
         content = log_file.read_text()
         lines = content.strip().split("\n")
         assert len(lines) == 2  # header + one data row
-        # Always have stable 3-column schema (pattern_tracks is empty when no pattern)
-        assert lines[0] == "timestamp;total_tracks;pattern_tracks"
+        # Always have stable 4-column schema (pattern_tracks is empty when no pattern)
+        assert lines[0] == "timestamp;total_tracks;pattern_tracks;liked_tracks"
 
     def test_log_track_counts_creates_file_with_pattern_headers(self, temp_database, tmp_path, monkeypatch):
         """Test that log file includes pattern column with populated value when pattern is configured."""
@@ -788,11 +788,11 @@ class TestLogTrackCounts:
         content = log_file.read_text()
         lines = content.strip().split("\n")
         assert len(lines) == 2  # header + one data row
-        # Schema is always stable with 3 columns
-        assert lines[0] == "timestamp;total_tracks;pattern_tracks"
+        # Schema is always stable with 4 columns
+        assert lines[0] == "timestamp;total_tracks;pattern_tracks;liked_tracks"
         # Pattern column should have a value (1 track in IR%)
         data = lines[1].split(";")
-        assert len(data) == 3
+        assert len(data) == 4
         assert data[2] == "1"  # IR% matches 1 track
 
     def test_log_track_counts_appends_on_subsequent_runs(self, temp_database, tmp_path, monkeypatch):
@@ -824,10 +824,10 @@ class TestLogTrackCounts:
 
         # Should have header + 2 data rows (header should not be duplicated)
         assert len(second_lines) == 3
-        assert second_lines[0] == "timestamp;total_tracks;pattern_tracks"
-        # Both data rows should have 3 columns
-        assert len(second_lines[1].split(";")) == 3
-        assert len(second_lines[2].split(";")) == 3
+        assert second_lines[0] == "timestamp;total_tracks;pattern_tracks;liked_tracks"
+        # Both data rows should have 4 columns
+        assert len(second_lines[1].split(";")) == 4
+        assert len(second_lines[2].split(";")) == 4
 
     def test_log_track_counts_uses_default_path(self, temp_database, monkeypatch, tmp_path):
         """Test that default path is ~/.spotfm/track-counts.csv when no config provided."""
@@ -928,8 +928,8 @@ class TestLogTrackCounts:
 
         # Should have header + one row (even though file existed empty)
         assert len(lines) == 2
-        # Stable schema always has 3 columns
-        assert lines[0] == "timestamp;total_tracks;pattern_tracks"
+        # Stable schema always has 4 columns
+        assert lines[0] == "timestamp;total_tracks;pattern_tracks;liked_tracks"
 
     def test_log_track_counts_rejects_empty_config_path(self, temp_database, monkeypatch):
         """Test that empty string path in config raises ValueError."""
@@ -1000,10 +1000,10 @@ class TestLogTrackCounts:
         content = log_file.read_text()
         lines = content.strip().split("\n")
 
-        # Stable schema always has 3 columns
-        assert lines[0] == "timestamp;total_tracks;pattern_tracks"
+        # Stable schema always has 4 columns
+        assert lines[0] == "timestamp;total_tracks;pattern_tracks;liked_tracks"
         data = lines[1].split(";")
-        assert len(data) == 3  # timestamp, total_tracks, pattern_tracks
+        assert len(data) == 4  # timestamp, total_tracks, pattern_tracks, liked_tracks
         assert data[1] == "1"  # total_tracks
         assert data[2] == ""  # pattern_tracks is empty (no pattern configured)
 
@@ -1033,8 +1033,8 @@ class TestLogTrackCounts:
         lines = content.strip().split("\n")
         data = lines[1].split(";")
 
-        # Stable schema always has 3 columns
-        assert lines[0] == "timestamp;total_tracks;pattern_tracks"
+        # Stable schema always has 4 columns
+        assert lines[0] == "timestamp;total_tracks;pattern_tracks;liked_tracks"
         assert data[1] == "3"  # total_tracks
         assert data[2] == "2"  # pattern_tracks (New%)
 

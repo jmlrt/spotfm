@@ -16,8 +16,8 @@ class TestFindTracksByCriteria:
         # Call 3: track query
         mock_cursor_tracks = MagicMock()
         mock_cursor_tracks.fetchall.return_value = [
-            ("track1_id", "Track One", "2020", "Album A", "Artist X", "pop,rock"),
-            ("track2_id", "Track Two", "2021", "Album B", "Artist Y", "jazz"),
+            ("track1_id", "Track One", "2020", "Album A", 0, "Artist X", "pop,rock"),
+            ("track2_id", "Track Two", "2021", "Album B", 1, "Artist Y", "jazz"),
         ]
         mock_sqlite_select_db.side_effect = [mock_cursor_id, mock_cursor_like, mock_cursor_tracks]
 
@@ -41,7 +41,7 @@ class TestFindTracksByCriteria:
         mock_cursor_like = MagicMock()
         mock_cursor_like.fetchall.return_value = [("playlist1_id", "My Playlist")]
         mock_cursor_tracks = MagicMock()
-        mock_cursor_tracks.fetchall.return_value = [("track1_id", "Track One", "2020", "Album A", "Artist X", "pop")]
+        mock_cursor_tracks.fetchall.return_value = [("track1_id", "Track One", "2020", "Album A", 0, "Artist X", "pop")]
         mock_sqlite_select_db.side_effect = [mock_cursor_id, mock_cursor_like, mock_cursor_tracks]
 
         playlist_patterns = ["My Playlist"]
@@ -68,7 +68,7 @@ class TestFindTracksByCriteria:
         mock_cursor_like.fetchall.return_value = [("playlist1_id", "My Playlist")]
         mock_cursor_tracks = MagicMock()
         mock_cursor_tracks.fetchall.return_value = [
-            ("track1_id", "Track One", "2020", "Album A", "Artist X", "pop,rock")
+            ("track1_id", "Track One", "2020", "Album A", 0, "Artist X", "pop,rock")
         ]
         mock_sqlite_select_db.side_effect = [mock_cursor_id, mock_cursor_like, mock_cursor_tracks]
 
@@ -91,7 +91,7 @@ class TestFindTracksByCriteria:
         mock_cursor_like = MagicMock()
         mock_cursor_like.fetchall.return_value = [("playlist1_id", "Playlist One"), ("playlist2_id", "Playlist Two")]
         mock_cursor_tracks = MagicMock()
-        mock_cursor_tracks.fetchall.return_value = [("track1_id", "Track One", "2020", "Album A", "Artist X", "pop")]
+        mock_cursor_tracks.fetchall.return_value = [("track1_id", "Track One", "2020", "Album A", 0, "Artist X", "pop")]
         mock_sqlite_select_db.side_effect = [mock_cursor_id, mock_cursor_like, mock_cursor_tracks]
 
         playlist_patterns = ["Playlist%"]
@@ -114,7 +114,7 @@ class TestFindTracksByCriteria:
         mock_cursor_like.fetchall.return_value = [("playlist1_id", "My Playlist")]
         mock_cursor_tracks = MagicMock()
         mock_cursor_tracks.fetchall.return_value = [
-            ("track1_id", "Track One", "2020", "Album A", "Artist X", "pop,rock")
+            ("track1_id", "Track One", "2020", "Album A", 0, "Artist X", "pop,rock")
         ]
         mock_sqlite_select_db.side_effect = [mock_cursor_id, mock_cursor_like, mock_cursor_tracks]
 
@@ -174,7 +174,7 @@ class TestFindTracksByCriteria:
         mock_cursor_name = MagicMock()
         mock_cursor_name.fetchone.return_value = ("My Playlist",)
         mock_cursor_tracks = MagicMock()
-        mock_cursor_tracks.fetchall.return_value = [("track1_id", "Track One", "2020", "Album A", "Artist X", "pop")]
+        mock_cursor_tracks.fetchall.return_value = [("track1_id", "Track One", "2020", "Album A", 0, "Artist X", "pop")]
         mock_sqlite_select_db.side_effect = [mock_cursor_name, mock_cursor_tracks]
 
         # 22 alphanumeric characters - treated as a direct playlist ID

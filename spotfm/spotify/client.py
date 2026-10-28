@@ -56,6 +56,9 @@ class Client:
         Refetches playlist metadata and track lists. Track/album/artist
         metadata is preserved in cache/DB since it rarely changes.
 
+        Liked Songs (saved tracks) are NOT synced here: they are a separate
+        library with its own sync, triggered by the update-liked command/job.
+
         Args:
             excluded_playlists: List of playlist IDs to exclude
             playlists_patterns: Playlist ID(s) or SQL LIKE pattern(s) to filter playlists by name

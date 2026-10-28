@@ -13,10 +13,12 @@ Last updated: 2026-03-15
 3. [Data Model](#data-model)
 4. [Caching Strategy](#caching-strategy)
 5. [Entity Lifecycle](#entity-lifecycle)
-6. [Features & Commands](#features--commands)
-7. [Critical Design Decisions](#critical-design-decisions)
-8. [Testing Strategy](#testing-strategy)
-9. [Future Enhancements](#future-enhancements)
+6. [Orphaned Tracks & Track Lifecycle](#orphaned-tracks--track-lifecycle)
+7. [Liked Songs (Saved Tracks) Support](#liked-songs-saved-tracks-support)
+8. [Features & Commands](#features--commands)
+9. [Critical Design Decisions](#critical-design-decisions)
+10. [Testing Strategy](#testing-strategy)
+11. [Future Enhancements](#future-enhancements)
 
 ---
 
@@ -93,6 +95,8 @@ spotfm/
 - `updated_at`: Last API update timestamp
 - `created_at`: First discovery timestamp (immutable)
 - `last_seen_at`: Last appearance in any playlist (updated on sync)
+- `liked`: 1 when the track is in Liked Songs (saved tracks), 0 otherwise
+- `liked_at`: When the track was saved to Liked Songs (Spotify `added_at`)
 - `genres`: Aggregated from artists (not stored, computed)
 
 #### Album
@@ -122,6 +126,11 @@ spotfm/
 - `albums_tracks`: Links albums to tracks
 - `albums_artists`: Links albums to artists
 - `artists_genres`: Links artists to genres (many genres per artist)
+
+### Sync State Tables
+
+- `liked_sync_state`: single row (`id = 1`); `spotify_total` and `newest_added_at` observed
+  at the last liked sync — the fast-path comparison state (see [Liked Songs Support](#liked-songs-saved-tracks-support))
 
 ---
 
@@ -239,6 +248,80 @@ c. **`update_from_api(client)`**: Fetch from Spotify API
 
 ---
 
+## Liked Songs (Saved Tracks) Support
+
+Liked Songs is the Spotify saved-tracks library, not a playlist: `current_user_playlists`
+never returns it, so it has its own sync, `misc.update_liked_tracks()`, triggered
+exclusively by the standalone `update-liked` command / web button. `update-playlists`
+is playlists-only.
+
+### Storage
+
+- `tracks.liked` (0/1) and `tracks.liked_at` (Spotify `added_at`) — added by the automatic
+  schema migration; a column on `tracks` keeps queries simple and survives the
+  `update_playlists` cleanup (which deletes playlists not in the library).
+- Unliked tracks keep their `tracks` row with `liked = 0` (negative cache, consistent with
+  orphan handling); `liked_at` is kept for history.
+- `Track.sync_to_db()` preserves `liked`/`liked_at` across playlist re-syncs (COALESCE on the
+  existing row); liked state is only ever changed by `update_liked_tracks` via explicit UPDATEs.
+- Relinked tracks are stored under their original ID (`linked_from`), consistent with playlist sync.
+
+### Change Detection (no snapshot for the saved library)
+
+Spotify exposes no snapshot for saved tracks. The sync relies on three API primitives:
+
+1. **Fast path (no changes)**: `GET /me/tracks` returns items most-recent-first. Nothing
+   changed — 1 API request, no DB writes — when the first page matches the state observed at
+   the last sync (persisted in `liked_sync_state`: same `total` and same top `added_at`), or
+   when the total matches the stored liked count and the top item's `added_at` is not newer
+   than `MAX(liked_at)`. The stored state matters because unavailable items (track null)
+   count in the API total and can be the newest item, but never get a `tracks` row — the
+   liked count alone can stay permanently below the API total. Either signal is only
+   trusted when the first page's `added_at` ordering is valid.
+2. **Additions**: walk pages collecting items with `added_at > MAX(liked_at)`, stopping at the
+   first older item. Metadata is fetched only for tracks missing a `tracks` row (most liked
+   tracks are already synced via playlists and cost no API calls). Two fetch quirks are
+   handled: pickle-cache hits from `Track.get_tracks()` are persisted explicitly (cache hits
+   return without a DB write), and relinked additions are hydrated under their original ID
+   from the raw saved item (fetching them would persist under the market replacement ID,
+   leaving the original ID without a row).
+3. **Removals**: no signal exists. Whenever the fast path fails, all stored liked IDs are
+   verified with `GET /me/library/contains` (40 IDs/request, the API limit — spotipy routes
+   the saved-tracks contains check there, not to the deprecated `/me/tracks/contains`, which
+   allowed 50). IDs returning false get `liked = 0`.
+4. **Ordering violation fallback**: each fetched page's `added_at` ordering is validated
+   before the threshold cutoff is applied. If `added_at` is observed to increase (the
+   newest-first assumption broken), the cutoff is disabled and the walk completes as a
+   full walk — the only safe fallback. Violations in pages beyond the cutoff are
+   unobservable; any observed violation is treated as making the result untrustworthy.
+
+**API budget (~11,000 liked tracks)**: 1 request when unchanged, ~275 when something changed
+(1-2 pages + contains sweep at 40 ids/request), ~220 pages + per-track fetches for tracks
+not already in DB on first sync.
+
+**Known limitation**: a track whose metadata fetch fails during a sync (API error,
+unavailable) stays unmarked forever — the threshold walk stops at the newest stored
+`liked_at` and never revisits older additions. The deficit self-heals only via a full walk
+(an observed ordering violation) or a database rebuild. Same-ms `added_at` ties at the
+threshold are also skipped by the `<=` cutoff.
+
+### Interaction with other features
+
+- **discover_from_playlists**: liked-only tracks are now in the DB, so discover treats them as
+  known/orphaned and skips them (accepted behavior change: you already like them).
+- **find-tracks / web /tracks**: `find_tracks_by_criteria` uses LEFT JOINs; `playlist_patterns=None`
+  returns playlist members and liked tracks (mirroring count-tracks union semantics — pure
+  orphans, tracks neither in a playlist nor liked, are excluded), `NO_PLAYLIST_PATTERN`
+  ("none") selects tracks in zero playlists (the explicit window into the negative cache),
+  and `liked=True/False` filters by liked state. The web /tracks page exposes both as
+  filters plus a Liked column.
+- **count-tracks**: total is the union of playlist tracks and liked tracks (pure orphans
+  excluded); a separate liked count is printed and logged as a 4th CSV column
+  (`liked_tracks`) in `log_track_counts`.
+- **find-liked-only**: CLI command listing liked tracks in zero playlists (with `-o` CSV export).
+
+---
+
 ## Features & Commands
 
 ### Spotify Commands
@@ -254,11 +337,13 @@ c. **`update_from_api(client)`**: Fetch from Spotify API
 5. Log progress and summary
 6. (Optional with `--log-counts`) Append track counts to CSV log file
 
+Playlists only: Liked Songs are not synced here (see the `update-liked` command).
+
 **Rate limiting**: 0.1s between individual track API calls (Spotify batch endpoints removed Feb 2026)
 
 **Options**:
 - `--log-counts`: After update completes, log track counts to CSV file
-  - Appends row with timestamp and total track count
+  - Appends row with timestamp, total track count and liked track count
   - Optionally tracks secondary pattern (e.g., "IR%" for new tracks)
   - CSV location: `~/.spotfm/track-counts.csv` (configurable via `track_counts_log`)
   - Pattern tracking: Optional via `new_tracks_pattern` config
@@ -282,6 +367,17 @@ spfm spotify update-playlists --log-counts
 # With pattern configured in spotfm.toml, logs both total and pattern-specific counts
 spfm spotify update-playlists --log-counts
 ```
+
+#### `update-liked`
+**Purpose**: Sync Liked Songs (saved tracks) — the only trigger for the liked sync
+
+**Behavior**: the incremental liked sync described in
+[Liked Songs Support](#liked-songs-saved-tracks-support): 1 API request when
+nothing changed, `added_at` threshold walk for additions, contains sweep for
+removals, and track-count logging at the end.
+
+**Web**: an "Update liked songs" button (dashboard and playlists pages) starts
+an `update-liked` job equivalent to the command.
 
 **Log Output Examples**:
 Without pattern configured:
@@ -541,6 +637,7 @@ playlist_name = sanitize_string(user_input)  # Removes single quotes
 
 **Other Operations**:
 - Playlist track additions: 0.1s between each track addition (playlist modification helpers in misc.py)
+- Liked Songs sync: 0.1s between `/me/tracks` pages, between 40-URI contains chunks, and between relinked hydrations (`misc.update_liked_tracks`; relinked hydrations can burst a few single-entity fetches internally)
 - Last.FM API calls: 0.2s between requests (~5 req/s) (Last.FM client methods in lastfm.py)
 
 **Implementation Details**:
