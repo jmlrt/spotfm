@@ -50,6 +50,33 @@
 - **Effort**: High (~1-2 days)
 - **Scope**: standalone PR
 
+#### Job Cancellation in Web UI
+- Add a Cancel button and endpoint (`POST /jobs/{id}/cancel`) so a stuck or
+  unwanted job can be cleared from the UI without restarting the container
+  (currently requires `docker compose restart spotfm-web`, see FAQ)
+- Mark the job as cancelled and stop rendering it as running; cooperative
+  cancellation where feasible — a per-job `cancel_requested` flag checked
+  between API pages/batches in long-running syncs; the underlying thread may
+  still finish in the background
+- Out of scope here: persisting jobs across restarts (they live in an in-memory
+  dict in `spotfm/web/jobs.py` and are lost on restart)
+- Files: `spotfm/web/jobs.py`, `spotfm/web/routes/` (new route), job templates
+- **Effort**: Medium (~2-4 hours)
+- **Scope**: standalone PR
+
+#### First-Time Spotify Auth in Web UI (No input() Hang)
+- First-time auth blocks on an `input()` paste prompt inside the server process,
+  so a webapp job with no cached token hangs forever when the server runs in a
+  container or detached (workaround in FAQ: authenticate once on the host to
+  populate the shared `~/.spotfm/spotify-token-cache` mount)
+- Add an in-webapp flow: when no cached token exists, surface the authorize URL
+  on a dedicated page, accept the pasted redirect URL there, and complete the
+  token exchange inside the web process, writing the same token cache the CLI
+  uses — no `input()` calls anywhere reachable by a job
+- Files: `spotfm/web/routes/`, `spotfm/spotify/client.py`, templates
+- **Effort**: Medium (~3-5 hours)
+- **Scope**: standalone PR
+
 ### 🟢 LOW PRIORITY
 
 #### Job Page Log Follows the Last Line

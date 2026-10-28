@@ -78,4 +78,5 @@ Then re-trigger the job from the web UI.
 
 Note: a job stuck on the Spotify auth prompt is blocked on an unreachable
 `input()` call, so restarting is the only way to clear it short of adding a
-cancel feature.
+cancel feature. Both a cancel feature and an in-webapp first-time auth flow are
+tracked in [TODO.md](TODO.md).
