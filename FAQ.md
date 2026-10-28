@@ -24,9 +24,13 @@ authenticate once on the host and the container picks it up automatically:
 
 1. Open the `https://accounts.spotify.com/authorize?...` URL from the job log
    in your browser, log in, and approve.
-2. You'll be redirected to `http://127.0.0.1:9090/?code=...`. The page shows
-   "This site can't be reached" — that's expected. Copy the full URL from the
-   address bar.
+2. You'll be redirected to `http://127.0.0.1:9090/?code=...`. Nothing listens
+   there during this manual flow, so the page shows "This site can't be
+   reached" — that's expected. Copy the full URL from the address bar.
+   `127.0.0.1:9090` is spotfm's default `REDIRECT_URI`
+   (`spotfm/spotify/constants.py`); it works here because the same URI is
+   registered in the Spotify app settings. If your app registration pins a
+   different redirect URI, the redirect lands on that instead.
 3. Run the CLI on the host and paste that URL when prompted:
 
    ```bash
