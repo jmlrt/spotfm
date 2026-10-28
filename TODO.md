@@ -14,8 +14,10 @@
 - **Part 2: Enhance `find-duplicate-names` output with categorization**
   - Current: Outputs all fuzzy matches equally, requiring manual review
   - Target: Flag each dupe as SAFE, QUESTIONABLE, or NOT_A_DUPE based on:
-    - **SAFE**: A COLORS SHOW versions, duration match within 90% (same track, different encoding)
-    - **QUESTIONABLE**: Original vs Remix, Studio vs Live, different named versions (Angela vs Angela - Version 2)
+    - **SAFE**: same track under a different release/version label (e.g., live-session
+      versions), duration match within 90% (same track, different encoding)
+    - **QUESTIONABLE**: Original vs Remix, Studio vs Live, different named versions
+      (e.g., "Track" vs "Track - Version 2")
     - **NOT_A_DUPE**: Sequels (Pt. 2, II, 2.0), medleys, collaborations that aren't the same track
   - Add `--include-duration` flag to `find-duplicate-names` to output duration & duration_diff in CSV
   - Add categorization logic to classify each dupe pair
@@ -97,7 +99,6 @@
 
 #### Random Playlist Generator
 - Generate randomized playlist with N tracks from user's library
-- Reference implementation: `toolbox/python/spotify_random_playlist.py`
 - **Effort**: LOW (~1-2 hours)
 
 **Expected behavior:**
