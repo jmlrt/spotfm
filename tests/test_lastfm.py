@@ -569,8 +569,8 @@ class TestTrack:
     def test_track_str(self):
         """Test Track string representation."""
         mock_user = MagicMock()
-        track = Track("The Beatles", "Hey Jude", "http://last.fm/track", mock_user)
-        assert str(track) == "The Beatles - Hey Jude"
+        track = Track("Test Artist", "Test Track", "http://last.fm/track", mock_user)
+        assert str(track) == "Test Artist - Test Track"
 
     def test_track_str_truncates_long_names(self):
         """Test Track string representation truncates long names."""
@@ -1064,9 +1064,9 @@ class TestGetRecentTracksScrobbles:
         mock_pylast_user.name = "testuser"
 
         mock_track = MagicMock()
-        mock_track.track.artist.name = "The Beatles"
-        mock_track.track.title = "Hey Jude"
-        mock_track.track.get_url.return_value = "https://www.last.fm/music/The+Beatles/_/Hey+Jude"
+        mock_track.track.artist.name = "Test Artist"
+        mock_track.track.title = "Test Track"
+        mock_track.track.get_url.return_value = "https://www.last.fm/music/Test+Artist/_/Test+Track"
 
         mock_pylast_user.get_recent_tracks.return_value = [mock_track]
 
@@ -1081,8 +1081,8 @@ class TestGetRecentTracksScrobbles:
 
         assert len(results) == 1
         track = results[0]
-        assert track["artist"] == "The Beatles"
-        assert track["title"] == "Hey Jude"
+        assert track["artist"] == "Test Artist"
+        assert track["title"] == "Test Track"
         assert track["period_scrobbles"] == 1  # 1 scrobble in last 7 days
         assert track["total_scrobbles"] == 2  # 2 total scrobbles
         assert "last.fm/user/testuser/library" in track["url"]

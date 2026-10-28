@@ -267,7 +267,7 @@ def sample_artist_data():
     """Provide sample artist data for testing."""
     return {
         "id": "artist123",
-        "name": "The Beatles",
+        "name": "Test Artist",
         "genres": ["rock", "pop", "british invasion"],
     }
 
@@ -277,9 +277,9 @@ def sample_album_data():
     """Provide sample album data for testing."""
     return {
         "id": "album123",
-        "name": "Abbey Road",
+        "name": "Test Album",
         "release_date": "1969-09-26",
-        "artists": [{"id": "artist123", "name": "The Beatles"}],
+        "artists": [{"id": "artist123", "name": "Test Artist"}],
     }
 
 
@@ -288,12 +288,12 @@ def sample_track_data():
     """Provide sample track data for testing."""
     return {
         "id": "track123",
-        "name": "Come Together",
+        "name": "Test Track",
         "album": {
             "id": "album123",
-            "name": "Abbey Road",
+            "name": "Test Album",
         },
-        "artists": [{"id": "artist123", "name": "The Beatles"}],
+        "artists": [{"id": "artist123", "name": "Test Artist"}],
     }
 
 

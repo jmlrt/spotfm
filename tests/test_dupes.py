@@ -13,15 +13,15 @@ def populated_db(temp_database, monkeypatch):
 
     # Insert test tracks
     tracks_data = [
-        ("track1", "Come Together", "2024-01-01"),
-        ("track2", "Come Together - Remastered", "2024-01-02"),
-        ("track3", "Yesterday", "2024-01-03"),
+        ("track1", "Test Track", "2024-01-01"),
+        ("track2", "Test Track - Remastered", "2024-01-02"),
+        ("track3", "Old Song", "2024-01-03"),
         ("track4", "Something", "2024-01-04"),
-        ("track5", "Here Comes the Sun", "2024-01-05"),
+        ("track5", "Long Filler Song", "2024-01-05"),
         ("track6", "Ice", "2024-01-06"),
         ("track7", "Ice Cream", "2024-01-07"),
-        ("track8", "All Bad (feat. Anderson .Paak)", "2024-01-08"),
-        ("track9", "RNP (feat. Anderson .Paak)", "2024-01-09"),
+        ("track8", "Track A (feat. Featured Artist)", "2024-01-08"),
+        ("track9", "Unrelated (feat. Featured Artist)", "2024-01-09"),
         ("track10", "You", "2024-01-10"),
         ("track11", "All Because of You", "2024-01-11"),
     ]
@@ -32,9 +32,9 @@ def populated_db(temp_database, monkeypatch):
 
     # Insert test artists
     artists_data = [
-        ("artist1", "The Beatles"),
-        ("artist2", "Anderson .Paak"),
-        ("artist3", "JID"),
+        ("artist1", "Test Artist"),
+        ("artist2", "Featured Artist"),
+        ("artist3", "Main Artist"),
     ]
 
     for artist_id, name in artists_data:
@@ -152,8 +152,8 @@ class TestGetTracksWithPlaylistsOptimized:
         # Verify track1 has correct data
         assert "track1" in tracks
         track1 = tracks["track1"]
-        assert track1["name"] == "Come Together"
-        assert track1["artists"] == "The Beatles"
+        assert track1["name"] == "Test Track"
+        assert track1["artists"] == "Test Artist"
         assert track1["playlist_count"] == 3  # In 3 playlists
         assert len(track1["playlists"]) == 3
 
@@ -186,7 +186,7 @@ class TestGetTracksWithPlaylistsOptimized:
         tracks = dupes.get_tracks_with_playlists_optimized()
 
         # Track with artists
-        assert tracks["track1"]["full_name"] == "The Beatles - Come Together"
+        assert tracks["track1"]["full_name"] == "Test Artist - Test Track"
 
 
 @pytest.mark.unit
@@ -203,7 +203,7 @@ class TestFindDuplicateIds:
         assert len(duplicates) == 2
 
         # Find track1 in results
-        track1_dup = next(d for d in duplicates if "Come Together" in d["track"])
+        track1_dup = next(d for d in duplicates if "Test Track" in d["track"])
         assert track1_dup["type"] == "ID"
         assert track1_dup["count"] == 3
 
@@ -214,7 +214,7 @@ class TestFindDuplicateIds:
         duplicates = dupes.find_duplicate_ids(excluded_playlist_ids=["playlist2"])
 
         # track1 should now only have 2 playlists (excluded playlist2)
-        track1_dup = next((d for d in duplicates if "Come Together" in d["track"]), None)
+        track1_dup = next((d for d in duplicates if "Test Track" in d["track"]), None)
         if track1_dup:
             assert track1_dup["count"] == 2
 
@@ -286,12 +286,12 @@ class TestGetFuzzyMatchCandidates:
 
         candidates = dupes.get_fuzzy_match_candidates()
 
-        # Find "Come Together" track
-        come_together = next(c for c in candidates if c["name"] == "Come Together")
+        # Find "Test Track" track
+        test_track = next(c for c in candidates if c["name"] == "Test Track")
 
         # Prefix should be lowercase first 3 chars
-        assert come_together["name_prefix"] == "com"
-        assert come_together["name_length"] == len("Come Together")
+        assert test_track["name_prefix"] == "tes"
+        assert test_track["name_length"] == len("Test Track")
 
 
 @pytest.mark.unit
@@ -312,46 +312,44 @@ class TestIsLikelyFalsePositive:
 
     def test_track_name_is_artist_name(self):
         """Test that track name matching an artist name is flagged."""
-        # "Latto" vs "Make Em Say (feat. Latto)"
-        result = dupes.is_likely_false_positive("Latto", "Make Em Say (feat. Latto)", "Artist A", "Artist A, Latto")
+        # "Duo" vs "Some Song (feat. Duo)"
+        result = dupes.is_likely_false_positive("Duo", "Some Song (feat. Duo)", "Artist A", "Artist A, Duo")
         assert result is True
 
     def test_different_tracks_same_featured_artist(self):
         """Test that different tracks with same featured artist are flagged."""
-        # "All Bad (feat. Anderson .Paak)" vs "RNP (feat. Anderson .Paak)"
+        # "Track A (feat. Featured Artist)" vs "Unrelated (feat. Featured Artist)"
         result = dupes.is_likely_false_positive(
-            "All Bad (feat. Anderson .Paak)",
-            "RNP (feat. Anderson .Paak)",
-            "JID",
-            "JID",
+            "Track A (feat. Featured Artist)",
+            "Unrelated (feat. Featured Artist)",
+            "Main Artist",
+            "Main Artist",
         )
         assert result is True
 
     def test_legitimate_remix(self):
         """Test that legitimate remixes/remasters are not flagged."""
-        # "Come Together" vs "Come Together - Remastered"
-        result = dupes.is_likely_false_positive(
-            "Come Together", "Come Together - Remastered", "The Beatles", "The Beatles"
-        )
+        # "Test Track" vs "Test Track - Remastered"
+        result = dupes.is_likely_false_positive("Test Track", "Test Track - Remastered", "Test Artist", "Test Artist")
         assert result is False
 
     def test_legitimate_duplicate(self):
         """Test that legitimate duplicates are not flagged."""
         # Very similar track names
-        result = dupes.is_likely_false_positive("Yesterday", "Yesterday", "The Beatles", "The Beatles")
+        result = dupes.is_likely_false_positive("Old Song", "Old Song", "Test Artist", "Test Artist")
         assert result is False
 
     def test_large_length_ratio_difference(self):
         """Test that tracks with very different lengths are flagged."""
         # One track 4x longer than the other
-        result = dupes.is_likely_false_positive("Bad", "Bad Amapiano Remix Extended Version", "Artist A", "Artist A")
+        result = dupes.is_likely_false_positive("Foo", "Foo Gadget Remix Extended Version", "Artist A", "Artist A")
         # Should be flagged unless it's a clear remix pattern
         assert result is True
 
     def test_same_core_different_versions(self):
         """Test tracks with same core but different versions."""
-        # "Bad" vs "Bad - Remix"
-        result = dupes.is_likely_false_positive("Bad", "Bad - Remix", "Artist A", "Artist A")
+        # "Foo" vs "Foo - Remix"
+        result = dupes.is_likely_false_positive("Foo", "Foo - Remix", "Artist A", "Artist A")
         # Should NOT be flagged - this is a valid duplicate (remix)
         assert result is False
 
@@ -364,16 +362,16 @@ class TestIsLikelyFalsePositive:
 
     def test_track_name_in_artist_exception_with_feat(self):
         """Test exception when track name appears at start of core track."""
-        # Track name "Latto" appears at the start of core title (before feat)
-        result = dupes.is_likely_false_positive("Latto", "Latto (feat. Someone)", "Artist A", "Artist B, Latto")
-        # Should NOT be flagged because "Latto" appears at start of core track name
+        # Track name "Duo" appears at the start of core title (before feat)
+        result = dupes.is_likely_false_positive("Duo", "Duo (feat. Someone)", "Artist A", "Artist B, Duo")
+        # Should NOT be flagged because "Duo" appears at start of core track name
         assert result is False
 
     def test_track_name_in_artist_no_exception(self):
         """Test that track name only in feat credits is flagged."""
-        # "Latto" only appears in (feat. ...) part
-        result = dupes.is_likely_false_positive("Latto", "Different Song (feat. Latto)", "Artist A", "Artist B, Latto")
-        # Should be flagged - "Latto" only in feat credits
+        # "Duo" only appears in (feat. ...) part
+        result = dupes.is_likely_false_positive("Duo", "Different Song (feat. Duo)", "Artist A", "Artist B, Duo")
+        # Should be flagged - "Duo" only in feat credits
         assert result is True
 
     def test_very_short_exact_match(self):
@@ -385,15 +383,15 @@ class TestIsLikelyFalsePositive:
 
     def test_short_prefix_with_space(self):
         """Test short name as prefix with space separator."""
-        # "Bad" vs "Bad Amapiano" without remix marker
-        result = dupes.is_likely_false_positive("Bad", "Bad Amapiano", "Artist A", "Artist A")
+        # "Foo" vs "Foo Gadget" without remix marker
+        result = dupes.is_likely_false_positive("Foo", "Foo Gadget", "Artist A", "Artist A")
         # Should be flagged - extra part is not a remix marker
         assert result is True
 
     def test_substring_not_at_start(self):
         """Test short substring not at start of longer name."""
         # "One" appears in middle of longer track
-        result = dupes.is_likely_false_positive("One", "Gone Baby, Don't Be Long", "Artist A", "Artist A")
+        result = dupes.is_likely_false_positive("One", "A Long Song With One Inside", "Artist A", "Artist A")
         # Should be flagged - "one" only appears in middle
         assert result is True
 
@@ -427,7 +425,7 @@ class TestFindDuplicateNames:
         # Use lower threshold to catch similar tracks
         duplicates = dupes.find_duplicate_names(threshold=85)
 
-        # Should find "Come Together" and "Come Together - Remastered" as similar
+        # Should find "Test Track" and "Test Track - Remastered" as similar
         assert len(duplicates) > 0
 
         # Verify duplicate structure
@@ -548,22 +546,22 @@ class TestFindDuplicateNames:
         candidates = [
             {
                 "id": "track1",
-                "name": "Come Together",
-                "artists": "The Beatles",
+                "name": "Test Track",
+                "artists": "Test Artist",
                 "playlists": shared_playlists,
-                "full_name": "The Beatles - Come Together",
-                "name_prefix": "com",
-                "name_length": 14,
+                "full_name": "Test Artist - Test Track",
+                "name_prefix": "tes",
+                "name_length": 10,
                 "playlist_id_set": shared_playlist_id_set,
             },
             {
                 "id": "track2",
-                "name": "Come Together Remix",
-                "artists": "The Beatles",
+                "name": "Test Track Remix",
+                "artists": "Test Artist",
                 "playlists": shared_playlists,  # Exact same playlists
-                "full_name": "The Beatles - Come Together Remix",
-                "name_prefix": "com",
-                "name_length": 19,
+                "full_name": "Test Artist - Test Track Remix",
+                "name_prefix": "tes",
+                "name_length": 15,
                 "playlist_id_set": shared_playlist_id_set,
             },
         ]
