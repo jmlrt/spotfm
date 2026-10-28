@@ -262,51 +262,6 @@ def mock_spotify_client():
     return client
 
 
-@pytest.fixture
-def sample_artist_data():
-    """Provide sample artist data for testing."""
-    return {
-        "id": "artist123",
-        "name": "Test Artist",
-        "genres": ["rock", "pop", "british invasion"],
-    }
-
-
-@pytest.fixture
-def sample_album_data():
-    """Provide sample album data for testing."""
-    return {
-        "id": "album123",
-        "name": "Test Album",
-        "release_date": "1969-09-26",
-        "artists": [{"id": "artist123", "name": "Test Artist"}],
-    }
-
-
-@pytest.fixture
-def sample_track_data():
-    """Provide sample track data for testing."""
-    return {
-        "id": "track123",
-        "name": "Test Track",
-        "album": {
-            "id": "album123",
-            "name": "Test Album",
-        },
-        "artists": [{"id": "artist123", "name": "Test Artist"}],
-    }
-
-
-@pytest.fixture
-def sample_playlist_data():
-    """Provide sample playlist data for testing."""
-    return {
-        "id": "playlist123",
-        "name": "Rock Classics",
-        "owner": {"id": "user123"},
-    }
-
-
 @pytest.fixture(autouse=True)
 def reset_module_state():
     """Reset module-level state between tests."""
