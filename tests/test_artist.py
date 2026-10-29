@@ -44,16 +44,16 @@ class TestArtistRepresentation:
     def test_artist_repr(self):
         """Test Artist __repr__ method."""
         artist = Artist("test_id")
-        artist.name = "The Beatles"
+        artist.name = "Test Artist"
 
-        assert repr(artist) == "Artist(The Beatles)"
+        assert repr(artist) == "Artist(Test Artist)"
 
     def test_artist_str(self):
         """Test Artist __str__ method."""
         artist = Artist("test_id")
-        artist.name = "Pink Floyd"
+        artist.name = "Test Artist"
 
-        assert str(artist) == "Pink Floyd"
+        assert str(artist) == "Test Artist"
 
 
 @pytest.mark.unit
@@ -119,14 +119,14 @@ class TestArtistUpdateFromApi:
         """Test successful update from API."""
         mock_spotify_client.artist.return_value = {
             "id": "artist123",
-            "name": "The Beatles",
+            "name": "Test Artist",
             "genres": ["rock", "pop", "british invasion"],
         }
 
         artist = Artist("artist123")
         artist.update_from_api(mock_spotify_client)
 
-        assert artist.name == "The Beatles"
+        assert artist.name == "Test Artist"
         assert artist.genres == ["rock", "pop", "british invasion"]
         assert artist.updated == "2024-03-15"
         mock_spotify_client.artist.assert_called_once_with("artist123")
@@ -136,7 +136,7 @@ class TestArtistUpdateFromApi:
         """Test that artist name is sanitized."""
         mock_spotify_client.artist.return_value = {
             "id": "artist123",
-            "name": "Guns N' Roses",
+            "name": "Test Artist's Band",
             "genres": ["rock"],
         }
 
@@ -145,7 +145,7 @@ class TestArtistUpdateFromApi:
 
         # Single quotes should be removed by sanitize_string
         assert "'" not in artist.name
-        assert artist.name == "Guns N Roses"
+        assert artist.name == "Test Artists Band"
 
     @freeze_time("2024-03-15")
     def test_update_from_api_sanitizes_genres(self, mock_spotify_client):
@@ -374,14 +374,14 @@ class TestArtistEdgeCases:
         """Test artist with special characters in name."""
         mock_spotify_client.artist.return_value = {
             "id": "special123",
-            "name": "AC/DC & Friends",
+            "name": "Test/Artist & Friends",
             "genres": ["rock"],
         }
 
         artist = Artist("special123")
         artist.update_from_api(mock_spotify_client)
 
-        assert artist.name == "AC/DC & Friends"
+        assert artist.name == "Test/Artist & Friends"
 
     def test_artist_with_very_long_genre_list(self, mock_spotify_client):
         """Test artist with many genres."""
@@ -402,11 +402,11 @@ class TestArtistEdgeCases:
         """Test artist with Unicode characters in name."""
         mock_spotify_client.artist.return_value = {
             "id": "unicode123",
-            "name": "Björk",
+            "name": "Ünïcode Tëst",
             "genres": ["avant-garde"],
         }
 
         artist = Artist("unicode123")
         artist.update_from_api(mock_spotify_client)
 
-        assert artist.name == "Björk"
+        assert artist.name == "Ünïcode Tëst"

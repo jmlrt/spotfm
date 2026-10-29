@@ -39,16 +39,16 @@ class TestAlbumRepresentation:
     def test_album_repr(self):
         """Test Album __repr__ method."""
         album = Album("album1")
-        album.name = "Abbey Road"
+        album.name = "Test Album"
 
-        assert repr(album) == "Album(Abbey Road)"
+        assert repr(album) == "Album(Test Album)"
 
     def test_album_str(self):
         """Test Album __str__ method."""
         album = Album("album1")
-        album.name = "Dark Side of the Moon"
+        album.name = "Test Album"
 
-        assert str(album) == "Dark Side of the Moon"
+        assert str(album) == "Test Album"
 
 
 @pytest.mark.unit
@@ -154,14 +154,14 @@ class TestAlbumUpdateFromApi:
 
         mock_spotify_client.album.return_value = {
             "id": "album123",
-            "name": "Queen's Greatest Hits",
+            "name": "Test Artist's Hits",
             "release_date": "1981-10-26",
-            "artists": [{"id": "artist1", "name": "Queen"}],
+            "artists": [{"id": "artist1", "name": "Test Artist"}],
         }
 
         mock_spotify_client.artist.return_value = {
             "id": "artist1",
-            "name": "Queen",
+            "name": "Test Artist",
             "genres": ["rock"],
         }
 
@@ -169,7 +169,7 @@ class TestAlbumUpdateFromApi:
         album.update_from_api(mock_spotify_client)
 
         assert "'" not in album.name
-        assert album.name == "Queens Greatest Hits"
+        assert album.name == "Test Artists Hits"
 
 
 @pytest.mark.unit

@@ -22,7 +22,7 @@ make lint   # Check code style
 ### Understand the Project
 
 Before contributing, please read:
-1. [CLAUDE.md](CLAUDE.md) - Architecture and code guidance
+1. [AGENTS.md](AGENTS.md) - Architecture and code guidance
 2. [README.md](README.md) - Project overview and usage
 3. [TODO.md](TODO.md) - Planned features and roadmap
 
@@ -171,8 +171,8 @@ uv run pytest tests/test_track.py::TestTrack::test_something
 
 ### Before Making Architectural Changes
 
-- Read the [Critical Warnings](CLAUDE.md#critical-warnings-️) in CLAUDE.md
-- Check [Key Implementation Notes](CLAUDE.md#key-implementation-notes) for context
+- Read the [Critical Warnings](AGENTS.md#critical-warnings) in AGENTS.md
+- Check [Key Implementation Notes](AGENTS.md#key-implementation-notes) for context
 - Understand [Track Lifecycle Tracking](SPEC.md#track-lifecycle-timestamps) implications
 
 ## Common Tasks
@@ -195,7 +195,7 @@ uv run pytest tests/test_track.py::TestTrack::test_something
 
 ### Fixing a Bug
 
-Per [CLAUDE.md Development Practices](CLAUDE.md#development-practices):
+House rule:
 
 > When fixing a bug or inconsistency in one CLI command, proactively check ALL similar commands for the same issue before considering the task done.
 
@@ -237,7 +237,8 @@ When reporting bugs:
 ## Questions?
 
 - Check [README.md](README.md) for user documentation
-- Check [CLAUDE.md](CLAUDE.md) for architecture and patterns
+- Check [FAQ.md](FAQ.md) for common setup, Docker, and webapp questions
+- Check [AGENTS.md](AGENTS.md) for architecture and patterns
 - Check existing issues and PRs on GitHub
 - Open an issue to ask questions
 

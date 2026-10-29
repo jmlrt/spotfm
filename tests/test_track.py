@@ -41,14 +41,14 @@ class TestTrackRepresentation:
     def test_track_repr_single_artist(self):
         """Test Track __repr__ with single artist."""
         track = Track("track1")
-        track.name = "Bohemian Rhapsody"
+        track.name = "Test Track"
 
         artist = Artist("artist1")
-        artist.name = "Queen"
+        artist.name = "Test Artist"
         artist.genres = []
         track.artists = [artist]
 
-        assert repr(track) == "Track(Queen - Bohemian Rhapsody)"
+        assert repr(track) == "Track(Test Artist - Test Track)"
 
     def test_track_repr_multiple_artists(self):
         """Test Track __repr__ with multiple artists."""

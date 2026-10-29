@@ -1,9 +1,120 @@
 # Project-local Vibe config for spotfm.
 # Loaded only when this folder is trusted (see ~/.vibe/trusted_folders.toml).
+#
+# A [tools.bash] allowlist here REPLACES each contributor's ~/.vibe/config.toml
+# bash allowlist (lists do not merge across config layers), so it stays
+# self-sufficient: the builtin read-only defaults plus this repo's toolchain.
+#
+# Least privilege: toolchain entries are narrowed to the documented workflow
+# (Makefile targets, read-only spfm queries). Mutating commands — dep changes
+# (make add/remove), builds/clean (rm), publish (git push --tags + PyPI),
+# library-mutating spfm ops — stay behind the approval prompt.
+
+applied_migrations = [
+    "bash_read_only_defaults_v1",
+]
 
 [tools.bash]
 allowlist = [
-  "uv",    # uv run pytest, uv run spfm, uv sync, ...
-  "spfm",  # spotfm CLI
-  "make",
+    # Builtin read-only commands (kept by the bash_read_only_defaults_v1
+    # migration; removing them only makes the migration re-add them).
+    "basename",
+    "cat",
+    "comm",
+    "cut",
+    "date",
+    "diff",
+    "dirname",
+    "du",
+    "file",
+    "find",
+    "fmt",
+    "fold",
+    "grep",
+    "head",
+    "join",
+    "less",
+    "ls",
+    "md5sum",
+    "more",
+    "nl",
+    "od",
+    "paste",
+    "pwd",
+    "readlink",
+    "sha1sum",
+    "sha256sum",
+    "shasum",
+    "sort",
+    "stat",
+    "sum",
+    "tac",
+    "tail",
+    "tr",
+    "uname",
+    "uniq",
+    "wc",
+    "which",
+    # Other builtin defaults, which the migration does not restore.
+    "cd",
+    "echo",
+    "git diff",
+    "git log",
+    "git status",
+    "tree",
+    "whoami",
+    # Read-only git extras (the global allowlist is shadowed here). Note the
+    # allowlist prefix-matches whole words: `git -C <path> log` does NOT match
+    # `git log`, so keep the plain form when working in the repo root.
+    "git ls-files",
+    "git ls-tree",
+    "git show",
+    # Local git workflow: staging and committing are reversible, and
+    # pre-commit hooks still run on commit. push, reset --hard, checkout,
+    # clean stay behind the prompt.
+    "git add",
+    "git commit",
+    # GitHub CLI: auth status only (read-only). Other `gh` commands -
+    # PR edits, repo operations, arbitrary API writes - stay behind the prompt.
+    "gh auth status",
+    # make: only the sync/lint/format/test/export targets (the allowlist
+    # prefix-matches whole words, so each variant is listed). Notably NOT
+    # allowed: make publish (pushes tags, uploads to PyPI), make build/clean
+    # (rm), make add/remove (dependency changes), make test-watch,
+    # make test-all-versions (uv sync with version pin).
+    "make dupes-ids",
+    "make dupes-ids-csv",
+    "make dupes-names",
+    "make dupes-names-csv",
+    "make format",
+    "make lint",
+    "make lint-fix",
+    "make lint-fix-unsafe",
+    "make pre-commit",
+    "make relinked",
+    "make relinked-csv",
+    "make sync",
+    "make test",
+    "make test-coverage",
+    "make test-failed",
+    "make test-integration",
+    "make test-parallel",
+    "make test-unit",
+    "make test-verbose",
+    # uv: sync and the test/lint entry points only. `uv run python` and
+    # `uv tool` (arbitrary code / installs) stay behind the prompt.
+    "uv run pytest",
+    "uv run ruff",
+    "uv sync",
+    # spfm: read-only queries only. update-playlists, add-tracks-from-file,
+    # remove-tracks-from-playlist, discover-from-playlists and
+    # lastfm recent-scrobbles mutate the Spotify library or the local DB
+    # and stay behind the prompt.
+    "spfm spotify count-tracks",
+    "spfm spotify count-tracks-by-playlists",
+    "spfm spotify find-duplicate-ids",
+    "spfm spotify find-duplicate-names",
+    "spfm spotify find-relinked-tracks",
+    "spfm spotify find-tracks",
+    "spfm spotify list-playlists-with-track-counts",
 ]

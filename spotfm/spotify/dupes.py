@@ -248,14 +248,14 @@ def is_likely_false_positive(track1_name, track2_name, track1_artists, track2_ar
     if min_len <= 5:
         # Allow only if they're extremely similar (same base word + remix marker)
         # e.g., "Ice" vs "Ice Cream" MIGHT be okay if high similarity score
-        # but "You" vs "You Got the Stuff" is false positive
+        # but "You" vs "You Got Everything" is false positive
         # Check if longer track has significantly more content
         shorter = name1_lower if len(name1_lower) < len(name2_lower) else name2_lower
         longer = name2_lower if len(name1_lower) < len(name2_lower) else name1_lower
 
         # If names aren't identical and longer has extra words beyond shorter
         if shorter != longer:
-            # Check if longer starts with shorter + space (e.g., "Bad" vs "Bad Amapiano")
+            # Check if longer starts with shorter + space (e.g., "Foo" vs "Foo Gadget")
             if longer.startswith(shorter + " "):
                 # This might be okay ONLY if the extra part is a remix/version marker
                 extra_part = longer[len(shorter) :].strip()
@@ -271,7 +271,7 @@ def is_likely_false_positive(track1_name, track2_name, track1_artists, track2_ar
                 return True
 
     # Pattern 1: Track name is just an artist name from the other track
-    # e.g., "Latto" vs "Make Em Say (feat. Latto)"
+    # e.g., "Duo" vs "Some Song (feat. Duo)"
     # Check if one track name appears as an artist in the other track
     all_artists1 = track1_artists.lower().replace(",", " ").split()
     all_artists2 = track2_artists.lower().replace(",", " ").split()
@@ -306,7 +306,7 @@ def is_likely_false_positive(track1_name, track2_name, track1_artists, track2_ar
                     return True
 
     # Pattern 2: Very short common words that are just substrings
-    # e.g., "You" vs "All Because of You", "One" vs "Gone Baby, Don't Be Long"
+    # e.g., "You" vs "All Because of You", "One" vs "A Long Song With One Inside"
     min_len = min(len(name1_lower), len(name2_lower))
     max_len = max(len(name1_lower), len(name2_lower))
 
@@ -323,7 +323,7 @@ def is_likely_false_positive(track1_name, track2_name, track1_artists, track2_ar
             return True
 
     # Pattern 3: Different track titles with only shared featured artist
-    # e.g., "All Bad (feat. Anderson .Paak)" vs "RNP (feat. Anderson .Paak)"
+    # e.g., "Track A (feat. Featured Artist)" vs "Unrelated (feat. Featured Artist)"
     # Strip featured artist info and compare core track names
     # Remove (feat. ...) and similar patterns
     core1 = re.sub(r"\(feat\..*?\)", "", name1_lower, flags=re.IGNORECASE).strip()
@@ -340,7 +340,7 @@ def is_likely_false_positive(track1_name, track2_name, track1_artists, track2_ar
     if max_len > 0:
         length_ratio = min_len / max_len
         # If length ratio < 0.25 (one is 4x longer), likely false positive
-        # UNLESS the shorter name is contained at the start of longer (e.g., "Bad" vs "Bad - Remix")
+        # UNLESS the shorter name is contained at the start of longer (e.g., "Foo" vs "Foo - Remix")
         if length_ratio < 0.25:
             shorter = name1_lower if len(name1_lower) < len(name2_lower) else name2_lower
             longer = name2_lower if len(name1_lower) < len(name2_lower) else name1_lower
